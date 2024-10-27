@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 74b8ca1a-f976-476e-93d5-3af7409a57ee
+      author: 'IFUNMAN'
+      changes:
+        - insert:
+            tableName: 'roles'
+            columns:
+              - column:
+                  name: id
+                  value: '0e50c65d-f5a9-4c77-8fb5-df61b655f0ea'
+              - column:
+                  name: name
+                  value: 'ROLE_USER'
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+        - insert:
+            tableName: 'roles'
+            columns:
+              - column:
+                  name: id
+                  value: '8b7c3561-9f46-4d54-9f59-7e1d025ae418'
+              - column:
+                  name: name
+                  value: 'ROLE_ADMIN'
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP

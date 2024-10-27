@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: c31eb353-4a31-4783-b8ce-3bcf6b3f89e6
+      author: 'IFUNMAN'
+      changes:
+        - createTable:
+            tableName: 'sessions'
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    unique: true
+                    updatable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    unique: true
+                    nullable: false
+                    updatable: false
+              - column:
+                  name: access_token
+                  type: varchar(512)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: refresh_token
+                  type: varchar(512)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: 'sessions'
+            baseColumnNames: 'user_id'
+            referencedTableName: 'users'
+            referencedColumnNames: 'id'
+            constraintName: 'fk_sessions_user'

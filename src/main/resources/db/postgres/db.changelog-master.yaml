@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7fbd6dc1-bda5-44ff-ac01-31852a17fc44
+      author: 'IFUNMAN'
+  - include:
+      file: db/postgres/db.changelog-001-CreateUserTable.yaml
+  - include:
+      file: db/postgres/db.changelog-002-CreateRoleTable.yaml
+  - include:
+      file: db/postgres/db.changelog-003-CreateUserRoleTable.yaml
+  - include:
+      file: db/postgres/db.changelog-004-CreateRegistrationKeysTable.yaml
+  - include:
+      file: db/postgres/db.changelog-005-CreateSessionTable.yaml
+  - include:
+      file: db/postgres/db.changelog-006-Indexes.yaml
+  - include:
+      file: db/postgres/db.changelog-007-RoleInitialize.yaml

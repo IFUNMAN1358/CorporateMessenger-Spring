@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 74b8ca1a-f976-476e-93d5-3af7409a57ed
+      author: 'IFUNMAN'
+      changes:
+        - createTable:
+            tableName: 'roles'
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    unique: true
+                    updatable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    updatable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false

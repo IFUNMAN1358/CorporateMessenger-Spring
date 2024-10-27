@@ -1,0 +1,130 @@
+version: '3.8'
+services:
+
+  app:
+    container_name: app
+    image: app:latest
+    build:
+      context: .
+      dockerfile: DockerfileProd
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      CASSANDRA_HOST: ${CASSANDRA_HOST}
+      CASSANDRA_PORT: ${CASSANDRA_PORT}
+      CASSANDRA_KEYSPACE_NAME: ${CASSANDRA_KEYSPACE_NAME}
+      CASSANDRA_USERNAME: ${CASSANDRA_USERNAME}
+      CASSANDRA_PASSWORD: ${CASSANDRA_PASSWORD}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8000/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      - postgres
+      - cassandra
+      - redis
+    networks:
+      - postgres-net
+      - cassandra-net
+      - redis-net
+    profiles:
+      - exclude-app
+
+  postgres:
+    container_name: postgres
+    image: postgres:16.3
+    restart: "no"
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    networks:
+      - postgres-net
+
+  cassandra:
+    container_name: cassandra
+    image: cassandra:4.1.7
+    environment:
+      CASSANDRA_CLUSTER_NAME: "cluster"
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra
+      CASSANDRA_SEEDS: "cassandra"
+      CASSANDRA_DC: ${CASSANDRA_DATACENTER}
+      CASSANDRA_RACK: "rack1"
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_AUTHENTICATOR: PasswordAuthenticator
+      CASSANDRA_AUTHORIZER: CassandraAuthorizer
+      CASSANDRA_PASSWORD: ${CASSANDRA_PASSWORD}
+    ports:
+      - "9041:9042"
+    volumes:
+      - ./init.cql:/docker-entrypoint-initdb.d/init.cql
+    networks:
+      - cassandra-net
+
+  cassandra-init:
+    container_name: cassandra-init
+    image: cassandra:4.1.7
+    depends_on:
+      - cassandra
+    volumes:
+      - ./init.cql:/init.cql
+    entrypoint: >
+      /bin/bash -c "
+        until cqlsh cassandra 9042 -u $$CASSANDRA_USERNAME -p $$CASSANDRA_PASSWORD -e 'DESCRIBE KEYSPACES'; do
+          sleep 5;
+        done;
+        cqlsh cassandra 9042 -u $$CASSANDRA_USERNAME -p $$CASSANDRA_PASSWORD -f /init.cql;
+      "
+    networks:
+      - cassandra-net
+
+  redis:
+    container_name: redis
+    image: redis:7.0-alpine
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - redis-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  postgres-net:
+    driver: bridge
+  cassandra-net:
+    driver: bridge
+  redis-net:
+    driver: bridge

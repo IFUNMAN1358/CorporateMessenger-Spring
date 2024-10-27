@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: beeed294-a62e-4279-b289-237136607cea
+      author: 'IFUNMAN'
+      changes:
+        - createTable:
+            tableName: 'registration_keys'
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    unique: true
+                    updatable: false
+              - column:
+                  name: value
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    updatable: false
+              - column:
+                  name: is_applied
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
