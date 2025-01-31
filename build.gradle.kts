@@ -21,6 +21,7 @@ dependencies {
     // general
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.springframework.boot:spring-boot-starter-test")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -29,6 +30,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-cassandra")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
     // database
     implementation("org.postgresql:postgresql:42.7.2")
@@ -36,6 +38,8 @@ dependencies {
     implementation("org.springframework.data:spring-data-cassandra:4.3.1")
     implementation("com.datastax.oss:java-driver-core:4.17.0")
     implementation("org.cognitor.cassandra:cassandra-migration:2.6.1_v4")
+    // minio
+    implementation("io.minio:minio:8.5.10")
     // security
     implementation("org.springframework.security:spring-security-crypto")
     // jwt

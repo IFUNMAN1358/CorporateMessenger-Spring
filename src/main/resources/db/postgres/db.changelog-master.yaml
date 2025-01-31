@@ -11,8 +11,6 @@ databaseChangeLog:
   - include:
       file: db/postgres/db.changelog-004-CreateRegistrationKeysTable.yaml
   - include:
-      file: db/postgres/db.changelog-005-CreateSessionTable.yaml
+      file: db/postgres/db.changelog-005-CreateUserPhotoTable.yaml
   - include:
-      file: db/postgres/db.changelog-006-Indexes.yaml
-  - include:
-      file: db/postgres/db.changelog-007-RoleInitialize.yaml
+      file: db/postgres/db.changelog-006-RoleInitialize.yaml

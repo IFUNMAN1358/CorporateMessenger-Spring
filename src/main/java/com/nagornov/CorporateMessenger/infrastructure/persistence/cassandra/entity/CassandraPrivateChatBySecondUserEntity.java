@@ -1,0 +1,36 @@
+package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity;
+
+import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.key.CassandraPrivateChatBySecondUserKey;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Table("private_chats_by_second_user")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CassandraPrivateChatBySecondUserEntity {
+
+    @PrimaryKey
+    private CassandraPrivateChatBySecondUserKey key;
+
+    @Column("first_user_id")
+    private UUID firstUserId;
+
+    @Column("last_message_id")
+    private UUID lastMessageId;
+
+    @Column("created_at")
+    private Instant createdAt;
+
+    @Column("is_available")
+    private Boolean isAvailable = true;
+}

@@ -1,0 +1,91 @@
+package com.nagornov.CorporateMessenger.domain.service.listener;
+
+import com.nagornov.CorporateMessenger.domain.enums.ChatType;
+import com.nagornov.CorporateMessenger.domain.enums.KafkaGroup;
+import com.nagornov.CorporateMessenger.domain.enums.KafkaTopic;
+import com.nagornov.CorporateMessenger.domain.enums.KafkaUnreadMessageOperation;
+import com.nagornov.CorporateMessenger.domain.model.Chat;
+import com.nagornov.CorporateMessenger.domain.model.User;
+import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraUnreadMessageBusinessService;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaChatMapper;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaUserMapper;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class KafkaUnreadMessageListener {
+
+    private final CassandraUnreadMessageBusinessService cassandraUnreadMessageBusinessService;
+    private final KafkaUserMapper kafkaUserMapper;
+    private final KafkaChatMapper kafkaChatMapper;
+
+    @KafkaListener(
+            topics = KafkaTopic.UNREAD_MESSAGE_TOPIC_NAME,
+            groupId = KafkaGroup.UNREAD_MESSAGE_GROUP_NAME,
+            containerFactory = "unreadMessageContainerFactory"
+    )
+    public void distributor(ConsumerRecord<String, KafkaUnreadMessageDTO> record, Acknowledgment ack) {
+
+        Chat chat = getChatFromRecord(record);
+        User user = getUserFromRecord(record);
+
+        try {
+            switch (record.value().getOperation()) {
+                case (KafkaUnreadMessageOperation.INCREMENT_UNREAD_MESSAGE_COUNT_FOR_OTHER_OPERATION):
+                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForOther(chat, user);
+                    break;
+                case (KafkaUnreadMessageOperation.DECREMENT_UNREAD_MESSAGE_COUNT_FOR_OTHER_OPERATION):
+                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForOther(chat, user);
+                    break;
+                case (KafkaUnreadMessageOperation.INCREMENT_UNREAD_MESSAGE_COUNT_FOR_USER_OPERATION):
+                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForUser(chat, user);
+                    break;
+                case (KafkaUnreadMessageOperation.DECREMENT_UNREAD_MESSAGE_COUNT_FOR_USER_OPERATION):
+                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForUser(chat, user);
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported operation for unread message kafka distributor");
+            }
+            ack.acknowledge();
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    private Chat getChatFromRecord(@NotNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
+        try {
+            if (record.value().getChat().getChatType().equals(ChatType.PRIVATE_CHAT.getType())) {
+
+                return kafkaChatMapper.toPrivateChatDomain(record.value().getChat());
+
+            } else if (record.value().getChat().getChatType().equals(ChatType.GROUP_CHAT.getType())) {
+
+                return kafkaChatMapper.toGroupChatDomain(record.value().getChat());
+
+            } else {
+                throw new IllegalArgumentException("Illegal chat type in unread message kafka record");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error while trying converting record of message to user domain model in unread message kafka distributor");
+        }
+
+
+    }
+
+    private User getUserFromRecord(@NotNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
+        try {
+            return kafkaUserMapper.toDomain(
+                    record.value().getUser()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Error while trying converting record of message to chat domain model in unread message kafka distributor");
+        }
+    }
+
+}

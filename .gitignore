@@ -1,3 +1,4 @@
+liquibase.properties
 .env
 .gradle
 build/

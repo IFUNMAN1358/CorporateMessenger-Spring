@@ -1,0 +1,4 @@
+url=jdbc:postgresql://localhost:5431/messenger_db
+username=postgres
+password=
+changelog-file=src/main/resources/db/postgres/db.changelog-master.yaml
