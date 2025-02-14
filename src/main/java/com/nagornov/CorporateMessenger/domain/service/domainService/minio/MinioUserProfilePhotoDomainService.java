@@ -2,7 +2,6 @@ package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
 import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
-import com.nagornov.CorporateMessenger.domain.logger.MinioLogger;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.util.UUID;
 public class MinioUserProfilePhotoDomainService {
 
     private final MinioRepository minioRepository;
-    private final MinioLogger minioLogger;
 
     public String upload(@NotNull InputStream inputStream) {
         try {
@@ -29,7 +27,6 @@ public class MinioUserProfilePhotoDomainService {
             );
             return objectName;
         } catch (Exception e) {
-            minioLogger.error("Error uploading user profile photo in service " + e.getMessage());
             throw new RuntimeException("Error uploading user profile photo in service " + e.getMessage());
         }
     }
@@ -41,7 +38,6 @@ public class MinioUserProfilePhotoDomainService {
                 objectName
             );
         } catch (Exception e) {
-            minioLogger.error("Error downloading user profile photo in service " + e.getMessage());
             throw new RuntimeException("Error downloading user profile photo in service " + e.getMessage());
         }
     }
@@ -53,7 +49,6 @@ public class MinioUserProfilePhotoDomainService {
                 objectName
             );
         } catch (Exception e) {
-            minioLogger.error("Error deleting user profile photo in service " + e.getMessage());
             throw new RuntimeException("Error deleting user profile photo in service " + e.getMessage());
         }
     }

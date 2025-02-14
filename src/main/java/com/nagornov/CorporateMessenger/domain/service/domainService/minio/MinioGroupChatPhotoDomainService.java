@@ -2,7 +2,6 @@ package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
 import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
-import com.nagornov.CorporateMessenger.domain.logger.MinioLogger;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import io.minio.StatObjectResponse;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +17,6 @@ import java.util.UUID;
 public class MinioGroupChatPhotoDomainService {
 
     private final MinioRepository minioRepository;
-    private final MinioLogger minioLogger;
 
     public String upload(@NotNull MultipartFile file) {
         try {
@@ -31,7 +29,6 @@ public class MinioGroupChatPhotoDomainService {
             );
             return filePath;
         } catch (Exception e) {
-            minioLogger.error("Error uploading group chat photo in service " + e.getMessage());
             throw new RuntimeException("Error uploading group chat photo in service " + e.getMessage());
         }
     }
@@ -43,7 +40,6 @@ public class MinioGroupChatPhotoDomainService {
                 filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error downloading group chat photo in service " + e.getMessage());
             throw new RuntimeException("Error downloading group chat photo in service " + e.getMessage());
         }
     }
@@ -55,7 +51,6 @@ public class MinioGroupChatPhotoDomainService {
                 filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error deleting group chat photo in service " + e.getMessage());
             throw new RuntimeException("Error deleting group chat photo in service " + e.getMessage());
         }
     }
@@ -68,7 +63,6 @@ public class MinioGroupChatPhotoDomainService {
                 filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error get metadata about group chat photo in service " + e.getMessage());
             throw new RuntimeException("Error get metadata about group chat photo in service " + e.getMessage());
         }
     }

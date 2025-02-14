@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.domain.service.listener;
 
 import com.nagornov.CorporateMessenger.domain.enums.ChatType;
-import com.nagornov.CorporateMessenger.domain.enums.KafkaGroup;
-import com.nagornov.CorporateMessenger.domain.enums.KafkaTopic;
-import com.nagornov.CorporateMessenger.domain.enums.KafkaUnreadMessageOperation;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
 import com.nagornov.CorporateMessenger.domain.model.Chat;
 import com.nagornov.CorporateMessenger.domain.model.User;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraUnreadMessageBusinessService;
@@ -28,15 +28,16 @@ public class KafkaUnreadMessageListener {
     @KafkaListener(
             topics = KafkaTopic.UNREAD_MESSAGE_TOPIC_NAME,
             groupId = KafkaGroup.UNREAD_MESSAGE_GROUP_NAME,
-            containerFactory = "unreadMessageContainerFactory"
+            containerFactory = "kafkaUnreadMessageContainerFactory"
     )
     public void distributor(ConsumerRecord<String, KafkaUnreadMessageDTO> record, Acknowledgment ack) {
 
         Chat chat = getChatFromRecord(record);
         User user = getUserFromRecord(record);
+        String operation = record.value().getOperation();
 
         try {
-            switch (record.value().getOperation()) {
+            switch (operation) {
                 case (KafkaUnreadMessageOperation.INCREMENT_UNREAD_MESSAGE_COUNT_FOR_OTHER_OPERATION):
                     cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForOther(chat, user);
                     break;

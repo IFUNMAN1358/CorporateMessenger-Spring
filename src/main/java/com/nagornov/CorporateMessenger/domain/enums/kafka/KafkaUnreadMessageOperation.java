@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.domain.enums;
+package com.nagornov.CorporateMessenger.domain.enums.kafka;
 
 import lombok.Getter;
 

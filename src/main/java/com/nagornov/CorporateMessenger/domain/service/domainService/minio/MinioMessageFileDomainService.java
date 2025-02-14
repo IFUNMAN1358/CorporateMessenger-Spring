@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
-import com.nagornov.CorporateMessenger.domain.logger.MinioLogger;
 import com.nagornov.CorporateMessenger.domain.model.MessageFile;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import io.minio.StatObjectResponse;
@@ -17,7 +16,6 @@ import java.io.InputStream;
 public class MinioMessageFileDomainService {
 
     private final MinioRepository minioRepository;
-    private final MinioLogger minioLogger;
 
     public void upload(@NotNull MessageFile messageFile, @NotNull MultipartFile file) {
         try {
@@ -28,7 +26,6 @@ public class MinioMessageFileDomainService {
                 file.getContentType()
             );
         } catch (Exception e) {
-            minioLogger.error("Error uploading message file in service " + e.getMessage());
             throw new RuntimeException("Error uploading message file in service " + e.getMessage());
         }
     }
@@ -40,7 +37,6 @@ public class MinioMessageFileDomainService {
                 filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error downloading message file in service " + e.getMessage());
             throw new RuntimeException("Error downloading message file in service " + e.getMessage());
         }
     }
@@ -52,7 +48,6 @@ public class MinioMessageFileDomainService {
                 filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error deleting message file in service " + e.getMessage());
             throw new RuntimeException("Error deleting message file in service " + e.getMessage());
         }
     }
@@ -65,7 +60,6 @@ public class MinioMessageFileDomainService {
                     filePath
             );
         } catch (Exception e) {
-            minioLogger.error("Error get metadata about message file in service " + e.getMessage());
             throw new RuntimeException("Error get metadata about message file in service " + e.getMessage());
         }
     }

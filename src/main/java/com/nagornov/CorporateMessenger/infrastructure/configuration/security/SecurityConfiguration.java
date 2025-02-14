@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.security;
 
+import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomTraceFilter;
 import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAccessDeniedHandler;
 import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAuthenticationEntryPoint;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCorsFilter;
@@ -31,11 +32,13 @@ public class SecurityConfiguration {
     private final CustomCorsFilter corsFilter;
     private final CustomCsrfFilter csrfFilter;
     private final CustomJwtFilter jwtFilter;
+    private final CustomTraceFilter traceFilter;
 
     private final SessionAuthorizationManager hasSession;
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -53,6 +56,7 @@ public class SecurityConfiguration {
             .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
             .addFilterBefore(csrfFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(traceFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
 
                     // WEBSOCKET

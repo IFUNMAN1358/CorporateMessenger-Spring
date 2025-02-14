@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.kafka;
 
-import com.nagornov.CorporateMessenger.domain.enums.KafkaUnreadMessageOperation;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
 import com.nagornov.CorporateMessenger.domain.model.Chat;
 import com.nagornov.CorporateMessenger.domain.model.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.PrivateChat;

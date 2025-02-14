@@ -25,11 +25,11 @@ public class KafkaUnreadMessageProducer {
 
     @Bean
     public KafkaTemplate<String, KafkaUnreadMessageDTO> kafkaUnreadMessageTemplate() {
-        return new KafkaTemplate<>(unreadMessageProducerFactory());
+        return new KafkaTemplate<>(kafkaUnreadMessageProducerFactory());
     }
 
     @Bean
-    public ProducerFactory<String, KafkaUnreadMessageDTO> unreadMessageProducerFactory() {
+    public ProducerFactory<String, KafkaUnreadMessageDTO> kafkaUnreadMessageProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);

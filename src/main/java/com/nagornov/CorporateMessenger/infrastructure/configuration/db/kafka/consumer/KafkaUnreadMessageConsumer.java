@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagornov.CorporateMessenger.domain.enums.KafkaGroup;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.KafkaProperties;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.deserializer.KafkaUnreadMessageDTODeserializer;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
@@ -26,15 +26,15 @@ public class KafkaUnreadMessageConsumer {
     private final ObjectMapper objectMapper;
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, KafkaUnreadMessageDTO> unreadMessageContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, KafkaUnreadMessageDTO> kafkaUnreadMessageContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaUnreadMessageDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(unreadMessageConsumerFactory());
+        factory.setConsumerFactory(kafkaUnreadMessageConsumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         return factory;
     }
 
     @Bean
-    public ConsumerFactory<String, KafkaUnreadMessageDTO> unreadMessageConsumerFactory() {
+    public ConsumerFactory<String, KafkaUnreadMessageDTO> kafkaUnreadMessageConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaGroup.UNREAD_MESSAGE_GROUP.getName());

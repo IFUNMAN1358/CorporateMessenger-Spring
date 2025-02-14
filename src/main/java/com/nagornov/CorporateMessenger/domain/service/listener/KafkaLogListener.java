@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.domain.service.listener;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
+import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,19 +11,22 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class KafkaTestListener {
+public class KafkaLogListener {
 
     @KafkaListener(
-            topics = KafkaTopic.TEST_TOPIC_NAME,
-            groupId = KafkaGroup.TEST_GROUP_NAME,
-            containerFactory = "kafkaTestContainerFactory"
+            topics = KafkaTopic.LOG_TOPIC_NAME,
+            groupId = KafkaGroup.LOG_GROUP_NAME,
+            containerFactory = "kafkaLogContainerFactory"
     )
-    public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
+    public void distributor(ConsumerRecord<String, Log> record, Acknowledgment ack) {
+
+        Log log = record.value();
+
         try {
-            System.out.println("Processing message: " + record.value());
+
             ack.acknowledge();
-        } catch (Exception e) {
-            System.out.println("Error processing message: " + e.getMessage());
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
+import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -9,13 +9,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class KafkaUnreadMessageProducerRepository {
+public class KafkaLogProducerRepository {
 
-    private final KafkaTemplate<String, KafkaUnreadMessageDTO> kafkaUnreadMessageTemplate;
+    private final KafkaTemplate<String, Log> kafkaLogTemplate;
 
-    public void sendMessage(@NotNull KafkaUnreadMessageDTO message) {
-        kafkaUnreadMessageTemplate.send(
-                KafkaTopic.UNREAD_MESSAGE_TOPIC.getName(),
+    public void sendMessage(@NotNull Log message) {
+        kafkaLogTemplate.send(
+                KafkaTopic.LOG_TOPIC.getName(),
                 message
         );
     }

@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository;
 
-import com.nagornov.CorporateMessenger.domain.enums.KafkaTopic;
+import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
