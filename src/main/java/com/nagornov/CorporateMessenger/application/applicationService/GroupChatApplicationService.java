@@ -1,9 +1,9 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.chat.CreateGroupChatRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.GroupChatSummaryResponse;
 import com.nagornov.CorporateMessenger.application.dto.chat.UpdateGroupChatMetadataRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.factory.GroupChatFactory;
 import com.nagornov.CorporateMessenger.domain.factory.GroupChatMemberFactory;
@@ -38,7 +38,7 @@ public class GroupChatApplicationService {
 
 
     @Transactional
-    public InformationalResponse createGroupChat(@NotNull CreateGroupChatRequest request) {
+    public HttpResponse createGroupChat(@NotNull CreateGroupChatRequest request) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(
                 authInfo.getUserIdAsUUID()
@@ -71,7 +71,7 @@ public class GroupChatApplicationService {
                 new UnreadMessage(groupChat.getId(), postgresUser.getId(), 0)
         );
 
-        return new InformationalResponse("Group chat has been created");
+        return new HttpResponse("Group chat has been created", 201);
     }
 
 
@@ -124,7 +124,7 @@ public class GroupChatApplicationService {
 
 
     @Transactional
-    public InformationalResponse changeGroupChatMetadata(@NotNull String chatId, @NotNull UpdateGroupChatMetadataRequest request) {
+    public HttpResponse changeGroupChatMetadata(@NotNull String chatId, @NotNull UpdateGroupChatMetadataRequest request) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
@@ -136,12 +136,12 @@ public class GroupChatApplicationService {
         groupChat.updateDescription(request.getNewDescription());
         cassandraGroupChatDomainService.update(groupChat);
 
-        return new InformationalResponse("Group chat metadata has been changed");
+        return new HttpResponse("Group chat metadata has been changed", 200);
     }
 
 
     @Transactional
-    public InformationalResponse changeGroupChatPublicStatus(@NotNull String chatId) {
+    public HttpResponse changeGroupChatPublicStatus(@NotNull String chatId) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
@@ -156,11 +156,11 @@ public class GroupChatApplicationService {
         }
         cassandraGroupChatDomainService.update(groupChat);
 
-        return new InformationalResponse("Group chat status has been changed");
+        return new HttpResponse("Group chat status has been changed", 200);
     }
 
 
-    public InformationalResponse changeGroupChatOwner(@NotNull String chatId, @NotNull UserIdRequest request) {
+    public HttpResponse changeGroupChatOwner(@NotNull String chatId, @NotNull UserIdRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -176,12 +176,12 @@ public class GroupChatApplicationService {
         groupChat.updateOwnerId(futureOwner.getUserId());
         cassandraGroupChatDomainService.update(groupChat);
 
-        return new InformationalResponse("New owner of group chat has been changed");
+        return new HttpResponse("New owner of group chat has been changed", 200);
     }
 
 
     @Transactional
-    public InformationalResponse deleteGroupChat(@NotNull String chatId) {
+    public HttpResponse deleteGroupChat(@NotNull String chatId) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
@@ -197,7 +197,7 @@ public class GroupChatApplicationService {
         groupChat.updateOwnerId(null);
         cassandraGroupChatDomainService.update(groupChat);
 
-        return new InformationalResponse("Group chat has been deleted");
+        return new HttpResponse("Group chat has been deleted", 200);
     }
 
 }

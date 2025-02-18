@@ -1,6 +1,6 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
@@ -35,7 +35,7 @@ public class UserDataApplicationService {
 
 
     @Transactional
-    public InformationalResponse changePassword(@NotNull PasswordRequest request) {
+    public HttpResponse changePassword(@NotNull PasswordRequest request) {
         final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         final User postgresUser = jpaUserDomainService.getById(
@@ -48,7 +48,7 @@ public class UserDataApplicationService {
         postgresUser.updatePassword(encodedPassword);
         jpaUserDomainService.update(postgresUser);
 
-        return new InformationalResponse("Password changed");
+        return new HttpResponse("Password changed", 200);
     }
 
 
@@ -97,7 +97,7 @@ public class UserDataApplicationService {
 
 
     @Transactional
-    public InformationalResponse deleteUser() {
+    public HttpResponse deleteUser() {
         final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         final User postgresUser = jpaUserDomainService.getById(
@@ -111,6 +111,6 @@ public class UserDataApplicationService {
 
         redisSessionDomainService.deleteByUserId(postgresUser.getId());
 
-        return new InformationalResponse("User deleted successfully");
+        return new HttpResponse("User deleted successfully", 200);
     }
 }

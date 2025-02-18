@@ -6,8 +6,9 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class InformationalResponse {
+public class HttpResponse {
 
-    private @NotNull String message;
+    private String message;
+    private int status;
 
 }

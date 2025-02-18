@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
 import com.nagornov.CorporateMessenger.application.dto.message.*;

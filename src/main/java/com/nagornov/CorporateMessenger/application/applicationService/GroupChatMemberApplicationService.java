@@ -1,6 +1,6 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
 import com.nagornov.CorporateMessenger.domain.factory.GroupChatMemberFactory;
@@ -82,7 +82,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public InformationalResponse addMembers(@NotNull String chatId, @NotNull UserIdsRequest request) {
+    public HttpResponse addMembers(@NotNull String chatId, @NotNull UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -107,12 +107,12 @@ public class GroupChatMemberApplicationService {
             cassandraUnreadMessageDomainService.save(unreadMessage);
         }
 
-        return new InformationalResponse("User/s added to group chat");
+        return new HttpResponse("User/s added to group chat", 201);
     }
 
 
     @Transactional
-    public InformationalResponse deleteMembers(@NotNull String chatId, @NotNull UserIdsRequest request) {
+    public HttpResponse deleteMembers(@NotNull String chatId, @NotNull UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -134,12 +134,12 @@ public class GroupChatMemberApplicationService {
             cassandraUnreadMessageDomainService.delete(unreadMessage);
         }
 
-        return new InformationalResponse("Members of group chat has been deleted");
+        return new HttpResponse("Members of group chat has been deleted", 200);
     }
 
 
     @Transactional
-    public InformationalResponse leaveFromChat(@NotNull String chatId) {
+    public HttpResponse leaveFromChat(@NotNull String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -162,7 +162,7 @@ public class GroupChatMemberApplicationService {
         );
         cassandraUnreadMessageDomainService.delete(unreadMessage);
 
-        return new InformationalResponse("You left the group chat");
+        return new HttpResponse("You left the group chat", 200);
     }
 
 }

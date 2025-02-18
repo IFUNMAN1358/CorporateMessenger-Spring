@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
-import com.nagornov.CorporateMessenger.application.service.GroupChatPhotoApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.application.applicationService.GroupChatPhotoApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -39,15 +39,15 @@ public class GroupChatPhotoController {
     ) {
         final Resource response =
                 groupChatPhotoApplicationService.uploadOrChangePhoto(chatId, request);
-        return ResponseEntity.status(200).body(response);
+        return ResponseEntity.status(201).body(response);
     }
 
     @DeleteMapping(
             value = "/api/chat/group/{chatId}/photo",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> deletePhoto(@ValidUuid @PathVariable("chatId") String chatId) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> deletePhoto(@ValidUuid @PathVariable("chatId") String chatId) {
+        final HttpResponse response =
                 groupChatPhotoApplicationService.deletePhoto(chatId);
         return ResponseEntity.status(200).body(response);
     }

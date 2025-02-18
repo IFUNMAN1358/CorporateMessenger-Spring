@@ -3,8 +3,8 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
-import com.nagornov.CorporateMessenger.application.service.AuthApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.application.applicationService.AuthApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,8 +48,8 @@ public class AuthController {
             value = "/api/auth/logout",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> logout() {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> logout() {
+        final HttpResponse response =
                 authApplicationService.logout();
         return ResponseEntity.status(200).body(response);
     }

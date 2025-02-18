@@ -1,15 +1,11 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.domain.model.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioGroupChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import jakarta.validation.constraints.NotNull;
@@ -26,12 +22,8 @@ import java.util.UUID;
 public class GroupChatPhotoApplicationService {
 
     private final JwtDomainService jwtDomainService;
-    private final JpaUserDomainService jpaUserDomainService;
-    private final JpaUserProfilePhotoDomainService jpaUserProfilePhotoDomainService;
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
-    private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
-    private final CassandraMessageDomainService cassandraMessageDomainService;
     private final MinioGroupChatPhotoDomainService minioGroupChatPhotoDomainService;
 
 
@@ -73,7 +65,7 @@ public class GroupChatPhotoApplicationService {
 
 
     @Transactional
-    public InformationalResponse deletePhoto(@NotNull String chatId) {
+    public HttpResponse deletePhoto(@NotNull String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -89,7 +81,7 @@ public class GroupChatPhotoApplicationService {
         groupChat.updateFilePath(null);
         cassandraGroupChatDomainService.update(groupChat);
 
-        return new InformationalResponse("Photo has been successfully deleted");
+        return new HttpResponse("Photo has been successfully deleted", 200);
     }
 
 }

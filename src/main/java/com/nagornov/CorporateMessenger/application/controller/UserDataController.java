@@ -1,10 +1,10 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
-import com.nagornov.CorporateMessenger.application.service.UserDataApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.UserDataApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +24,8 @@ public class UserDataController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> changePassword(@Validated @RequestBody PasswordRequest request) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> changePassword(@Validated @RequestBody PasswordRequest request) {
+        final HttpResponse response =
                 userDataApplicationService.changePassword(request);
         return ResponseEntity.status(200).body(response);
     }
@@ -65,8 +65,8 @@ public class UserDataController {
             value = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> deleteUser() {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> deleteUser() {
+        final HttpResponse response =
                 userDataApplicationService.deleteUser();
         return ResponseEntity.status(200).body(response);
     }

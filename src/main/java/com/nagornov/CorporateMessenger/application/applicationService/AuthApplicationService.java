@@ -1,9 +1,9 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.mapper.DtoAuthMapper;
 import com.nagornov.CorporateMessenger.domain.enums.RoleEnum;
 import com.nagornov.CorporateMessenger.domain.factory.SessionFactory;
@@ -93,7 +93,7 @@ public class AuthApplicationService {
 
 
     @Transactional
-    public InformationalResponse logout() {
+    public HttpResponse logout() {
         final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         final User postgresUser = jpaUserDomainService.getById(
@@ -101,6 +101,6 @@ public class AuthApplicationService {
         );
         redisSessionDomainService.deleteByUserId(postgresUser.getId());
 
-        return new InformationalResponse("Successfully logged out");
+        return new HttpResponse("Successfully logged out", 200);
     }
 }

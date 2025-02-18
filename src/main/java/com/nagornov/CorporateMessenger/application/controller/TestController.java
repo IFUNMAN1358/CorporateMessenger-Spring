@@ -1,30 +1,21 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraChatBusinessService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaUnreadMessageProducerDomainService;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository.KafkaTestProducerRepository;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository.KafkaUnreadMessageProducerRepository;
+import com.nagornov.CorporateMessenger.domain.logger.ControllerLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequiredArgsConstructor
 public class TestController {
 
-    private final CassandraChatBusinessService cassandraChatBusinessService;
-    private final CassandraPrivateChatDomainService cassandraPrivateChatDomainService;
-    private final JpaUserDomainService jpaUserDomainService;
-    private final KafkaUnreadMessageProducerRepository kafkaUnreadMessageProducerRepository;
-    private final KafkaTestProducerRepository kafkaTestProducerRepository;
-    private final KafkaUnreadMessageProducerDomainService kafkaUnreadMessageProducerDomainService;
+    private final ControllerLogger controllerLogger;
 
     @PostMapping("/api/test/1")
     ResponseEntity<?> firstTest() {
+
+        controllerLogger.info("AGSGASFASFGGAFS");
 
         return ResponseEntity.status(200).body("First test success");
     }

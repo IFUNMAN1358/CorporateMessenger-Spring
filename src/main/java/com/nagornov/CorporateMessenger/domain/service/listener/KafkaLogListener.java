@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.domain.service.listener;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
+import com.nagornov.CorporateMessenger.domain.service.domainService.externalApi.LogServiceClient;
 import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaLogListener {
 
+    private final LogServiceClient logServiceClient;
+
     @KafkaListener(
             topics = KafkaTopic.LOG_TOPIC_NAME,
             groupId = KafkaGroup.LOG_GROUP_NAME,
@@ -23,7 +26,7 @@ public class KafkaLogListener {
         Log log = record.value();
 
         try {
-
+            logServiceClient.sendLog(log);
             ack.acknowledge();
         } catch (RuntimeException e) {
             throw new RuntimeException(e);

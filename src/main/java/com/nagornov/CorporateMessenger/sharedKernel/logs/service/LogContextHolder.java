@@ -15,10 +15,6 @@ public class LogContextHolder {
         return LOG_CONTEXT.get().getSpanId();
     }
 
-    public static String getUserId() {
-        return LOG_CONTEXT.get().getUserId();
-    }
-
     public static String getHttpMethod() {
         return LOG_CONTEXT.get().getHttpMethod();
     }
@@ -33,10 +29,6 @@ public class LogContextHolder {
 
     public static void setSpanId(String spanId) {
         LOG_CONTEXT.get().setSpanId(spanId);
-    }
-
-    public static void setUserId(String userId) {
-        LOG_CONTEXT.get().setUserId(userId);
     }
 
     public static void setHttpMethod(String httpMethod) {

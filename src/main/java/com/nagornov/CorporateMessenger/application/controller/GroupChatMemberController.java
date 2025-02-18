@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
-import com.nagornov.CorporateMessenger.application.service.GroupChatMemberApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.GroupChatMemberApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import com.nagornov.CorporateMessenger.domain.model.GroupChatMember;
 import lombok.RequiredArgsConstructor;
@@ -48,13 +48,13 @@ public class GroupChatMemberController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> addMembers(
+    ResponseEntity<HttpResponse> addMembers(
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UserIdsRequest request
     ) {
-        InformationalResponse infoResponse =
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.addMembers(chatId, request);
-        return ResponseEntity.status(200).body(infoResponse);
+        return ResponseEntity.status(201).body(infoResponse);
     }
 
 
@@ -63,11 +63,11 @@ public class GroupChatMemberController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> deleteMembers(
+    ResponseEntity<HttpResponse> deleteMembers(
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UserIdsRequest request
     ) {
-        InformationalResponse infoResponse =
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.deleteMembers(chatId, request);
         return ResponseEntity.status(200).body(infoResponse);
     }
@@ -77,8 +77,8 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/leave",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> leaveFromChat(@ValidUuid @PathVariable("chatId") String chatId) {
-        InformationalResponse infoResponse =
+    ResponseEntity<HttpResponse> leaveFromChat(@ValidUuid @PathVariable("chatId") String chatId) {
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.leaveFromChat(chatId);
         return ResponseEntity.status(200).body(infoResponse);
     }

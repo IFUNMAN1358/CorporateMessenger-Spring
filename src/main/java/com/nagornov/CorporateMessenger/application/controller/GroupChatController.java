@@ -3,9 +3,9 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.chat.CreateGroupChatRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.UpdateGroupChatMetadataRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.GroupChatSummaryResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.UserIdRequest;
-import com.nagornov.CorporateMessenger.application.service.GroupChatApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.GroupChatApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import com.nagornov.CorporateMessenger.domain.model.GroupChat;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ public class GroupChatController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> createGroupChat(@Validated @ModelAttribute CreateGroupChatRequest request) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> createGroupChat(@Validated @ModelAttribute CreateGroupChatRequest request) {
+        final HttpResponse response =
                 groupChatApplicationService.createGroupChat(request);
         return ResponseEntity.status(201).body(response);
     }
@@ -41,7 +41,7 @@ public class GroupChatController {
     ResponseEntity<List<GroupChatSummaryResponse>> getAllGroupChats() {
         final List<GroupChatSummaryResponse> response =
                 groupChatApplicationService.getAllGroupChats();
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 
@@ -52,7 +52,7 @@ public class GroupChatController {
     ResponseEntity<GroupChat> getGroupChat(@ValidUuid @PathVariable("chatId") String chatId) {
         final GroupChat response =
                 groupChatApplicationService.getGroupChat(chatId);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 
@@ -61,13 +61,13 @@ public class GroupChatController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> changeGroupChatMetadata(
+    ResponseEntity<HttpResponse> changeGroupChatMetadata(
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UpdateGroupChatMetadataRequest request
     ) {
-        final InformationalResponse response =
+        final HttpResponse response =
                 groupChatApplicationService.changeGroupChatMetadata(chatId, request);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 
@@ -75,10 +75,10 @@ public class GroupChatController {
             value = "/api/chat/group/{chatId}/status",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> changeGroupChatPublicStatus(@ValidUuid @PathVariable("chatId") String chatId) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> changeGroupChatPublicStatus(@ValidUuid @PathVariable("chatId") String chatId) {
+        final HttpResponse response =
                 groupChatApplicationService.changeGroupChatPublicStatus(chatId);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 
@@ -87,13 +87,13 @@ public class GroupChatController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> changeGroupChatOwner(
+    ResponseEntity<HttpResponse> changeGroupChatOwner(
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UserIdRequest request
     ) {
-        InformationalResponse infoResponse =
+        HttpResponse response =
                 groupChatApplicationService.changeGroupChatOwner(chatId, request);
-        return ResponseEntity.status(200).body(infoResponse);
+        return ResponseEntity.status(200).body(response);
     }
 
 
@@ -101,10 +101,10 @@ public class GroupChatController {
             value = "/api/chat/group/{chatId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> deleteGroupChat(@ValidUuid @PathVariable("chatId") String chatId) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> deleteGroupChat(@ValidUuid @PathVariable("chatId") String chatId) {
+        final HttpResponse response =
                 groupChatApplicationService.deleteGroupChat(chatId);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 }

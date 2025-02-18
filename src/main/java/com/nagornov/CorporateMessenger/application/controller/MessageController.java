@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
 import com.nagornov.CorporateMessenger.application.dto.message.*;
-import com.nagornov.CorporateMessenger.application.service.MessageApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.MessageApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import com.nagornov.CorporateMessenger.domain.enums.WsMessageResponseType;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +94,7 @@ public class MessageController {
                 "/topic/chat/%s".formatted(request.getChatId()),
                 new WsMessageResponse(WsMessageResponseType.READ, response)
         );
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(200).body(response);
     }
 
 

@@ -1,76 +1,122 @@
 package com.nagornov.CorporateMessenger.sharedKernel.logs.service;
 
 import com.nagornov.CorporateMessenger.sharedKernel.logs.enums.LogLevel;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.interfaces.LogSender;
 import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.utils.LogFactory;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.sharedKernel.logs.model.LoggerMetadata;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.time.Instant;
 
 public abstract class AbstractLogger {
 
-    private final String serviceName;
-    private final String directoryName;
-    private final LogSender logSender;
+    @Value("${spring.application.name}")
+    private String serviceName;
 
-   protected AbstractLogger(
-           String serviceName,
-           String directoryName,
-           LogSender logSender
-   ) {
-       this.serviceName = serviceName;
-       this.directoryName = directoryName;
-       this.logSender = logSender;
-   }
+    abstract protected LoggerMetadata initLoggerMetadata();
+    abstract protected void sendLog(Log log);
 
-    private void sendInit(
-            @NotNull String message,
-            @NotNull LogLevel logLevel
-    ) {
-       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    private void initSend(String message, LogLevel logLevel, String userId) {
 
-       StackTraceElement relevantElement = null;
+        LoggerMetadata loggerMetadata = initLoggerMetadata();
 
-       for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().contains(directoryName)) {
-                relevantElement = element;
+        Log log = new Log();
+        log.setTimestamp(Instant.now());
+
+        log.setMessage(message);
+        log.setLevel(logLevel.getLevel());
+
+        log.setServiceName(serviceName);
+        log.setDirectoryName(loggerMetadata.getDirectoryName());
+
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+        for (StackTraceElement element : stackTrace) {
+            if (element.getClassName().contains(log.getDirectoryName())) {
+                log.setFileName(element.getFileName());
+                log.setMethodName(element.getMethodName());
+                log.setLineNumber(element.getLineNumber());
                 break;
             }
-       }
+        }
 
-       Log log = LogFactory.initLogObject(message, logLevel, serviceName, directoryName, relevantElement);
-       logSender.sendLog(log);
+        log.setTraceId(LogContextHolder.getTraceId());
+        log.setSpanId(LogContextHolder.getSpanId());
+        log.setHttpMethod(LogContextHolder.getHttpMethod());
+        log.setHttpPath(LogContextHolder.getHttpPath());
+
+        log.setUserId(userId);
+
+        sendLog(log);
     }
 
-    public void log(String message, LogLevel logLevel) {
-       sendInit(message, logLevel);
-    }
+    // ALL
 
     public void all(String message) {
-        log(message, LogLevel.ALL);
+        initSend(message, LogLevel.ALL, null);
     }
 
-    public void trace(@NotNull String message) {
-        log(message, LogLevel.TRACE);
+    public void all(String message, String userId) {
+        initSend(message, LogLevel.ALL, userId);
     }
 
-    public void debug(@NotNull String message) {
-        log(message, LogLevel.DEBUG);
+    // TRACE
+
+    public void trace(String message) {
+        initSend(message, LogLevel.TRACE, null);
     }
 
-    public void info(@NotNull String message) {
-        log(message, LogLevel.INFO);
+    public void trace(String message, String userId) {
+        initSend(message, LogLevel.TRACE, userId);
     }
 
-    public void warn(@NotNull String message) {
-        log(message, LogLevel.WARN);
+    // DEBUG
+
+    public void debug(String message) {
+        initSend(message, LogLevel.DEBUG, null);
     }
 
-    public void error(@NotNull String message) {
-        log(message, LogLevel.ERROR);
+    public void debug(String message, String userId) {
+        initSend(message, LogLevel.DEBUG, userId);
     }
 
-    public void fatal(@NotNull String message) {
-        log(message, LogLevel.FATAL);
+    // INFO
+
+    public void info(String message) {
+        initSend(message, LogLevel.INFO, null);
+    }
+
+    public void info(String message, String userId) {
+        initSend(message, LogLevel.INFO, userId);
+    }
+
+    // WARN
+
+    public void warn(String message) {
+        initSend(message, LogLevel.WARN, null);
+    }
+
+    public void warn(String message, String userId) {
+        initSend(message, LogLevel.WARN, userId);
+    }
+
+    // ERROR
+
+    public void error(String message) {
+        initSend(message, LogLevel.ERROR, null);
+    }
+
+    public void error(String message, String userId) {
+        initSend(message, LogLevel.ERROR, userId);
+    }
+
+    // FATAL
+
+    public void fatal(String message) {
+        initSend(message, LogLevel.FATAL, null);
+    }
+
+    public void fatal(String message, String userId) {
+        initSend(message, LogLevel.FATAL, userId);
     }
 
 }

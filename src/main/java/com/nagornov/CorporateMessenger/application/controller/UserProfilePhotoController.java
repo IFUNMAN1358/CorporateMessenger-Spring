@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
-import com.nagornov.CorporateMessenger.application.service.UserProfilePhotoApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.application.applicationService.UserProfilePhotoApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
 import lombok.RequiredArgsConstructor;
@@ -68,8 +68,8 @@ public class UserProfilePhotoController {
             value = "/api/user/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> deleteUserPhoto(@ValidUuid @PathVariable("photoId") String photoId) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> deleteUserPhoto(@ValidUuid @PathVariable("photoId") String photoId) {
+        final HttpResponse response =
                 userProfilePhotoApplicationService.deleteUserPhoto(photoId);
         return ResponseEntity.status(200).body(response);
     }

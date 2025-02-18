@@ -1,9 +1,9 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.SecondUserIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.PrivateChatSummaryResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
 import com.nagornov.CorporateMessenger.domain.factory.PrivateChatFactory;
 import com.nagornov.CorporateMessenger.domain.model.*;
@@ -146,7 +146,7 @@ public class PrivateChatApplicationService {
     }
 
 
-    public InformationalResponse markAsUnavailable(@NotNull ChatIdRequest request) {
+    public HttpResponse markAsUnavailable(@NotNull ChatIdRequest request) {
         final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         final User postgresUser = jpaUserDomainService.getById(
@@ -160,7 +160,7 @@ public class PrivateChatApplicationService {
         privateChat.markAsUnavailable();
         cassandraPrivateChatDomainService.update(privateChat);
 
-        return new InformationalResponse("Private chat is unavailable");
+        return new HttpResponse("Private chat is unavailable", 200);
     }
 
 }

@@ -1,7 +1,7 @@
-package com.nagornov.CorporateMessenger.application.service;
+package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.factory.UserProfilePhotoFactory;
 import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
@@ -120,7 +120,7 @@ public class UserProfilePhotoApplicationService {
 
 
     @Transactional
-    public InformationalResponse deleteUserPhoto(@NotNull String photoId) {
+    public HttpResponse deleteUserPhoto(@NotNull String photoId) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
         final User postgresUser = jpaUserDomainService.getById(
@@ -148,6 +148,6 @@ public class UserProfilePhotoApplicationService {
         jpaUserProfilePhotoDomainService.modDeleteById(photoToDelete.getId());
         minioUserProfilePhotoDomainService.delete(photoToDelete.getFilePath());
 
-        return new InformationalResponse("User photo deleted successfully");
+        return new HttpResponse("User photo deleted successfully", 200);
     }
 }

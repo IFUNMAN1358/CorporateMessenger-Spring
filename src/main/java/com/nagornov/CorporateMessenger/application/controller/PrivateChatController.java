@@ -3,8 +3,8 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.SecondUserIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.PrivateChatSummaryResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.InformationalResponse;
-import com.nagornov.CorporateMessenger.application.service.PrivateChatApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.application.applicationService.PrivateChatApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,8 +55,8 @@ public class PrivateChatController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<InformationalResponse> markAsUnavailable(@Validated @RequestBody ChatIdRequest request) {
-        final InformationalResponse response =
+    ResponseEntity<HttpResponse> markAsUnavailable(@Validated @RequestBody ChatIdRequest request) {
+        final HttpResponse response =
                 privateChatApplicationService.markAsUnavailable(request);
         return ResponseEntity.status(200).body(response);
     }
