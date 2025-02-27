@@ -6,7 +6,10 @@ import lombok.Getter;
 public enum LogServiceEndpoint {
 
     // POST
-    SEND_LOG("/api/v1/log/send");
+    SEND_LOG("/api/v1/log/send"),
+
+    // GET
+    GET_CSRF_TOKEN("/api/v1/csrf");
 
     private final String endpoint;
 

@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.kafka.consumer;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.KafkaProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;

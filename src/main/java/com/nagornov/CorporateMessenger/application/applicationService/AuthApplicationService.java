@@ -7,6 +7,7 @@ import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.mapper.DtoAuthMapper;
 import com.nagornov.CorporateMessenger.domain.enums.RoleEnum;
 import com.nagornov.CorporateMessenger.domain.factory.SessionFactory;
+import com.nagornov.CorporateMessenger.domain.logger.ApplicationServiceLogger;
 import com.nagornov.CorporateMessenger.domain.model.*;
 import com.nagornov.CorporateMessenger.domain.service.businessService.jpa.JpaRegistrationKeyBusinessService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaRegistrationKeyDomainService;
@@ -34,73 +35,103 @@ public class AuthApplicationService {
     private final PasswordDomainService passwordDomainService;
     private final DtoAuthMapper dtoAuthMapper;
     private final JwtDomainService jwtDomainService;
+    private final ApplicationServiceLogger applicationServiceLogger;
 
 
     @Transactional
     public JwtResponse registration(@NotNull RegistrationRequest request) {
+        try {
+            applicationServiceLogger.info("Registration started");
 
-        jpaUserDomainService.validateUserDoesNotExistByUsername(request.getUsername());
+            jpaUserDomainService.validateUserDoesNotExistByUsername(request.getUsername());
 
-        final RegistrationKey registrationKey = jpaRegistrationKeyDomainService.getByValue(request.getRegistrationKey());
-        registrationKey.validateApplied();
-        jpaRegistrationKeyBusinessService.apply(registrationKey);
+            RegistrationKey registrationKey = jpaRegistrationKeyDomainService.getByValue(request.getRegistrationKey());
+            registrationKey.validateApplied();
+            jpaRegistrationKeyBusinessService.apply(registrationKey);
 
-        final User requestUser = dtoAuthMapper.fromRegistrationRequest(request);
-        requestUser.setRandomId();
+            User requestUser = dtoAuthMapper.fromRegistrationRequest(request);
+            requestUser.setRandomId();
 
-        final String encodedPassword = passwordDomainService.encodePassword(request.getPassword());
-        requestUser.updatePassword(encodedPassword);
+            String encodedPassword = passwordDomainService.encodePassword(request.getPassword());
+            requestUser.updatePassword(encodedPassword);
 
-        final Session sessionWithId = SessionFactory.createWithRandomId();
+            Session sessionWithId = SessionFactory.createWithRandomId();
 
-        final Role userRole = jpaRoleDomainService.getByName(RoleEnum.USER);
-        requestUser.addRole(userRole);
+            Role userRole = jpaRoleDomainService.getByName(RoleEnum.USER);
+            requestUser.addRole(userRole);
 
-        jpaUserDomainService.save(requestUser);
+            jpaUserDomainService.save(requestUser);
 
-        final String accessToken = jwtDomainService.generateAccessToken(requestUser);
-        final String refreshToken = jwtDomainService.generateRefreshToken(requestUser);
+            String accessToken = jwtDomainService.generateAccessToken(requestUser);
+            String refreshToken = jwtDomainService.generateRefreshToken(requestUser);
 
-        sessionWithId.updateAccessToken(accessToken);
-        sessionWithId.updateRefreshToken(refreshToken);
+            sessionWithId.updateAccessToken(accessToken);
+            sessionWithId.updateRefreshToken(refreshToken);
 
-        redisSessionDomainService.save(requestUser.getId(), sessionWithId);
+            redisSessionDomainService.save(requestUser.getId(), sessionWithId);
 
-        return new JwtResponse(accessToken, refreshToken);
+            applicationServiceLogger.info("Registration finished");
+
+            return new JwtResponse(accessToken, refreshToken);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Registration failed", e);
+            throw e;
+        }
     }
 
 
     @Transactional
     public JwtResponse login(@NotNull LoginRequest request) {
+        try {
+            applicationServiceLogger.info("Login started");
 
-        final User userFromRequest = dtoAuthMapper.fromLoginRequest(request);
-        final User postgresUser = jpaUserDomainService.getByUsername(userFromRequest.getUsername());
+            User userFromRequest = dtoAuthMapper.fromLoginRequest(request);
+            User postgresUser = jpaUserDomainService.getByUsername(userFromRequest.getUsername());
 
-        passwordDomainService.matchPassword(request.getPassword(), postgresUser.getPassword());
+            passwordDomainService.matchPassword(request.getPassword(), postgresUser.getPassword());
 
-        final Session sessionWithId = SessionFactory.createWithRandomId();
+            Session sessionWithId = SessionFactory.createWithRandomId();
 
-        final String accessToken = jwtDomainService.generateAccessToken(postgresUser);
-        final String refreshToken = jwtDomainService.generateRefreshToken(postgresUser);
+            String accessToken = jwtDomainService.generateAccessToken(postgresUser);
+            String refreshToken = jwtDomainService.generateRefreshToken(postgresUser);
 
-        sessionWithId.updateAccessToken(accessToken);
-        sessionWithId.updateRefreshToken(refreshToken);
+            sessionWithId.updateAccessToken(accessToken);
+            sessionWithId.updateRefreshToken(refreshToken);
 
-        redisSessionDomainService.save(postgresUser.getId(), sessionWithId);
+            redisSessionDomainService.save(postgresUser.getId(), sessionWithId);
 
-        return new JwtResponse(accessToken, refreshToken);
+            applicationServiceLogger.info("Login finished");
+
+            return new JwtResponse(accessToken, refreshToken);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Login failed", e);
+            throw e;
+        }
+
     }
 
 
     @Transactional
     public HttpResponse logout() {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        try {
+            applicationServiceLogger.info("Logout started");
 
-        final User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
-        redisSessionDomainService.deleteByUserId(postgresUser.getId());
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(
+                    UUID.fromString(authInfo.getUserId())
+            );
 
-        return new HttpResponse("Successfully logged out", 200);
+            redisSessionDomainService.deleteByUserId(postgresUser.getId());
+
+            applicationServiceLogger.info("Logout finished");
+
+            return new HttpResponse("Successfully logged out", 200);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Logout failed", e);
+            throw e;
+        }
     }
 }

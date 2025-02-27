@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.kafka.producer;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.KafkaProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.KafkaProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

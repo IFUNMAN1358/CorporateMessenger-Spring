@@ -1,7 +1,6 @@
-package com.nagornov.CorporateMessenger.sharedKernel.logs.service;
+package com.nagornov.CorporateMessenger.sharedKernel.LogService.service;
 
-
-import com.nagornov.CorporateMessenger.sharedKernel.logs.model.LogContext;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.model.LogContext;
 
 public class LogContextHolder {
 
@@ -13,6 +12,10 @@ public class LogContextHolder {
 
     public static String getSpanId() {
         return LOG_CONTEXT.get().getSpanId();
+    }
+
+    public static String getUserId() {
+        return LOG_CONTEXT.get().getUserId();
     }
 
     public static String getHttpMethod() {
@@ -29,6 +32,10 @@ public class LogContextHolder {
 
     public static void setSpanId(String spanId) {
         LOG_CONTEXT.get().setSpanId(spanId);
+    }
+
+    public static void setUserId(String userId) {
+        LOG_CONTEXT.get().setUserId(userId);
     }
 
     public static void setHttpMethod(String httpMethod) {

@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.security;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.ServiceProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ServiceProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

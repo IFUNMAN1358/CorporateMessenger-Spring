@@ -4,6 +4,7 @@ import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
+import com.nagornov.CorporateMessenger.domain.logger.ApplicationServiceLogger;
 import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.User;
 import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
@@ -32,85 +33,137 @@ public class UserDataApplicationService {
     private final MinioUserProfilePhotoDomainService minioUserProfilePhotoDomainService;
     private final RedisSessionDomainService redisSessionDomainService;
     private final PasswordDomainService passwordDomainService;
+    private final ApplicationServiceLogger applicationServiceLogger;
 
 
     @Transactional
-    public HttpResponse changePassword(@NotNull PasswordRequest request) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+    public HttpResponse changeUserPassword(@NotNull PasswordRequest request) {
+        try {
+            applicationServiceLogger.info("Change user password started");
 
-        final User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
-
-        passwordDomainService.matchPassword(request.getCurrentPassword(), postgresUser.getPassword());
-
-        final String encodedPassword = passwordDomainService.encodePassword(request.getNewPassword());
-        postgresUser.updatePassword(encodedPassword);
-        jpaUserDomainService.update(postgresUser);
-
-        return new HttpResponse("Password changed", 200);
-    }
-
-
-    @Transactional(readOnly = true)
-    public List<UserResponseWithMainPhoto> searchByUsername(@NotNull String username, @NotNull int page, @NotNull int pageSize) {
-        jwtDomainService.getAuthInfo();
-
-        final List<User> userList = jpaUserDomainService.searchByUsername(username, page, pageSize);
-
-        return userList.stream().map(user -> {
-            Optional<UserProfilePhoto> currentUserPhoto = jpaUserProfilePhotoDomainService.findMainByUserId(user.getId());
-            return new UserResponseWithMainPhoto(
-                    user,
-                    currentUserPhoto.orElse(null)
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(
+                    UUID.fromString(authInfo.getUserId())
             );
-        }).toList();
+
+            passwordDomainService.matchPassword(request.getCurrentPassword(), postgresUser.getPassword());
+
+            String encodedPassword = passwordDomainService.encodePassword(request.getNewPassword());
+            postgresUser.updatePassword(encodedPassword);
+            jpaUserDomainService.update(postgresUser);
+
+            applicationServiceLogger.info("Change user password finished");
+
+            return new HttpResponse("Password changed", 200);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Change user password failed", e);
+            throw e;
+        }
     }
 
 
     @Transactional(readOnly = true)
-    public UserResponseWithAllPhotos getProfile() {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+    public List<UserResponseWithMainPhoto> searchUsersByUsername(
+            @NotNull String username,
+            @NotNull int page,
+            @NotNull int pageSize
+    ) {
+        try {
+            applicationServiceLogger.info("Search users by username started");
 
-        final User user = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
-        final List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(
-                user.getId()
-        );
+            jwtDomainService.getAuthInfo();
 
-        return new UserResponseWithAllPhotos(user, userProfilePhotos);
+            List<User> userList = jpaUserDomainService.searchByUsername(username, page, pageSize);
+
+            applicationServiceLogger.info("Search users by username finished");
+
+            return userList.stream().map(user -> {
+                Optional<UserProfilePhoto> currentUserPhoto = jpaUserProfilePhotoDomainService.findMainByUserId(user.getId());
+                return new UserResponseWithMainPhoto(
+                        user,
+                        currentUserPhoto.orElse(null)
+                );
+            }).toList();
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Search users by username failed", e);
+            throw e;
+        }
     }
 
 
     @Transactional(readOnly = true)
-    public UserResponseWithAllPhotos getUser(@NotNull String userId) {
-        jwtDomainService.getAuthInfo();
+    public UserResponseWithAllPhotos getYourUserData() {
+        try {
+            applicationServiceLogger.info("Get your user data started");
 
-        final UUID uuidUserId = UUID.fromString(userId);
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User user = jpaUserDomainService.getById(
+                    UUID.fromString(authInfo.getUserId())
+            );
 
-        final User user = jpaUserDomainService.getById(uuidUserId);
-        final List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(uuidUserId);
+            List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(
+                    user.getId()
+            );
 
-        return new UserResponseWithAllPhotos(user, userProfilePhotos);
+            applicationServiceLogger.info("Get your user data finished");
+
+            return new UserResponseWithAllPhotos(user, userProfilePhotos);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Get your user data failed", e);
+            throw e;
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    public UserResponseWithAllPhotos getUserById(@NotNull String userId) {
+        try {
+            applicationServiceLogger.info("Get user by id started");
+
+            jwtDomainService.getAuthInfo();
+            UUID uuidUserId = UUID.fromString(userId);
+
+            User user = jpaUserDomainService.getById(uuidUserId);
+            List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(uuidUserId);
+
+            applicationServiceLogger.info("Get user by id finished");
+
+            return new UserResponseWithAllPhotos(user, userProfilePhotos);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Get user by id failed", e);
+            throw e;
+        }
     }
 
 
     @Transactional
-    public HttpResponse deleteUser() {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+    public HttpResponse deleteAccount() {
+        try {
+            applicationServiceLogger.info("Delete user account started");
 
-        final User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(
+                    UUID.fromString(authInfo.getUserId())
+            );
 
-        jpaUserProfilePhotoDomainService.getAllByUserId(postgresUser.getId())
-                .forEach(photo -> minioUserProfilePhotoDomainService.delete(photo.getFilePath()));
+            jpaUserProfilePhotoDomainService.getAllByUserId(postgresUser.getId())
+                    .forEach(photo -> minioUserProfilePhotoDomainService.delete(photo.getFilePath()));
 
-        jpaUserDomainService.deleteById(postgresUser.getId());
+            jpaUserDomainService.deleteById(postgresUser.getId());
 
-        redisSessionDomainService.deleteByUserId(postgresUser.getId());
+            redisSessionDomainService.deleteByUserId(postgresUser.getId());
 
-        return new HttpResponse("User deleted successfully", 200);
+            applicationServiceLogger.info("Delete user account finished");
+
+            return new HttpResponse("User deleted successfully", 200);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Delete user account failed", e);
+            throw e;
+        }
     }
 }

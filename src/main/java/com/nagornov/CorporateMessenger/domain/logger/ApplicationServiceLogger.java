@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.domain.logger;
 
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaLogProducerService;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.model.LoggerMetadata;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.service.AbstractLogger;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.model.Log;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.model.LoggerMetadata;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.service.AbstractLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +14,12 @@ public class ApplicationServiceLogger extends AbstractLogger {
     private final KafkaLogProducerService kafkaLogProducerService;
 
     @Override
-    protected LoggerMetadata initLoggerMetadata() {
+    public LoggerMetadata initLoggerMetadata() {
         return new LoggerMetadata("applicationService");
     }
 
     @Override
-    protected void sendLog(Log log) {
+    public void sendLog(Log log) {
         kafkaLogProducerService.sendMessage(log);
     }
 }

@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.domain.logger.ApplicationServiceLogger;
 import com.nagornov.CorporateMessenger.domain.model.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
@@ -25,63 +26,91 @@ public class GroupChatPhotoApplicationService {
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
     private final MinioGroupChatPhotoDomainService minioGroupChatPhotoDomainService;
+    private final ApplicationServiceLogger applicationServiceLogger;
 
 
     @Transactional(readOnly = true)
-    public Resource getPhoto(@NotNull String chatId) {
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+    public Resource getGroupChatPhoto(@NotNull String chatId) {
+        try {
+            applicationServiceLogger.info("Get group chat photo started");
 
-        cassandraGroupChatMemberDomainService.validateUserOwnership(UUID.fromString(chatId), authInfo.getUserIdAsUUID());
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(UUID.fromString(chatId));
+            cassandraGroupChatMemberDomainService.validateUserOwnership(UUID.fromString(chatId), authInfo.getUserIdAsUUID());
 
-        return new InputStreamResource(
-                minioGroupChatPhotoDomainService.download(groupChat.getFilePath())
-        );
+            GroupChat groupChat = cassandraGroupChatDomainService.getById(UUID.fromString(chatId));
+
+            applicationServiceLogger.info("Get group chat photo finished");
+
+            return new InputStreamResource(
+                    minioGroupChatPhotoDomainService.download(groupChat.getFilePath())
+            );
+        } catch (Exception e) {
+            applicationServiceLogger.error("Get group chat photo failed", e);
+            throw e;
+        }
     }
 
 
     @Transactional
-    public Resource uploadOrChangePhoto(@NotNull String chatId, @NotNull FileRequest request) {
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+    public Resource uploadOrChangeGroupChatPhoto(@NotNull String chatId, @NotNull FileRequest request) {
+        try {
+            applicationServiceLogger.info("Upload or change group chat photo started");
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(
-                UUID.fromString(chatId)
-        );
-        groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
-        if (groupChat.getFilePath() != null) {
-            minioGroupChatPhotoDomainService.delete(groupChat.getFilePath());
+            GroupChat groupChat = cassandraGroupChatDomainService.getById(
+                    UUID.fromString(chatId)
+            );
+            groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
+
+            if (groupChat.getFilePath() != null) {
+                minioGroupChatPhotoDomainService.delete(groupChat.getFilePath());
+            }
+
+            String filePath = minioGroupChatPhotoDomainService.upload(request.getFile());
+            groupChat.updateFilePath(filePath);
+            cassandraGroupChatDomainService.update(groupChat);
+
+            applicationServiceLogger.info("Upload or change group chat photo finished");
+
+            return new InputStreamResource(
+                    minioGroupChatPhotoDomainService.download(groupChat.getFilePath())
+            );
+        } catch (Exception e) {
+            applicationServiceLogger.error("Upload or change group chat photo failed", e);
+            throw e;
         }
-
-        String filePath = minioGroupChatPhotoDomainService.upload(request.getFile());
-        groupChat.updateFilePath(filePath);
-        cassandraGroupChatDomainService.update(groupChat);
-
-        return new InputStreamResource(
-                minioGroupChatPhotoDomainService.download(groupChat.getFilePath())
-        );
     }
 
 
     @Transactional
-    public HttpResponse deletePhoto(@NotNull String chatId) {
+    public HttpResponse deleteGroupChatPhoto(@NotNull String chatId) {
+        try {
+            applicationServiceLogger.info("Delete group chat photo started");
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(
-                UUID.fromString(chatId)
-        );
-        groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
+            GroupChat groupChat = cassandraGroupChatDomainService.getById(
+                    UUID.fromString(chatId)
+            );
+            groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
-        if (groupChat.getFilePath() != null) {
-            minioGroupChatPhotoDomainService.delete(groupChat.getFilePath());
+            if (groupChat.getFilePath() != null) {
+                minioGroupChatPhotoDomainService.delete(groupChat.getFilePath());
+            }
+
+            groupChat.updateFilePath(null);
+            cassandraGroupChatDomainService.update(groupChat);
+
+            applicationServiceLogger.info("Delete group chat photo finished");
+
+            return new HttpResponse("Photo has been successfully deleted", 200);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Delete group chat photo failed", e);
+            throw e;
         }
-
-        groupChat.updateFilePath(null);
-        cassandraGroupChatDomainService.update(groupChat);
-
-        return new HttpResponse("Photo has been successfully deleted", 200);
     }
 
 }

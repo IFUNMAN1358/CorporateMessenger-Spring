@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.CsrfProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CsrfProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -26,6 +26,11 @@ public class CustomCsrfFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain fc) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+        if (isSafeMethod(request.getMethod())) {
+            fc.doFilter(request, response);
+            return;
+        }
 
         CsrfToken csrfToken = csrfTokenRepository().loadToken(request);
 
@@ -70,6 +75,13 @@ public class CustomCsrfFilter extends GenericFilterBean {
             }
         }
         return null;
+    }
+
+    private boolean isSafeMethod(String method) {
+        return "GET".equalsIgnoreCase(method) ||
+               "HEAD".equalsIgnoreCase(method) ||
+               "OPTIONS".equalsIgnoreCase(method) ||
+               "TRACE".equalsIgnoreCase(method);
     }
 
 }

@@ -1,9 +1,11 @@
-package com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props;
+package com.nagornov.CorporateMessenger.infrastructure.configuration.properties;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
+@Component
 @ConfigurationProperties(prefix = "spring.cassandra")
 @Getter
 @Setter

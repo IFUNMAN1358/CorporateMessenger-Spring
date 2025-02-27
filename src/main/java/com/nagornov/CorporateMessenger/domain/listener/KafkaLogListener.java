@@ -1,9 +1,9 @@
-package com.nagornov.CorporateMessenger.domain.service.listener;
+package com.nagornov.CorporateMessenger.domain.listener;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import com.nagornov.CorporateMessenger.domain.service.domainService.externalApi.LogServiceClient;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.model.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,10 +22,8 @@ public class KafkaLogListener {
             containerFactory = "kafkaLogContainerFactory"
     )
     public void distributor(ConsumerRecord<String, Log> record, Acknowledgment ack) {
-
-        Log log = record.value();
-
         try {
+            Log log = record.value();
             logServiceClient.sendLog(log);
             ack.acknowledge();
         } catch (RuntimeException e) {

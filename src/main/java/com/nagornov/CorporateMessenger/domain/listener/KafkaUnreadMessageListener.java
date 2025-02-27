@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.domain.service.listener;
+package com.nagornov.CorporateMessenger.domain.listener;
 
 import com.nagornov.CorporateMessenger.domain.enums.ChatType;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;

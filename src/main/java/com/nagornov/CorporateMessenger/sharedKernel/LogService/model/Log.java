@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.sharedKernel.logs.model;
+package com.nagornov.CorporateMessenger.sharedKernel.LogService.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

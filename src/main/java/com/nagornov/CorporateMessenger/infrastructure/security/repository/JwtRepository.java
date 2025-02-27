@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.repository;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.JwtProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

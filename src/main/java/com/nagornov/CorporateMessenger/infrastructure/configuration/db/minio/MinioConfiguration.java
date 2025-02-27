@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.minio;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.MinioProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.MinioProperties;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

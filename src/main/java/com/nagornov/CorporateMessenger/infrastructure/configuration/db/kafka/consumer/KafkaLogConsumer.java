@@ -2,9 +2,9 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.db.kafka.co
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.KafkaProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.KafkaProperties;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.deserializer.KafkaLogDeserializer;
-import com.nagornov.CorporateMessenger.sharedKernel.logs.model.Log;
+import com.nagornov.CorporateMessenger.sharedKernel.LogService.model.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;

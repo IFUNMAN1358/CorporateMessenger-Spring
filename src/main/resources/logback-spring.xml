@@ -1,0 +1,27 @@
+<configuration includeCallerData="true">
+    <appender
+            name="KAFKA_APPENDER"
+            class="com.nagornov.CorporateMessenger.sharedKernel.LogService.appender.CustomKafkaAppender"
+    >
+    </appender>
+
+    <appender
+            name="ASYNC_KAFKA_APPENDER"
+            class="com.nagornov.CorporateMessenger.sharedKernel.LogService.appender.CustomAsyncKafkaAppender"
+    >
+        <appender-ref ref="KAFKA_APPENDER" />
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="ASYNC_KAFKA_APPENDER" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+</configuration>

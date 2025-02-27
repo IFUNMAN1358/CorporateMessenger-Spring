@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.cassandra;
 
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.CassandraProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CassandraProperties;
 import lombok.RequiredArgsConstructor;
 import org.cognitor.cassandra.migration.Database;
 import org.cognitor.cassandra.migration.MigrationConfiguration;

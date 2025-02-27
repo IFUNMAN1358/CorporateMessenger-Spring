@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.db.cassandr
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.CassandraProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CassandraProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

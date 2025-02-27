@@ -5,6 +5,7 @@ import com.nagornov.CorporateMessenger.application.dto.message.*;
 import com.nagornov.CorporateMessenger.domain.factory.MessageFactory;
 import com.nagornov.CorporateMessenger.domain.factory.MessageFileFactory;
 import com.nagornov.CorporateMessenger.domain.factory.ReadMessageFactory;
+import com.nagornov.CorporateMessenger.domain.logger.ApplicationServiceLogger;
 import com.nagornov.CorporateMessenger.domain.model.*;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaUnreadMessageProducerDomainService;
@@ -38,188 +39,249 @@ public class MessageApplicationService {
     private final CassandraMessageFileDomainService cassandraMessageFileDomainService;
     private final MinioMessageFileDomainService minioMessageFileDomainService;
     private final KafkaUnreadMessageProducerDomainService kafkaUnreadMessageProducerDomainService;
+    private final ApplicationServiceLogger applicationServiceLogger;
 
 
     @Transactional
-    public MessageResponse create(@NotNull CreateMessageRequest request) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        final User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+    public MessageResponse createMessage(@NotNull CreateMessageRequest request) {
+        try {
+            applicationServiceLogger.info("Create message started");
 
-        final Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        final Message message = MessageFactory.createWithRandomId();
-        message.updateChatId(chat.getId());
-        message.updateSenderId(postgresUser.getId());
-        message.updateSenderFirstName(postgresUser.getFirstName());
-        message.updateSenderUsername(postgresUser.getUsername());
-        message.updateContent(request.getContent());
+            Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
 
-        if (request.getFiles() != null && !request.getFiles().isEmpty()) {
-            message.markAsHasFiles();
+            Message message = MessageFactory.createWithRandomId();
+            message.updateChatId(chat.getId());
+            message.updateSenderId(postgresUser.getId());
+            message.updateSenderFirstName(postgresUser.getFirstName());
+            message.updateSenderUsername(postgresUser.getUsername());
+            message.updateContent(request.getContent());
 
-            for (MultipartFile file : request.getFiles()) {
-                final MessageFile messageFile = MessageFileFactory.createFromMultipartFile(file);
-                messageFile.updateMessageId(message.getId());
+            if (request.getFiles() != null && !request.getFiles().isEmpty()) {
+                message.markAsHasFiles();
 
-                cassandraMessageFileDomainService.save(messageFile);
-                minioMessageFileDomainService.upload(messageFile, file);
+                for (MultipartFile file : request.getFiles()) {
+                    MessageFile messageFile = MessageFileFactory.createFromMultipartFile(file);
+                    messageFile.updateMessageId(message.getId());
+
+                    cassandraMessageFileDomainService.save(messageFile);
+                    minioMessageFileDomainService.upload(messageFile, file);
+                }
             }
+            cassandraMessageDomainService.save(message);
+
+            chat.updateLastMessageId(message.getId());
+            cassandraChatBusinessService.update(chat);
+
+            kafkaUnreadMessageProducerDomainService
+                    .sendToIncrementUnreadMessageCountForOther(postgresUser, chat);
+
+            applicationServiceLogger.info("Create message finished");
+
+            return new MessageResponse(
+                    message,
+                    message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
+                    message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+            );
+        } catch (Exception e) {
+            applicationServiceLogger.error("Create message failed", e);
+            throw e;
         }
-        cassandraMessageDomainService.save(message);
-
-        chat.updateLastMessageId(message.getId());
-        cassandraChatBusinessService.update(chat);
-
-        kafkaUnreadMessageProducerDomainService
-                .sendToIncrementUnreadMessageCountForOther(postgresUser, chat);
-
-        return new MessageResponse(
-                message,
-                message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-                message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
-        );
     }
 
 
     @Transactional(readOnly = true)
-    public List<MessageResponse> getAll(@NotNull String chatId, @NotNull int page, @NotNull int size) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        final User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+    public List<MessageResponse> getAllMessages(@NotNull String chatId, @NotNull int page, @NotNull int size) {
+        try {
+            applicationServiceLogger.info("Get all messages started");
 
-        final Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        final List<MessageResponse> listMessageResponses = new ArrayList<>();
-        final List<Message> listOfMessages = cassandraMessageDomainService.getAllByChatId(chat.getId(), page, size);
+            Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
 
-        for (Message message : listOfMessages) {
-            listMessageResponses.add(
-                    new MessageResponse(
-                            message,
-                            message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-                            message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
-                    )
-            );
-        }
-        return listMessageResponses;
-    }
+            List<MessageResponse> listMessageResponses = new ArrayList<>();
+            List<Message> listOfMessages = cassandraMessageDomainService.getAllByChatId(chat.getId(), page, size);
 
-
-    @Transactional
-    public MessageResponse updateContent(@NotNull UpdateMessageContentRequest request) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-
-        final Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
-        message.validateUserIdOwnership(authInfo.getUserIdAsUUID());
-        message.validateContentBeforeUpdate(request.getContent());
-
-        message.updateContent(request.getContent());
-        message.markAsChanged();
-        cassandraMessageDomainService.update(message);
-
-        return new MessageResponse(
-            message,
-            message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-            message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
-        );
-    }
-
-
-    @Transactional
-    public MessageResponse delete(@NotNull DeleteMessageRequest request) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        final User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
-
-        final Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
-
-        final Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
-        message.validateUserIdOwnership(postgresUser.getId());
-
-        if (message.getHasFiles()) {
-            final List<MessageFile> messageFiles = cassandraMessageFileDomainService.getAllByMessageId(message.getId());
-            for (MessageFile messageFile : messageFiles) {
-                cassandraMessageFileDomainService.delete(messageFile);
-                minioMessageFileDomainService.delete(messageFile.getFilePath());
+            for (Message message : listOfMessages) {
+                listMessageResponses.add(
+                        new MessageResponse(
+                                message,
+                                message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
+                                message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+                        )
+                );
             }
+
+            applicationServiceLogger.info("Get all messages finished");
+
+            return listMessageResponses;
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Get all messages failed", e);
+            throw e;
         }
-        cassandraMessageDomainService.delete(message);
-
-        Optional<Message> existingPreviousMessage = cassandraMessageDomainService.findLastByChatId(chat.getId());
-        chat.updateLastMessageId(
-                existingPreviousMessage.map(Message::getId).orElse(null)
-        );
-        cassandraChatBusinessService.update(chat);
-
-        cassandraReadMessageDomainService.getAllByMessageId(message.getId())
-                .forEach(cassandraReadMessageDomainService::delete);
-
-        if (!message.getIsRead()) {
-            kafkaUnreadMessageProducerDomainService
-                    .sendToDecrementUnreadMessageCountForOther(postgresUser, chat);
-        }
-
-        return new MessageResponse(message, null, null);
     }
 
 
     @Transactional
-    public MessageResponse read(@NotNull ReadMessageRequest request) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        final User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+    public MessageResponse updateMessageContent(@NotNull UpdateMessageContentRequest request) {
+        try {
+            applicationServiceLogger.info("Update message content started");
 
-        final Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
-        final Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
-        chat.validateMessageChatIdOwnership(message.getChatId());
+            Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
+            message.validateUserIdOwnership(authInfo.getUserIdAsUUID());
+            message.validateContentBeforeUpdate(request.getContent());
 
-        if (message.getSenderId().equals(postgresUser.getId())) {
-            return null;
-        }
-        if (cassandraReadMessageDomainService.checkExistsByMessageIdAndUserId(message.getId(), postgresUser.getId())) {
-            return null;
-        }
+            message.updateContent(request.getContent());
+            message.markAsChanged();
+            cassandraMessageDomainService.update(message);
 
-        message.markAsRead();
-        cassandraMessageDomainService.update(message);
+            applicationServiceLogger.info("Update message content finished");
 
-        final ReadMessage readMessage = ReadMessageFactory.createWithRandomId();
-        readMessage.updateUserId(postgresUser.getId());
-        readMessage.updateChatId(chat.getId());
-        readMessage.updateMessageId(message.getId());
-        cassandraReadMessageDomainService.save(readMessage);
-
-        kafkaUnreadMessageProducerDomainService
-                .sendToDecrementUnreadMessageCountForUser(postgresUser, chat);
-
-        return new MessageResponse(
+            return new MessageResponse(
                 message,
                 message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
                 message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
-        );
+            );
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Update message content failed", e);
+            throw e;
+        }
     }
 
 
-    public MinioFileDto getFile(@NotNull String chatId, @NotNull String messageId, @NotNull String fileId) {
-        final JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        final User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+    @Transactional
+    public MessageResponse deleteMessage(@NotNull DeleteMessageRequest request) {
+        try {
+            applicationServiceLogger.info("Delete message started");
 
-        final Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        final Message message = cassandraMessageDomainService.getById(UUID.fromString(messageId));
-        final Optional<MessageFile> messageFile = cassandraMessageFileDomainService.findByIdAndMessageId(
-                UUID.fromString(fileId), message.getId()
-        );
+            Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
 
-        return new MinioFileDto(
-                new InputStreamResource(
-                        minioMessageFileDomainService.download(messageFile.get().getFilePath())
-                ),
-                minioMessageFileDomainService.statObject(messageFile.get().getFilePath())
-        );
+            Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
+            message.validateUserIdOwnership(postgresUser.getId());
+
+            if (message.getHasFiles()) {
+                List<MessageFile> messageFiles = cassandraMessageFileDomainService.getAllByMessageId(message.getId());
+                for (MessageFile messageFile : messageFiles) {
+                    cassandraMessageFileDomainService.delete(messageFile);
+                    minioMessageFileDomainService.delete(messageFile.getFilePath());
+                }
+            }
+            cassandraMessageDomainService.delete(message);
+
+            Optional<Message> existingPreviousMessage = cassandraMessageDomainService.findLastByChatId(chat.getId());
+            chat.updateLastMessageId(
+                    existingPreviousMessage.map(Message::getId).orElse(null)
+            );
+            cassandraChatBusinessService.update(chat);
+
+            cassandraReadMessageDomainService.getAllByMessageId(message.getId())
+                    .forEach(cassandraReadMessageDomainService::delete);
+
+            if (!message.getIsRead()) {
+                kafkaUnreadMessageProducerDomainService
+                        .sendToDecrementUnreadMessageCountForOther(postgresUser, chat);
+            }
+
+            applicationServiceLogger.info("Delete message finished");
+
+            return new MessageResponse(message, null, null);
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Delete message failed", e);
+            throw e;
+        }
+    }
+
+
+    @Transactional
+    public MessageResponse readMessage(@NotNull ReadMessageRequest request) {
+        try {
+            applicationServiceLogger.info("Read message started");
+
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+
+            Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+
+            Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
+            chat.validateMessageChatIdOwnership(message.getChatId());
+
+            if (message.getSenderId().equals(postgresUser.getId())) {
+                return null;
+            }
+            if (cassandraReadMessageDomainService.checkExistsByMessageIdAndUserId(message.getId(), postgresUser.getId())) {
+                return null;
+            }
+
+            message.markAsRead();
+            cassandraMessageDomainService.update(message);
+
+            ReadMessage readMessage = ReadMessageFactory.createWithRandomId();
+            readMessage.updateUserId(postgresUser.getId());
+            readMessage.updateChatId(chat.getId());
+            readMessage.updateMessageId(message.getId());
+            cassandraReadMessageDomainService.save(readMessage);
+
+            kafkaUnreadMessageProducerDomainService
+                    .sendToDecrementUnreadMessageCountForUser(postgresUser, chat);
+
+            applicationServiceLogger.info("Read message finished");
+
+            return new MessageResponse(
+                    message,
+                    message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
+                    message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+            );
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Read message failed", e);
+            throw e;
+        }
+    }
+
+
+    public MinioFileDto getMessageFile(@NotNull String chatId, @NotNull String messageId, @NotNull String fileId) {
+        try {
+            applicationServiceLogger.info("Get message file started");
+
+            JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+            User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+
+            Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+
+            Message message = cassandraMessageDomainService.getById(UUID.fromString(messageId));
+            Optional<MessageFile> messageFile = cassandraMessageFileDomainService.findByIdAndMessageId(
+                    UUID.fromString(fileId), message.getId()
+            );
+
+            applicationServiceLogger.info("Get message file finished");
+
+            return new MinioFileDto(
+                    new InputStreamResource(
+                            minioMessageFileDomainService.download(messageFile.get().getFilePath())
+                    ),
+                    minioMessageFileDomainService.statObject(messageFile.get().getFilePath())
+            );
+
+        } catch (Exception e) {
+            applicationServiceLogger.error("Get message file failed", e);
+            throw e;
+        }
     }
 
 }

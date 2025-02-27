@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.db.kafka.co
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.KafkaProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.KafkaProperties;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.deserializer.KafkaUnreadMessageDTODeserializer;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
 import lombok.RequiredArgsConstructor;

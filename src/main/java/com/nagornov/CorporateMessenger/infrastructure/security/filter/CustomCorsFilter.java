@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.ServiceProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ServiceProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -26,7 +26,7 @@ public class CustomCorsFilter extends GenericFilterBean {
 
         response.setHeader("Access-Control-Allow-Origin", serviceProperties.getClientUrl());
         response.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,PATCH,OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Trace-Id");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {

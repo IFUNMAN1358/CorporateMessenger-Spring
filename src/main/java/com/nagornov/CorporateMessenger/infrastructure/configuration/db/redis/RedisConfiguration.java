@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.db.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.props.RedisProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.RedisProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
