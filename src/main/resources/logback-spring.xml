@@ -1,13 +1,13 @@
 <configuration includeCallerData="true">
     <appender
             name="KAFKA_APPENDER"
-            class="com.nagornov.CorporateMessenger.sharedKernel.LogService.appender.CustomKafkaAppender"
+            class="com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomKafkaAppender"
     >
     </appender>
 
     <appender
             name="ASYNC_KAFKA_APPENDER"
-            class="com.nagornov.CorporateMessenger.sharedKernel.LogService.appender.CustomAsyncKafkaAppender"
+            class="com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomAsyncKafkaAppender"
     >
         <appender-ref ref="KAFKA_APPENDER" />
         <queueSize>500</queueSize>

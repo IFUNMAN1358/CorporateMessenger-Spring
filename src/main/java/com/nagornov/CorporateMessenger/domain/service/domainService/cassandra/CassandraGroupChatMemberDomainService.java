@@ -25,7 +25,7 @@ public class CassandraGroupChatMemberDomainService {
     public void save(@NotNull GroupChatMember groupChatMember) {
         cassandraGroupChatMemberByChatIdAndUserIdRepository
                 .findByChatIdAndUserId(groupChatMember.getChatId(), groupChatMember.getUserId())
-                .ifPresent(e -> {
+                .ifPresent(_ -> {
                     throw new ResourceConflictException("Group chat member already exists");
                 });
         cassandraGroupChatMemberByChatIdRepository.saveWithoutCheck(groupChatMember);

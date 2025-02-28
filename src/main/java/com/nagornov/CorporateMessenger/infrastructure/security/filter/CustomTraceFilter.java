@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
 import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
-import com.nagornov.CorporateMessenger.sharedKernel.LogService.service.LogContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -34,8 +33,7 @@ public class CustomTraceFilter extends GenericFilterBean {
             if (!StringUtils.hasText(traceId)) {
                 traceId = UUID.randomUUID().toString();
             }
-            LogContextHolder.setTraceId(traceId);
-            MDC.put("traceId", traceId); //
+            MDC.put("traceId", traceId);
 
             String userId = null;
             var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -45,25 +43,17 @@ public class CustomTraceFilter extends GenericFilterBean {
             ) {
                 userId = authInfo.getUserId();
             }
-            LogContextHolder.setUserId(userId);
-            MDC.put("userId", userId); //
+            MDC.put("userId", userId);
 
-            String spanId = UUID.randomUUID().toString(); //
-
-            LogContextHolder.setSpanId(spanId);
-            LogContextHolder.setHttpMethod(httpRequest.getMethod());
-            LogContextHolder.setHttpPath(httpRequest.getRequestURI());
-
-            MDC.put("spanId", spanId); //
-            MDC.put("httpMethod", httpRequest.getMethod()); //
-            MDC.put("httpPath", httpRequest.getRequestURI()); //
+            MDC.put("spanId", UUID.randomUUID().toString());
+            MDC.put("httpMethod", httpRequest.getMethod());
+            MDC.put("httpPath", httpRequest.getRequestURI());
 
         }
         try {
             chain.doFilter(request, response);
         } finally {
-            LogContextHolder.clear();
-            MDC.clear(); //
+            MDC.clear();
         }
     }
 

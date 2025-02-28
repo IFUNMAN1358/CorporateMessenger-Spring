@@ -27,7 +27,7 @@ public class CassandraPrivateChatDomainService {
 
     public void save(@NotNull PrivateChat privateChat) {
         cassandraPrivateChatByIdRepository.findById(privateChat.getId())
-                        .ifPresent(e -> {
+                        .ifPresent(_ -> {
                             throw new ResourceConflictException("Private chat already exists during save");
                         });
         cassandraPrivateChatByIdRepository.saveWithoutCheck(privateChat);

@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.sharedKernel.LogService.utils;
+package com.nagornov.CorporateMessenger.infrastructure.logback.utils;
 
 import lombok.experimental.UtilityClass;
 

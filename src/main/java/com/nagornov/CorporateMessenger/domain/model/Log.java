@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.sharedKernel.LogService.model;
+package com.nagornov.CorporateMessenger.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +17,6 @@ public class Log {
     private String message;
     private String level;
     private String serviceName;
-    private String directoryName;
     private String fileName;
     private String methodName;
     private int lineNumber;

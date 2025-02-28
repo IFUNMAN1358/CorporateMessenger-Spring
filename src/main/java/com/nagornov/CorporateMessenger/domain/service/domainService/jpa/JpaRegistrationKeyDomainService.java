@@ -15,7 +15,7 @@ public class JpaRegistrationKeyDomainService {
 
     public void save(@NotNull RegistrationKey key) {
         jpaRegistrationKeyRepository.findByValue(key.getValue())
-                .ifPresent(e -> {
+                .ifPresent(_ -> {
                     throw new RuntimeException("Registration key with this value already exists");
                 });
         jpaRegistrationKeyRepository.save(key);

@@ -19,7 +19,7 @@ public class CassandraUnreadMessageDomainService {
     public void save(@NotNull UnreadMessage unreadMessage) {
         cassandraUnreadMessageByChatIdAndUserIdRepository
                 .findByChatIdAndUserId(unreadMessage.getChatId(), unreadMessage.getUserId())
-                        .ifPresent(e -> {
+                        .ifPresent(_ -> {
                             throw new ResourceConflictException("Unread message already exists during save");
                         });
         cassandraUnreadMessageByChatIdAndUserIdRepository.saveWithoutCheck(unreadMessage);

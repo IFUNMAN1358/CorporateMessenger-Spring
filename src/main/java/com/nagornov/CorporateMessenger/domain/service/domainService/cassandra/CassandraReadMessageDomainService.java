@@ -21,7 +21,7 @@ public class CassandraReadMessageDomainService {
 
     public void save(@NotNull ReadMessage readMessage) {
         cassandraReadMessageByIdRepository.findById(readMessage.getId())
-                .ifPresent(e -> {
+                .ifPresent(_ -> {
                     throw new ResourceConflictException("Read message already exists during save");
                 });
         cassandraReadMessageByIdRepository.saveWithoutCheck(readMessage);

@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.application.advice;
 
 import com.nagornov.CorporateMessenger.domain.exception.ApiError;
-import com.nagornov.CorporateMessenger.domain.logger.AdviceLogger;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultExceptionHandler {
-
-    private final AdviceLogger adviceLogger;
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleException(IllegalArgumentException ex, HttpServletRequest request) {
@@ -27,7 +26,7 @@ public class DefaultExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
@@ -39,7 +38,7 @@ public class DefaultExceptionHandler {
                 HttpStatus.UNAUTHORIZED.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 
@@ -51,7 +50,7 @@ public class DefaultExceptionHandler {
                 HttpStatus.FORBIDDEN.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }
 
@@ -63,7 +62,7 @@ public class DefaultExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -75,7 +74,7 @@ public class DefaultExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

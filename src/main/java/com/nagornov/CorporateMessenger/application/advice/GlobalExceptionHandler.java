@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.application.advice;
 
 import com.nagornov.CorporateMessenger.domain.exception.ApiError;
-import com.nagornov.CorporateMessenger.domain.logger.AdviceLogger;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class GlobalExceptionHandler {
-
-    private final AdviceLogger adviceLogger;
 
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ApiError> handleUnhandledException(Throwable ex, HttpServletRequest request) {
@@ -25,7 +24,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

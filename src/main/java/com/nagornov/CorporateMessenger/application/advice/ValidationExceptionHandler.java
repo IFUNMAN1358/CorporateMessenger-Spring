@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.application.advice;
 
 import com.nagornov.CorporateMessenger.domain.exception.ApiError;
-import com.nagornov.CorporateMessenger.domain.logger.AdviceLogger;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class ValidationExceptionHandler {
-
-    private final AdviceLogger adviceLogger;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -33,7 +32,7 @@ public class ValidationExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
@@ -45,7 +44,7 @@ public class ValidationExceptionHandler {
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
                 LocalDateTime.now()
         );
-        adviceLogger.error(apiError.toString(), ex);
+        log.error(apiError.toString(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.METHOD_NOT_ALLOWED);
     }
 

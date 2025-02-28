@@ -22,7 +22,7 @@ public class CassandraMessageDomainService {
 
     public void save(@NotNull Message message) {
         cassandraMessageByIdRepository.findById(message.getId())
-                .ifPresent(e -> {
+                .ifPresent(_ -> {
                     throw new ResourceConflictException("Message already exists during save");
                 });
         cassandraMessageByIdRepository.saveWithoutCheck(message);

@@ -1,4 +1,4 @@
-package com.nagornov.CorporateMessenger.infrastructure.configuration.common;
+package com.nagornov.CorporateMessenger.infrastructure.configuration.file;
 
 import jakarta.servlet.MultipartConfigElement;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
