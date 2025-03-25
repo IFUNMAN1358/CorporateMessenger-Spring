@@ -25,7 +25,7 @@ public class PrivateChatController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<PrivateChatSummaryResponse> getOrCreatePrivateChat(@Validated @RequestBody SecondUserIdRequest request) {
-        final PrivateChatSummaryResponse response =
+        PrivateChatSummaryResponse response =
                 privateChatApplicationService.getOrCreatePrivateChat(request);
         return ResponseEntity.status(200).body(response);
     }
@@ -35,7 +35,7 @@ public class PrivateChatController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<PrivateChatSummaryResponse>> getAllPrivateChats() {
-        final List<PrivateChatSummaryResponse> response =
+        List<PrivateChatSummaryResponse> response =
                 privateChatApplicationService.getAllPrivateChats();
         return ResponseEntity.status(200).body(response);
     }
@@ -45,7 +45,7 @@ public class PrivateChatController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<PrivateChatSummaryResponse> getPrivateChat(@PathVariable("chatId") String chatId) {
-        final PrivateChatSummaryResponse response =
+        PrivateChatSummaryResponse response =
                 privateChatApplicationService.getPrivateChat(chatId);
         return ResponseEntity.status(200).body(response);
     }
@@ -56,7 +56,7 @@ public class PrivateChatController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> markPrivateChatAsUnavailable(@Validated @RequestBody ChatIdRequest request) {
-        final HttpResponse response =
+        HttpResponse response =
                 privateChatApplicationService.markPrivateChatAsUnavailable(request);
         return ResponseEntity.status(200).body(response);
     }

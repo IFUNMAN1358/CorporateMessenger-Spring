@@ -7,6 +7,13 @@ databaseChangeLog:
             tableName: 'user_role'
             columns:
               - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    updatable: false
+              - column:
                   name: user_id
                   type: uuid
                   constraints:
@@ -18,28 +25,24 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     updatable: false
-        - addPrimaryKey:
-            tableName: 'user_role'
-            columnNames: 'user_id, role_id'
-            constraintName: 'pk_user_role'
+            constraints:
+              - uniqueConstraint:
+                  name: 'unique_user_role'
+                  columnNames: 'user_id, role_id'
         - addForeignKeyConstraint:
+            constraintName: 'fk_user_role_user'
             baseTableName: 'user_role'
             baseColumnNames: 'user_id'
             referencedTableName: 'users'
             referencedColumnNames: 'id'
-            constraintName: 'fk_user_role_user'
+            onDelete: CASCADE
         - addForeignKeyConstraint:
+            constraintName: 'fk_user_role_role'
             baseTableName: 'user_role'
             baseColumnNames: 'role_id'
             referencedTableName: 'roles'
             referencedColumnNames: 'id'
-            constraintName: 'fk_user_role_role'
-        - createIndex:
-            tableName: 'user_role'
-            indexName: 'idx_user_role_user_id'
-            columns:
-              - column:
-                  name: 'user_id'
+            onDelete: CASCADE
         - createIndex:
             tableName: 'user_role'
             indexName: 'idx_user_role_role_id'

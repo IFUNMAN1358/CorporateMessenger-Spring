@@ -3,7 +3,7 @@ package com.nagornov.CorporateMessenger.domain.service.listenerService;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import com.nagornov.CorporateMessenger.domain.service.domainService.externalApi.LogServiceClient;
-import com.nagornov.CorporateMessenger.domain.model.Log;
+import com.nagornov.CorporateMessenger.domain.model.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;

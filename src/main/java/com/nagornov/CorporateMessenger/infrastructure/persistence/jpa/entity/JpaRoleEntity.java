@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -19,7 +18,7 @@ import java.util.UUID;
 public class JpaRoleEntity {
 
     @Id
-    @Column(name = "id", insertable = false, updatable = false, nullable = false, unique = true)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "name", nullable = false, unique = true, updatable = false)
@@ -28,15 +27,4 @@ public class JpaRoleEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Set<JpaUserEntity> users;
-
-    //
-    // Methods
-    //
-
-    @PrePersist
-    public void createTimestamps() {
-        createdAt = LocalDateTime.now();
-    }
 }

@@ -18,25 +18,22 @@ import java.util.UUID;
 public class JpaUserProfilePhotoEntity {
 
     @Id
-    @Column(name = "id", nullable = false, unique = true)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private JpaUserEntity user;
+    @Column(name = "user_id", updatable = false, nullable = false)
+    private UUID userId;
+
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
 
     @Column(name = "file_path", nullable = false)
     private String filePath;
 
     @Column(name = "is_main", nullable = false)
-    private Boolean isMain = false;
+    private Boolean isMain;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-
-    @PrePersist
-    public void createTimestamps() {
-        createdAt = LocalDateTime.now();
-    }
 }

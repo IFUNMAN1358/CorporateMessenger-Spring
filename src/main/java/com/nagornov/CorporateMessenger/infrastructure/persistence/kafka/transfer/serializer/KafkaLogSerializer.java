@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfe
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagornov.CorporateMessenger.domain.model.Log;
+import com.nagornov.CorporateMessenger.domain.model.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;

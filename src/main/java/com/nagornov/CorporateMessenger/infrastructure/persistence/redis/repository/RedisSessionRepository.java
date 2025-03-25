@@ -1,11 +1,10 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.Session;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.common.RedisUtils;
+import com.nagornov.CorporateMessenger.domain.model.auth.Session;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.mapper.RedisSessionMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.common.RedisRepository;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.utils.RedisKeyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -17,26 +16,28 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisSessionRepository {
 
-    private final RedisRepository redisRepository;
+    private final RedisTemplate<String, Session> redisSessionTemplate;
     private final RedisSessionMapper redisSessionMapper;
 
-    public Session create(@NotNull UUID userId, @NotNull Session session, @NotNull int timeout, @NotNull TimeUnit timeUnit) {
-        final String userSessionKey = RedisUtils.userSessionKey(userId);
-        final Map<Object, Object> sessionHash = redisSessionMapper.toHash(session);
+    public Session create(UUID userId, Session session, int timeout, TimeUnit timeUnit) {
+        String userSessionKey = RedisKeyUtils.sessionKey(userId);
+        Map<Object, Object> sessionHash = redisSessionMapper.toHash(session);
 
-        redisRepository.setHash(userSessionKey, sessionHash);
-        redisRepository.setExpire(userSessionKey, timeout, timeUnit);
+        redisSessionTemplate.opsForHash().putAll(userSessionKey, sessionHash);
+        redisSessionTemplate.expire(userSessionKey, timeout, timeUnit);
         return session;
     }
 
-    public void delete(@NotNull UUID userId) {
-        final String userSessionKey = RedisUtils.userSessionKey(userId);
-        redisRepository.delete(userSessionKey);
+    public void delete(UUID userId) {
+
+        String userSessionKey = RedisKeyUtils.sessionKey(userId);
+
+        redisSessionTemplate.delete(userSessionKey);
     }
 
-    public Optional<Session> findById(@NotNull UUID userId) {
-        final String userSessionKey = RedisUtils.userSessionKey(userId);
-        Map<Object, Object> hash = redisRepository.getHash(userSessionKey);
+    public Optional<Session> findById(UUID userId) {
+        String userSessionKey = RedisKeyUtils.sessionKey(userId);
+        Map<Object, Object> hash = redisSessionTemplate.opsForHash().entries(userSessionKey);
 
         if (hash.isEmpty()) {
             return Optional.empty();

@@ -16,6 +16,7 @@ public class KafkaUserEntity {
 
     private UUID id;
     private String username;
+    private String password;
     private String firstName;
     private String lastName;
     private LocalDateTime createdAt;

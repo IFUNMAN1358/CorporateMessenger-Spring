@@ -1,10 +1,9 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.jpa;
 
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceConflictException;
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaUserProfilePhotoRepository;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,53 +17,37 @@ public class JpaUserProfilePhotoDomainService {
 
     private final JpaUserProfilePhotoRepository jpaUserProfilePhotoRepository;
 
-    public void save(@NotNull UserProfilePhoto userProfilePhoto) {
-        jpaUserProfilePhotoRepository.findById(userProfilePhoto.getId())
-                .ifPresent(_ -> {
-                    throw new ResourceConflictException("User profile photo already exists during save");
-                });
+    public void save(@NonNull UserProfilePhoto userProfilePhoto) {
         jpaUserProfilePhotoRepository.save(userProfilePhoto);
     }
 
-    public void update(@NotNull UserProfilePhoto userProfilePhoto) {
-        jpaUserProfilePhotoRepository.findById(userProfilePhoto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User profile photo not found during update"));
-        jpaUserProfilePhotoRepository.save(userProfilePhoto);
+    public void delete(@NonNull UserProfilePhoto userProfilePhoto) {
+        jpaUserProfilePhotoRepository.delete(userProfilePhoto);
     }
 
-    public UserProfilePhoto getByIdAndUserId(@NotNull UUID id, @NotNull UUID userId) {
+    public void deleteById(@NonNull UUID id) {
+        jpaUserProfilePhotoRepository.deleteById(id);
+    }
+
+    public void modDeleteById(@NonNull UUID id) {
+        jpaUserProfilePhotoRepository.modDeleteById(id);
+    }
+
+    public UserProfilePhoto getByIdAndUserId(@NonNull UUID id, @NonNull UUID userId) {
         return jpaUserProfilePhotoRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User profile photo with this id and userId not found"));
     }
 
-    public UserProfilePhoto getById(@NotNull UUID id) {
+    public UserProfilePhoto getById(@NonNull UUID id) {
         return jpaUserProfilePhotoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User profile photo with this id not found"));
     }
 
-    public Optional<UserProfilePhoto> findMainByUserId(@NotNull UUID userId) {
+    public Optional<UserProfilePhoto> findMainByUserId(@NonNull UUID userId) {
         return jpaUserProfilePhotoRepository.findMainByUserId(userId);
     }
 
-    public List<UserProfilePhoto> getAllByUserId(@NotNull UUID userId) {
+    public List<UserProfilePhoto> getAllByUserId(@NonNull UUID userId) {
         return jpaUserProfilePhotoRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
-    }
-
-    public void deleteById(@NotNull UUID id) {
-        jpaUserProfilePhotoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User profile photo not found during delete by id"));
-        jpaUserProfilePhotoRepository.deleteById(id);
-    }
-
-    public void delete(@NotNull UserProfilePhoto userProfilePhoto) {
-        UserProfilePhoto existingUserProfilePhoto = jpaUserProfilePhotoRepository.findById(userProfilePhoto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User profile photo not found during delete"));
-        jpaUserProfilePhotoRepository.delete(existingUserProfilePhoto);
-    }
-
-    public void modDeleteById(@NotNull UUID id) {
-        jpaUserProfilePhotoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User profile photo not found during modDelete by id"));
-        jpaUserProfilePhotoRepository.modDeleteById(id);
     }
 }

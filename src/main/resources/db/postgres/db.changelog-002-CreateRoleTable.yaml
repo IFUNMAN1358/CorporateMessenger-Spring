@@ -12,7 +12,6 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-                    unique: true
                     updatable: false
               - column:
                   name: name
@@ -24,7 +23,12 @@ databaseChangeLog:
               - column:
                   name: created_at
                   type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
                     updatable: false
+        - createIndex:
+            tableName: 'roles'
+            indexName: 'idx_roles_name'
+            columns:
+              - column:
+                  name: 'name'

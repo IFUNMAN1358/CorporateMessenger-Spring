@@ -1,9 +1,8 @@
 package com.nagornov.CorporateMessenger.application.dto.message;
 
-import com.nagornov.CorporateMessenger.domain.model.Message;
-import com.nagornov.CorporateMessenger.domain.model.MessageFile;
-import com.nagornov.CorporateMessenger.domain.model.ReadMessage;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
+import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class MessageResponse {
 
-    @NotNull
     private Message message;
 
     private List<ReadMessage> readMessages;

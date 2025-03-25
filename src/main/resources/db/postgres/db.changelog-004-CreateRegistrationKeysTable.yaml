@@ -12,6 +12,11 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
+                    updatable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
                     unique: true
                     updatable: false
               - column:
@@ -29,7 +34,31 @@ databaseChangeLog:
               - column:
                   name: created_at
                   type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
                     updatable: false
+        - addForeignKeyConstraint:
+            constraintName: 'fk_registration_keys_user_id'
+            baseTableName: 'registration_keys'
+            baseColumnNames: 'user_id'
+            referencedTableName: 'users'
+            referencedColumnNames: 'id'
+            onDelete: CASCADE
+        - createIndex:
+            tableName: 'registration_keys'
+            indexName: 'idx_registration_keys_user_id'
+            columns:
+              - column:
+                  name: 'user_id'
+        - createIndex:
+            tableName: 'registration_keys'
+            indexName: 'idx_registration_keys_value'
+            columns:
+              - column:
+                  name: 'value'
+        - createIndex:
+            tableName: 'registration_keys'
+            indexName: 'idx_registration_keys_is_applied'
+            columns:
+              - column:
+                  name: 'is_applied'

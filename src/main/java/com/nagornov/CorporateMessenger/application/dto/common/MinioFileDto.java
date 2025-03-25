@@ -11,12 +11,12 @@ import org.springframework.core.io.Resource;
 @AllArgsConstructor
 public class MinioFileDto {
 
-    @NotBlank
     @NotNull
+    @NotBlank
     private Resource file;
 
-    @NotBlank
     @NotNull
+    @NotBlank
     private StatObjectResponse statObject;
 
 }

@@ -1,11 +1,11 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.ws;
 
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -22,7 +22,7 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
     private final JwtRepository jwtRepository;
 
     @Override
-    public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
         if (accessor.getCommand() == null || !"CONNECT".equals(accessor.getCommand().toString())) {
@@ -34,7 +34,7 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
             throw new RuntimeException("Authorization header is missing");
         }
 
-        String accessToken = authorizationHeaderContent.get(0);
+        String accessToken = authorizationHeaderContent.getFirst();
         if (!accessToken.startsWith("Bearer ")) {
             throw new RuntimeException("Invalid Authorization header format");
         }

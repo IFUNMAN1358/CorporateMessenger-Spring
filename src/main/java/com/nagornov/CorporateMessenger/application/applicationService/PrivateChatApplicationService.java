@@ -5,18 +5,22 @@ import com.nagornov.CorporateMessenger.application.dto.chat.SecondUserIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.PrivateChatSummaryResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
-import com.nagornov.CorporateMessenger.domain.factory.PrivateChatFactory;
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,14 +37,12 @@ public class PrivateChatApplicationService {
     private final CassandraMessageDomainService cassandraMessageDomainService;
     private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
 
-    public PrivateChatSummaryResponse getOrCreatePrivateChat(@NotNull SecondUserIdRequest request) {
+    public PrivateChatSummaryResponse getOrCreatePrivateChat(SecondUserIdRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresFirstUser =
-                jpaUserDomainService.getById(UUID.fromString(authInfo.getUserId()));
+        User postgresFirstUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        User postgresSecondUser =
-                jpaUserDomainService.getById(UUID.fromString(request.getSecondUserId()));
+        User postgresSecondUser = jpaUserDomainService.getById(request.getSecondUserIdAsUUID());
 
         Optional<PrivateChat> existingPrivateChat = cassandraPrivateChatDomainService
                 .findAvailableByFirstUserIdAndSecondUserId(postgresFirstUser.getId(), postgresSecondUser.getId())
@@ -54,9 +56,14 @@ public class PrivateChatApplicationService {
         PrivateChat privateChat;
         if (existingPrivateChat.isEmpty()) {
 
-            privateChat = PrivateChatFactory.createWithRandomId();
-            privateChat.updateFirstUserId(postgresFirstUser.getId());
-            privateChat.updateSecondUserId(postgresSecondUser.getId());
+            privateChat = new PrivateChat(
+                    UUID.randomUUID(),
+                    postgresFirstUser.getId(),
+                    postgresSecondUser.getId(),
+                    null,
+                    Instant.now(),
+                    true
+            );
             cassandraPrivateChatDomainService.save(privateChat);
 
             cassandraUnreadMessageDomainService.save(
@@ -78,12 +85,10 @@ public class PrivateChatApplicationService {
     }
 
 
-    public PrivateChatSummaryResponse getPrivateChat(@NotNull String chatId) {
+    public PrivateChatSummaryResponse getPrivateChat(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
         PrivateChat privateChat = cassandraPrivateChatDomainService.getAvailableById(
                 UUID.fromString(chatId)
@@ -109,9 +114,7 @@ public class PrivateChatApplicationService {
     public List<PrivateChatSummaryResponse> getAllPrivateChats() {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
         List<PrivateChat> chatsAsFirstUser =
                 cassandraPrivateChatDomainService.getAllAvailableByFirstUserId(postgresUser.getId());
@@ -147,19 +150,17 @@ public class PrivateChatApplicationService {
     }
 
 
-    public HttpResponse markPrivateChatAsUnavailable(@NotNull ChatIdRequest request) {
+    public HttpResponse markPrivateChatAsUnavailable(ChatIdRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
         PrivateChat privateChat = cassandraPrivateChatDomainService.getAvailableById(
-                UUID.fromString(request.getChatId())
+                request.getChatIdAsUUID()
         );
         privateChat.validateUserIdOwnership(postgresUser.getId());
         privateChat.markAsUnavailable();
-        cassandraPrivateChatDomainService.update(privateChat);
+        cassandraPrivateChatDomainService.save(privateChat);
 
         return new HttpResponse("Private chat is unavailable", 200);
     }

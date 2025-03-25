@@ -2,7 +2,6 @@ package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.reposit
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,7 +12,7 @@ public class KafkaUnreadMessageProducerRepository {
 
     private final KafkaTemplate<String, KafkaUnreadMessageDTO> kafkaUnreadMessageTemplate;
 
-    public void sendMessage(@NotNull KafkaUnreadMessageDTO message) {
+    public void sendMessage(KafkaUnreadMessageDTO message) {
         kafkaUnreadMessageTemplate.send(
                 KafkaTopic.UNREAD_MESSAGE_TOPIC.getName(),
                 message

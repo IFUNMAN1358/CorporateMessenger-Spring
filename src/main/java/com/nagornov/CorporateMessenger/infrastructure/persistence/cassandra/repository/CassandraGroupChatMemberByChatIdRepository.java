@@ -1,12 +1,10 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraGroupChatMemberByChatIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper.CassandraGroupChatMemberMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraGroupChatMemberByChatIdRepository;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,30 +14,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CassandraGroupChatMemberByChatIdRepository {
 
-    private final CassandraTemplate cassandraTemplate;
-    private final SpringDataCassandraGroupChatMemberByChatIdRepository
-            springDataCassandraGroupChatMemberByChatIdRepository;
+    private final SpringDataCassandraGroupChatMemberByChatIdRepository springDataCassandraGroupChatMemberByChatIdRepository;
     private final CassandraGroupChatMemberMapper cassandraGroupChatMemberMapper;
 
-    public void saveWithoutCheck(@NotNull GroupChatMember groupChatMember) {
-        final CassandraGroupChatMemberByChatIdEntity entity =
-                cassandraGroupChatMemberMapper.toGroupChatMemberByChatIdEntity(groupChatMember);
-        cassandraTemplate.insert(entity);
+    public GroupChatMember save(GroupChatMember groupChatMember) {
+        CassandraGroupChatMemberByChatIdEntity entity =
+                springDataCassandraGroupChatMemberByChatIdRepository.save(
+                        cassandraGroupChatMemberMapper.toGroupChatMemberByChatIdEntity(groupChatMember)
+                );
+        return cassandraGroupChatMemberMapper.toDomain(entity);
     }
 
-    public void updateWithoutCheck(@NotNull GroupChatMember groupChatMember) {
-        final CassandraGroupChatMemberByChatIdEntity entity =
-                cassandraGroupChatMemberMapper.toGroupChatMemberByChatIdEntity(groupChatMember);
-        cassandraTemplate.update(entity);
+    public void delete(GroupChatMember groupChatMember) {
+        springDataCassandraGroupChatMemberByChatIdRepository.delete(
+                cassandraGroupChatMemberMapper.toGroupChatMemberByChatIdEntity(groupChatMember)
+        );
     }
 
-    public void deleteWithoutCheck(@NotNull GroupChatMember groupChatMember) {
-        final CassandraGroupChatMemberByChatIdEntity entity =
-                cassandraGroupChatMemberMapper.toGroupChatMemberByChatIdEntity(groupChatMember);
-        cassandraTemplate.delete(entity);
-    }
-
-    public List<GroupChatMember> getAllByChatId(@NotNull UUID chatId) {
+    public List<GroupChatMember> getAllByChatId( UUID chatId) {
         return springDataCassandraGroupChatMemberByChatIdRepository
                 .getAllByChatId(chatId)
                 .stream()

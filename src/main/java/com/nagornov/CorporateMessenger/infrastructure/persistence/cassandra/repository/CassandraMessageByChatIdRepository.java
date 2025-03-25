@@ -1,12 +1,10 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraMessageByChatIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper.CassandraMessageMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraMessageByChatIdRepository;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.core.query.CassandraPageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -21,35 +19,30 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CassandraMessageByChatIdRepository {
 
-    private final CassandraTemplate cassandraTemplate;
     private final SpringDataCassandraMessageByChatIdRepository springDataCassandraMessageByChatIdRepository;
     private final CassandraMessageMapper cassandraMessageMapper;
 
-    public void saveWithoutCheck(@NotNull Message message) {
-        final CassandraMessageByChatIdEntity entity =
-                cassandraMessageMapper.toMessageByChatIdEntity(message);
-        cassandraTemplate.insert(entity);
+    public Message save(Message message) {
+        CassandraMessageByChatIdEntity entity =
+                springDataCassandraMessageByChatIdRepository.save(
+                        cassandraMessageMapper.toMessageByChatIdEntity(message)
+                );
+        return cassandraMessageMapper.toDomain(entity);
     }
 
-    public void updateWithoutCheck(@NotNull Message message) {
-        final CassandraMessageByChatIdEntity entity =
-                cassandraMessageMapper.toMessageByChatIdEntity(message);
-        cassandraTemplate.update(entity);
+    public void delete(Message message) {
+        springDataCassandraMessageByChatIdRepository.delete(
+                cassandraMessageMapper.toMessageByChatIdEntity(message)
+        );
     }
 
-    public void deleteWithoutCheck(@NotNull Message message) {
-        final CassandraMessageByChatIdEntity entity =
-                cassandraMessageMapper.toMessageByChatIdEntity(message);
-        cassandraTemplate.delete(entity);
-    }
-
-    public Optional<Message> findLastByChatId(@NotNull UUID chatId) {
+    public Optional<Message> findLastByChatId(UUID chatId) {
         return springDataCassandraMessageByChatIdRepository
                 .findLastMessageByChatId(chatId)
                 .map(cassandraMessageMapper::toDomain);
     }
 
-    public List<Message> getAllByChatId(@NotNull UUID chatId, @NotNull int page, @NotNull int size) {
+    public List<Message> getAllByChatId(UUID chatId,  int page,  int size) {
         Pageable pageable = CassandraPageRequest.of(0, size);
 
         for (int i = 0; i < page; i++) {

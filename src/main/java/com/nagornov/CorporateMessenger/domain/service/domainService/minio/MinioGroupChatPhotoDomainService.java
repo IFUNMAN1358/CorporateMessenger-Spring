@@ -4,7 +4,7 @@ import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import io.minio.StatObjectResponse;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +18,7 @@ public class MinioGroupChatPhotoDomainService {
 
     private final MinioRepository minioRepository;
 
-    public String upload(@NotNull MultipartFile file) {
+    public String upload(@NonNull MultipartFile file) {
         try {
             final String filePath = UUID.randomUUID() + "_" + file.getOriginalFilename();
             minioRepository.upload(
@@ -33,7 +33,7 @@ public class MinioGroupChatPhotoDomainService {
         }
     }
 
-    public InputStream download(@NotNull String filePath) {
+    public InputStream download(@NonNull String filePath) {
         try {
             return minioRepository.download(
                 MinioBucket.GROUP_CHAT_PHOTOS.getBucketName(),
@@ -44,7 +44,7 @@ public class MinioGroupChatPhotoDomainService {
         }
     }
 
-    public void delete(@NotNull String filePath) {
+    public void delete(@NonNull String filePath) {
         try {
             minioRepository.delete(
                 MinioBucket.GROUP_CHAT_PHOTOS.getBucketName(),
@@ -56,7 +56,7 @@ public class MinioGroupChatPhotoDomainService {
     }
 
 
-    public StatObjectResponse statObject(@NotNull String filePath) {
+    public StatObjectResponse statObject(@NonNull String filePath) {
         try {
             return minioRepository.statObject(
                 MinioBucket.GROUP_CHAT_PHOTOS.getBucketName(),

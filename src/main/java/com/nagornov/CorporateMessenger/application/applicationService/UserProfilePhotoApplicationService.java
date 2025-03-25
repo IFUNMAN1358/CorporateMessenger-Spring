@@ -2,16 +2,14 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.factory.UserProfilePhotoFactory;
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.User;
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +33,7 @@ public class UserProfilePhotoApplicationService {
 
 
     @Transactional
-    public UserProfilePhoto loadUserProfilePhoto(@NotNull FileRequest request) {
+    public UserProfilePhoto loadUserProfilePhoto(FileRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(
@@ -48,16 +47,20 @@ public class UserProfilePhotoApplicationService {
             throw new RuntimeException(e);
         }
 
-        UserProfilePhoto userProfilePhotoWithId = UserProfilePhotoFactory.createWithRandomId();
-        userProfilePhotoWithId.updateUserId(postgresUser.getId());
-        userProfilePhotoWithId.updateFilePath(fileName);
-        userProfilePhotoWithId.markAsMain();
+        UserProfilePhoto userProfilePhotoWithId = new UserProfilePhoto(
+                UUID.randomUUID(),
+                postgresUser.getId(),
+                request.getFile().getOriginalFilename(),
+                fileName,
+                true,
+                LocalDateTime.now()
+        );
 
         Optional<UserProfilePhoto> currentUserPhoto =
                 jpaUserProfilePhotoDomainService.findMainByUserId(postgresUser.getId());
         currentUserPhoto.ifPresent(UserProfilePhoto::unmarkAsMain);
 
-        currentUserPhoto.ifPresent(jpaUserProfilePhotoDomainService::update);
+        currentUserPhoto.ifPresent(jpaUserProfilePhotoDomainService::save);
         jpaUserProfilePhotoDomainService.save(userProfilePhotoWithId);
 
         return jpaUserProfilePhotoDomainService.getById(userProfilePhotoWithId.getId());
@@ -65,7 +68,7 @@ public class UserProfilePhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource getMainUserProfilePhotoByUserId(@NotNull String userId) {
+    public Resource getMainUserProfilePhotoByUserId(String userId) {
 
         jwtDomainService.getAuthInfo();
 
@@ -84,7 +87,7 @@ public class UserProfilePhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource getUserProfilePhotoByPhotoId(@NotNull String photoId) {
+    public Resource getUserProfilePhotoByPhotoId(String photoId) {
 
         jwtDomainService.getAuthInfo();
 
@@ -99,7 +102,7 @@ public class UserProfilePhotoApplicationService {
 
 
     @Transactional
-    public UserProfilePhoto setMainUserProfilePhoto(@NotNull String photoId) {
+    public UserProfilePhoto setMainUserProfilePhoto(String photoId) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(
                 authInfo.getUserIdAsUUID()
@@ -115,15 +118,15 @@ public class UserProfilePhotoApplicationService {
                 jpaUserProfilePhotoDomainService.findMainByUserId(postgresUser.getId());
         currentUserPhoto.ifPresent(UserProfilePhoto::unmarkAsMain);
 
-        currentUserPhoto.ifPresent(jpaUserProfilePhotoDomainService::update);
-        jpaUserProfilePhotoDomainService.update(newMainPhoto);
+        currentUserPhoto.ifPresent(jpaUserProfilePhotoDomainService::save);
+        jpaUserProfilePhotoDomainService.save(newMainPhoto);
 
         return jpaUserProfilePhotoDomainService.getById(newMainPhoto.getId());
     }
 
 
     @Transactional
-    public HttpResponse deleteUserProfilePhoto(@NotNull String photoId) {
+    public HttpResponse deleteUserProfilePhoto(String photoId) {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(
                 authInfo.getUserIdAsUUID()
@@ -143,7 +146,7 @@ public class UserProfilePhotoApplicationService {
             if (!userProfilePhotos.isEmpty()) {
                 UserProfilePhoto newMainPhoto = userProfilePhotos.getFirst();
                 newMainPhoto.markAsMain();
-                jpaUserProfilePhotoDomainService.update(newMainPhoto);
+                jpaUserProfilePhotoDomainService.save(newMainPhoto);
             }
         }
 

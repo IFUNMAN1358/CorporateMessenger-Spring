@@ -1,11 +1,11 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.UserIdsRequest;
+import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.GroupChatMemberApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
-import com.nagornov.CorporateMessenger.domain.model.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ public class GroupChatMemberController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<GroupChatMember>> getGroupChatMembers(@ValidUuid @PathVariable("chatId") String chatId) {
-        final List<GroupChatMember> groupChatMembers =
+        List<GroupChatMember> groupChatMembers =
                 groupChatMemberApplicationService.getGroupChatMembers(chatId);
         return ResponseEntity.status(200).body(groupChatMembers);
     }
@@ -37,7 +37,7 @@ public class GroupChatMemberController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<UserResponse>> getAvailableUsersToAdding(@ValidUuid @PathVariable("chatId") String chatId) {
-        final List<UserResponse> usersToAdd =
+        List<UserResponse> usersToAdd =
                 groupChatMemberApplicationService.getAvailableUsersToAdding(chatId);
         return ResponseEntity.status(200).body(usersToAdd);
     }
@@ -52,7 +52,7 @@ public class GroupChatMemberController {
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UserIdsRequest request
     ) {
-        final HttpResponse infoResponse =
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.addMembersToGroupChat(chatId, request);
         return ResponseEntity.status(201).body(infoResponse);
     }
@@ -67,7 +67,7 @@ public class GroupChatMemberController {
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @RequestBody UserIdsRequest request
     ) {
-        final HttpResponse infoResponse =
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.deleteMembersFromGroupChat(chatId, request);
         return ResponseEntity.status(200).body(infoResponse);
     }
@@ -78,7 +78,7 @@ public class GroupChatMemberController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> leaveFromGroupChat(@ValidUuid @PathVariable("chatId") String chatId) {
-        final HttpResponse infoResponse =
+        HttpResponse infoResponse =
                 groupChatMemberApplicationService.leaveFromGroupChat(chatId);
         return ResponseEntity.status(200).body(infoResponse);
     }

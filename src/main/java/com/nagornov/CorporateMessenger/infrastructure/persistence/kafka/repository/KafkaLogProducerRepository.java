@@ -1,8 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
-import com.nagornov.CorporateMessenger.domain.model.Log;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.model.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,7 +12,7 @@ public class KafkaLogProducerRepository {
 
     private final KafkaTemplate<String, Log> kafkaLogTemplate;
 
-    public void sendMessage(@NotNull Log message) {
+    public void sendMessage(Log message) {
         kafkaLogTemplate.send(
                 KafkaTopic.LOG_TOPIC.getName(),
                 message

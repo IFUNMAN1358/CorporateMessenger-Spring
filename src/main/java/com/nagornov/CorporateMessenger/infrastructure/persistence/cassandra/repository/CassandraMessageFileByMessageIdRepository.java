@@ -1,12 +1,10 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.MessageFile;
+import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraMessageFileByMessageIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper.CassandraMessageFileMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraMessageFileByMessageIdRepository;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,29 +15,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CassandraMessageFileByMessageIdRepository {
 
-    private final CassandraTemplate cassandraTemplate;
     private final SpringDataCassandraMessageFileByMessageIdRepository springDataCassandraMessageFileByMessageIdRepository;
     private final CassandraMessageFileMapper cassandraMessageFileMapper;
 
-    public void saveWithoutCheck(@NotNull MessageFile messageFile) {
-        final CassandraMessageFileByMessageIdEntity entity =
-                cassandraMessageFileMapper.toMessageFileByMessageIdEntity(messageFile);
-        cassandraTemplate.insert(entity);
+    public MessageFile save(MessageFile messageFile) {
+        CassandraMessageFileByMessageIdEntity entity =
+                springDataCassandraMessageFileByMessageIdRepository.save(
+                        cassandraMessageFileMapper.toMessageFileByMessageIdEntity(messageFile)
+                );
+        return cassandraMessageFileMapper.toDomain(entity);
     }
 
-    public void updateWithoutCheck(@NotNull MessageFile messageFile) {
-        final CassandraMessageFileByMessageIdEntity entity =
-                cassandraMessageFileMapper.toMessageFileByMessageIdEntity(messageFile);
-        cassandraTemplate.update(entity);
+    public void delete(MessageFile messageFile) {
+        springDataCassandraMessageFileByMessageIdRepository.delete(
+                cassandraMessageFileMapper.toMessageFileByMessageIdEntity(messageFile)
+        );
     }
 
-    public void deleteWithoutCheck(@NotNull MessageFile messageFile) {
-        final CassandraMessageFileByMessageIdEntity entity =
-                cassandraMessageFileMapper.toMessageFileByMessageIdEntity(messageFile);
-        cassandraTemplate.delete(entity);
-    }
-
-    public List<MessageFile> getAllByMessageId(@NotNull UUID messageId) {
+    public List<MessageFile> getAllByMessageId(UUID messageId) {
         return springDataCassandraMessageFileByMessageIdRepository
                 .getAllByMessageId(messageId)
                 .stream()
@@ -47,7 +40,7 @@ public class CassandraMessageFileByMessageIdRepository {
                 .toList();
     }
 
-    public Optional<MessageFile> findByIdAndMessageId(@NotNull UUID id, @NotNull UUID messageId) {
+    public Optional<MessageFile> findByIdAndMessageId(UUID id, UUID messageId) {
         return springDataCassandraMessageFileByMessageIdRepository
                 .findByIdAndMessageId(id, messageId)
                 .map(cassandraMessageFileMapper::toDomain);

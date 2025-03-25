@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraPrivateChatByFirstUserEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraPrivateChatBySecondUserEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraPrivateChatByUsersEntity;

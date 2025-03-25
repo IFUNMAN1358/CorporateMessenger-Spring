@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -19,7 +18,7 @@ import java.util.UUID;
 public class JpaUserEntity {
 
     @Id
-    @Column(name = "id", insertable = false, updatable = false, nullable = false, unique = true)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "username", nullable = false, unique = true)
@@ -40,29 +39,4 @@ public class JpaUserEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "user_role",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<JpaRoleEntity> roles;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<JpaUserProfilePhotoEntity> userProfilePhotos;
-
-    //
-    // Methods
-    //
-
-    @PrePersist
-    public void createTimestamps() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void updateTimestamps() {
-        updatedAt = LocalDateTime.now();
-    }
 }

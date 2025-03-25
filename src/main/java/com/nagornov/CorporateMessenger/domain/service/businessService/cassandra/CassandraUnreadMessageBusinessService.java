@@ -1,9 +1,14 @@
 package com.nagornov.CorporateMessenger.domain.service.businessService.cassandra;
 
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +21,14 @@ public class CassandraUnreadMessageBusinessService {
     private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
 
-    public void incrementUnreadMessageCountForOther(@NotNull Chat chat, @NotNull User user) {
+    public void incrementUnreadMessageCountForOther(@NonNull Chat chat, @NonNull User user) {
         if (chat instanceof PrivateChat privateChat) {
 
             UnreadMessage unreadMessage = cassandraUnreadMessageDomainService.getByChatIdAndUserId(
                     privateChat.getId(), privateChat.getCompanionUserId(user.getId())
             );
             unreadMessage.incrementUnreadCount();
-            cassandraUnreadMessageDomainService.update(unreadMessage);
+            cassandraUnreadMessageDomainService.save(unreadMessage);
 
         } else if (chat instanceof GroupChat groupChat) {
 
@@ -34,7 +39,7 @@ public class CassandraUnreadMessageBusinessService {
                             groupChat.getId(), member.getUserId()
                     );
                     unreadMessage.incrementUnreadCount();
-                    cassandraUnreadMessageDomainService.update(unreadMessage);
+                    cassandraUnreadMessageDomainService.save(unreadMessage);
                 }
             }
 
@@ -45,14 +50,14 @@ public class CassandraUnreadMessageBusinessService {
         }
     }
 
-    public void decrementUnreadMessageCountForOther(@NotNull Chat chat, @NotNull User user) {
+    public void decrementUnreadMessageCountForOther(@NonNull Chat chat, @NonNull User user) {
         if (chat instanceof PrivateChat privateChat) {
 
             UnreadMessage unreadMessage = cassandraUnreadMessageDomainService.getByChatIdAndUserId(
                     chat.getId(), privateChat.getCompanionUserId(user.getId())
             );
             unreadMessage.decrementUnreadCount();
-            cassandraUnreadMessageDomainService.update(unreadMessage);
+            cassandraUnreadMessageDomainService.save(unreadMessage);
 
         } else if (chat instanceof GroupChat groupChat) {
 
@@ -63,7 +68,7 @@ public class CassandraUnreadMessageBusinessService {
                             chat.getId(), member.getUserId()
                     );
                     unreadMessage.decrementUnreadCount();
-                    cassandraUnreadMessageDomainService.update(unreadMessage);
+                    cassandraUnreadMessageDomainService.save(unreadMessage);
                 }
             }
 
@@ -74,20 +79,20 @@ public class CassandraUnreadMessageBusinessService {
         }
     }
 
-    public void incrementUnreadMessageCountForUser(@NotNull Chat chat, @NotNull User user) {
+    public void incrementUnreadMessageCountForUser(@NonNull Chat chat, @NonNull User user) {
         final UnreadMessage unreadMessage = cassandraUnreadMessageDomainService.getByChatIdAndUserId(
                 chat.getId(), user.getId()
         );
         unreadMessage.incrementUnreadCount();
-        cassandraUnreadMessageDomainService.update(unreadMessage);
+        cassandraUnreadMessageDomainService.save(unreadMessage);
     }
 
-    public void decrementUnreadMessageCountForUser(@NotNull Chat chat, @NotNull User user) {
+    public void decrementUnreadMessageCountForUser(@NonNull Chat chat, @NonNull User user) {
         final UnreadMessage unreadMessage = cassandraUnreadMessageDomainService.getByChatIdAndUserId(
                 chat.getId(), user.getId()
         );
         unreadMessage.decrementUnreadCount();
-        cassandraUnreadMessageDomainService.update(unreadMessage);
+        cassandraUnreadMessageDomainService.save(unreadMessage);
     }
 
 }

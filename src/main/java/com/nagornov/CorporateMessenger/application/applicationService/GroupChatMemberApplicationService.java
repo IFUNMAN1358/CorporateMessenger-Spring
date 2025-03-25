@@ -1,21 +1,24 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.UserIdsRequest;
+import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
-import com.nagornov.CorporateMessenger.domain.factory.GroupChatMemberFactory;
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,22 +35,21 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<GroupChatMember> getGroupChatMembers(@NotNull String chatId) {
+    public List<GroupChatMember> getGroupChatMembers(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        UUID userId = authInfo.getUserIdAsUUID();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
                 UUID.fromString(chatId)
         );
-        cassandraGroupChatMemberDomainService.validateUserOwnership(groupChat.getId(), userId);
+        cassandraGroupChatMemberDomainService.validateUserOwnership(groupChat.getId(), authInfo.getUserIdAsUUID());
 
         return cassandraGroupChatMemberDomainService.getAllByChatId(groupChat.getId());
     }
 
 
     @Transactional(readOnly = true)
-    public List<UserResponse> getAvailableUsersToAdding(@NotNull String chatId) {
+    public List<UserResponse> getAvailableUsersToAdding(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         UUID userId = authInfo.getUserIdAsUUID();
@@ -82,7 +84,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse addMembersToGroupChat(@NotNull String chatId, @NotNull UserIdsRequest request) {
+    public HttpResponse addMembersToGroupChat(String chatId, UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -97,10 +99,13 @@ public class GroupChatMemberApplicationService {
                     UUID.fromString(requestUserId)
             );
 
-            GroupChatMember chatMember = GroupChatMemberFactory.createWithRandomId();
-            chatMember.updateChatId(groupChat.getId());
-            chatMember.updateUserId(user.getId());
-            chatMember.updateUserFirstName(user.getFirstName());
+            GroupChatMember chatMember = new GroupChatMember(
+                UUID.randomUUID(),
+                groupChat.getId(),
+                user.getId(),
+                user.getFirstName(),
+                Instant.now()
+            );
             cassandraGroupChatMemberDomainService.save(chatMember);
 
             UnreadMessage unreadMessage = new UnreadMessage(groupChat.getId(), user.getId(), 0);
@@ -112,7 +117,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse deleteMembersFromGroupChat(@NotNull String chatId, @NotNull UserIdsRequest request) {
+    public HttpResponse deleteMembersFromGroupChat(String chatId, UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -139,7 +144,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse leaveFromGroupChat(@NotNull String chatId) {
+    public HttpResponse leaveFromGroupChat(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 

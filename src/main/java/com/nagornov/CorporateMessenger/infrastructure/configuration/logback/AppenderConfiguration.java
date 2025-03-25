@@ -5,6 +5,7 @@ import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaL
 import com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomAsyncKafkaAppender;
 import com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomKafkaAppender;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -21,16 +22,19 @@ public class AppenderConfiguration implements ApplicationListener<ContextRefresh
     private final KafkaLogProducerService kafkaLogProducerService;
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 
         // ASYNC
+        // root
         var rootAppender =
-                loggerContext.getLogger("ROOT"); // root
+                loggerContext.getLogger("ROOT");
+        // async custom
         CustomAsyncKafkaAppender asyncAppender =
-                (CustomAsyncKafkaAppender) rootAppender.getAppender("ASYNC_KAFKA_APPENDER"); // async custom
+                (CustomAsyncKafkaAppender) rootAppender.getAppender("ASYNC_KAFKA_APPENDER");
+        // custom
         CustomKafkaAppender customKafkaAppender =
-                (CustomKafkaAppender) asyncAppender.getAppender("KAFKA_APPENDER"); // custom
+                (CustomKafkaAppender) asyncAppender.getAppender("KAFKA_APPENDER");
 
         customKafkaAppender.setKafkaLogProducerService(kafkaLogProducerService);
         customKafkaAppender.setServiceName(serviceName);

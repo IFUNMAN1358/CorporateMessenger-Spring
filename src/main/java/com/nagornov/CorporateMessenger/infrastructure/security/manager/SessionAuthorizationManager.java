@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.manager;
 
-import com.nagornov.CorporateMessenger.domain.model.Session;
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository.RedisSessionRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,11 +1,14 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.jpa;
 
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.RegistrationKey;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaRegistrationKeyRepository;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -13,23 +16,31 @@ public class JpaRegistrationKeyDomainService {
 
     private final JpaRegistrationKeyRepository jpaRegistrationKeyRepository;
 
-    public void save(@NotNull RegistrationKey key) {
-        jpaRegistrationKeyRepository.findByValue(key.getValue())
-                .ifPresent(_ -> {
-                    throw new RuntimeException("Registration key with this value already exists");
-                });
+    public void save(@NonNull RegistrationKey key) {
         jpaRegistrationKeyRepository.save(key);
     }
 
-    public void update(@NotNull RegistrationKey key) {
-        jpaRegistrationKeyRepository.findByValue(key.getValue())
-                .orElseThrow(() -> new RuntimeException("Registration key with this value already exists"));
-        jpaRegistrationKeyRepository.save(key);
+    public void delete(@NonNull RegistrationKey key) {
+        jpaRegistrationKeyRepository.delete(key);
     }
 
-    public RegistrationKey getByValue(@NotNull String value) {
+    public void deleteById(@NonNull UUID id) {
+        jpaRegistrationKeyRepository.deleteById(id);
+    }
+
+    public RegistrationKey getByValue(@NonNull String value) {
         return jpaRegistrationKeyRepository.findByValue(value)
                 .orElseThrow(() -> new ResourceNotFoundException("Registration key with this value not found"));
+    }
+
+    public Optional<RegistrationKey> findByValue(@NonNull String value) {
+        return jpaRegistrationKeyRepository.findByValue(value);
+    }
+
+    public void apply(@NonNull RegistrationKey registrationKey, @NonNull UUID userId) {
+        registrationKey.markAsApplied();
+        registrationKey.initUserId(userId);
+        save(registrationKey);
     }
 
 }

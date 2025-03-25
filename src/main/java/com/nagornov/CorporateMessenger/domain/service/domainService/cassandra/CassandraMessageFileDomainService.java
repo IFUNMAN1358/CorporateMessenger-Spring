@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.cassandra;
 
-import com.nagornov.CorporateMessenger.domain.model.MessageFile;
+import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraMessageFileByMessageIdRepository;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,23 +16,19 @@ public class CassandraMessageFileDomainService {
 
     private final CassandraMessageFileByMessageIdRepository cassandraMessageFileByMessageIdRepository;
 
-    public void save(@NotNull MessageFile messageFile) {
-        cassandraMessageFileByMessageIdRepository.saveWithoutCheck(messageFile);
+    public MessageFile save(@NonNull MessageFile messageFile) {
+        return cassandraMessageFileByMessageIdRepository.save(messageFile);
     }
 
-    public void update(@NotNull MessageFile messageFile) {
-        cassandraMessageFileByMessageIdRepository.updateWithoutCheck(messageFile);
+    public void delete(@NonNull MessageFile messageFile) {
+        cassandraMessageFileByMessageIdRepository.delete(messageFile);
     }
 
-    public void delete(@NotNull MessageFile messageFile) {
-        cassandraMessageFileByMessageIdRepository.deleteWithoutCheck(messageFile);
-    }
-
-    public List<MessageFile> getAllByMessageId(@NotNull UUID messageId) {
+    public List<MessageFile> getAllByMessageId(@NonNull UUID messageId) {
         return cassandraMessageFileByMessageIdRepository.getAllByMessageId(messageId);
     }
 
-    public Optional<MessageFile> findByIdAndMessageId(@NotNull UUID id, @NotNull UUID messageId) {
+    public Optional<MessageFile> findByIdAndMessageId(@NonNull UUID id, @NonNull UUID messageId) {
         return cassandraMessageFileByMessageIdRepository.findByIdAndMessageId(id, messageId);
     }
 

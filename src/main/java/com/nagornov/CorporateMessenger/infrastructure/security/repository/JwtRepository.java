@@ -5,8 +5,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.validation.constraints.NotNull;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +34,7 @@ public class JwtRepository {
         this.refreshExpireDays = jwtProperties.getRefreshExpireDays();
     }
 
-    public String generateAccessToken(@NotNull String userId, @NotNull Set<String> userRoles) {
+    public String generateAccessToken(String userId, Set<String> userRoles) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant accessExpirationInstant = now.plusMinutes(accessExpireMinutes).atZone(ZoneId.systemDefault()).toInstant();
         final Date accessExpiration = Date.from(accessExpirationInstant);
@@ -48,7 +46,7 @@ public class JwtRepository {
                 .compact();
     }
 
-    public String generateRefreshToken(@NotNull String userId) {
+    public String generateRefreshToken(String userId) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant refreshExpirationInstant = now.plusDays(refreshExpireDays).atZone(ZoneId.systemDefault()).toInstant();
         final Date refreshExpiration = Date.from(refreshExpirationInstant);
@@ -59,15 +57,15 @@ public class JwtRepository {
                 .compact();
     }
 
-    public boolean validateAccessToken(@NonNull String accessToken) {
+    public boolean validateAccessToken(String accessToken) {
         return validateToken(accessToken, jwtAccessSecret);
     }
 
-    public boolean validateRefreshToken(@NonNull String refreshToken) {
+    public boolean validateRefreshToken(String refreshToken) {
         return validateToken(refreshToken, jwtRefreshSecret);
     }
 
-    private boolean validateToken(@NonNull String token, @NonNull Key secret) {
+    private boolean validateToken(String token, Key secret) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(secret)
@@ -88,15 +86,15 @@ public class JwtRepository {
         return false;
     }
 
-    public Claims getAccessClaims(@NonNull String token) {
+    public Claims getAccessClaims(String token) {
         return getClaims(token, jwtAccessSecret);
     }
 
-    public Claims getRefreshClaims(@NonNull String token) {
+    public Claims getRefreshClaims(String token) {
         return getClaims(token, jwtRefreshSecret);
     }
 
-    private Claims getClaims(@NonNull String token, @NonNull Key secret) {
+    private Claims getClaims(String token, Key secret) {
         return Jwts.parserBuilder()
                 .setSigningKey(secret)
                 .build()

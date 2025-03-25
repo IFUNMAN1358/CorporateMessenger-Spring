@@ -4,13 +4,13 @@ import com.nagornov.CorporateMessenger.domain.enums.ChatType;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
-import com.nagornov.CorporateMessenger.domain.model.Chat;
-import com.nagornov.CorporateMessenger.domain.model.User;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraUnreadMessageBusinessService;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaChatMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaUserMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -59,7 +59,7 @@ public class KafkaUnreadMessageListener {
         }
     }
 
-    private Chat getChatFromRecord(@NotNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
+    private Chat getChatFromRecord(@NonNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
         try {
             if (record.value().getChat().getChatType().equals(ChatType.PRIVATE_CHAT.getType())) {
 
@@ -79,7 +79,7 @@ public class KafkaUnreadMessageListener {
 
     }
 
-    private User getUserFromRecord(@NotNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
+    private User getUserFromRecord(@NonNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
         try {
             return kafkaUserMapper.toDomain(
                     record.value().getUser()

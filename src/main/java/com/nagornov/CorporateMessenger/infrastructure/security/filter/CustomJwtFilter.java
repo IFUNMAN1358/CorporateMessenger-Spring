@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,7 +23,11 @@ public class CustomJwtFilter extends OncePerRequestFilter {
     private final JwtRepository jwtRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NotNull HttpServletRequest request,
+            @NotNull HttpServletResponse response,
+            @NotNull FilterChain fc
+    ) throws ServletException, IOException {
 
         String accessToken = JwtUtils.getTokenFromRequest(request);
 

@@ -6,8 +6,8 @@ import com.nagornov.CorporateMessenger.domain.enums.externalApi.LogServiceEndpoi
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.LogServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.UrlUtils;
-import com.nagornov.CorporateMessenger.domain.model.Log;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.model.log.Log;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class LogServiceClient {
     private static final RestTemplate restTemplate = new RestTemplate();
 
 
-    public void sendLog(@NotNull Log log) {
+    public void sendLog(@NonNull Log log) {
 
         String uri = UrlUtils.normalizeUri(
                 logServiceProperties.getUrl(), LogServiceEndpoint.SEND_LOG.getEndpoint()

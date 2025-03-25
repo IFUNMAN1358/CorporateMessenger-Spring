@@ -23,7 +23,7 @@ public class GroupChatPhotoController {
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> getGroupChatPhoto(@ValidUuid @PathVariable("chatId") String chatId) {
-        final Resource response =
+        Resource response =
                 groupChatPhotoApplicationService.getGroupChatPhoto(chatId);
         return ResponseEntity.status(200).body(response);
     }
@@ -37,7 +37,7 @@ public class GroupChatPhotoController {
             @ValidUuid @PathVariable("chatId") String chatId,
             @Validated @ModelAttribute FileRequest request
     ) {
-        final Resource response =
+        Resource response =
                 groupChatPhotoApplicationService.uploadOrChangeGroupChatPhoto(chatId, request);
         return ResponseEntity.status(201).body(response);
     }
@@ -47,7 +47,7 @@ public class GroupChatPhotoController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> deleteGroupChatPhoto(@ValidUuid @PathVariable("chatId") String chatId) {
-        final HttpResponse response =
+        HttpResponse response =
                 groupChatPhotoApplicationService.deleteGroupChatPhoto(chatId);
         return ResponseEntity.status(200).body(response);
     }

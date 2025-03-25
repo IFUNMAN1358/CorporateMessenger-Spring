@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.ReadMessage;
+import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraReadMessageByIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraReadMessageByMessageIdEntity;
 import org.mapstruct.Mapper;

@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaChatEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

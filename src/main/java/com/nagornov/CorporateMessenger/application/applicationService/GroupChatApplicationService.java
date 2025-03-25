@@ -4,10 +4,13 @@ import com.nagornov.CorporateMessenger.application.dto.chat.CreateGroupChatReque
 import com.nagornov.CorporateMessenger.application.dto.chat.GroupChatSummaryResponse;
 import com.nagornov.CorporateMessenger.application.dto.chat.UpdateGroupChatMetadataRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.UserIdRequest;
-import com.nagornov.CorporateMessenger.domain.factory.GroupChatFactory;
-import com.nagornov.CorporateMessenger.domain.factory.GroupChatMemberFactory;
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
@@ -15,11 +18,11 @@ import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.Ca
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioGroupChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -38,37 +41,45 @@ public class GroupChatApplicationService {
 
 
     @Transactional
-    public HttpResponse createGroupChat(@NotNull CreateGroupChatRequest request) {
+    public HttpResponse createGroupChat(CreateGroupChatRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-
         User postgresUser = jpaUserDomainService.getById(
                 authInfo.getUserIdAsUUID()
         );
 
-        GroupChat groupChat = GroupChatFactory.createWithRandomId();
+        GroupChat groupChat = new GroupChat(
+                UUID.randomUUID(),
+                request.getName(),
+                null,
+                postgresUser.getId(),
+                null,
+                null,
+                false,
+                Instant.now(),
+                Instant.now()
+        );
         if (request.getDescription() != null) {
             groupChat.updateDescription(request.getDescription());
         }
-
         if (request.getFile() != null) {
             String filePath = minioGroupChatPhotoDomainService.upload(request.getFile());
             groupChat.updateFilePath(filePath);
         }
-
         if (request.getIsPublic()) {
             groupChat.markAsPublic();
         } else {
             groupChat.markAsPrivate();
         }
-        groupChat.updateName(request.getName());
-        groupChat.updateOwnerId(postgresUser.getId());
         cassandraGroupChatDomainService.save(groupChat);
 
-        GroupChatMember member = GroupChatMemberFactory.createWithRandomId();
-        member.updateChatId(groupChat.getId());
-        member.updateUserId(postgresUser.getId());
-        member.updateUserFirstName(postgresUser.getFirstName());
+        GroupChatMember member = new GroupChatMember(
+                UUID.randomUUID(),
+                groupChat.getId(),
+                postgresUser.getId(),
+                postgresUser.getFirstName(),
+                Instant.now()
+        );
         cassandraGroupChatMemberDomainService.save(member);
 
         cassandraUnreadMessageDomainService.save(
@@ -83,7 +94,6 @@ public class GroupChatApplicationService {
     public List<GroupChatSummaryResponse> getAllGroupChats() {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-
         User postgresUser = jpaUserDomainService.getById(
                 authInfo.getUserIdAsUUID()
         );
@@ -117,7 +127,7 @@ public class GroupChatApplicationService {
 
 
     @Transactional(readOnly = true)
-    public GroupChat getGroupChat(@NotNull String chatId) {
+    public GroupChat getGroupChat(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -130,7 +140,7 @@ public class GroupChatApplicationService {
 
 
     @Transactional
-    public HttpResponse changeGroupChatMetadata(@NotNull String chatId, @NotNull UpdateGroupChatMetadataRequest request) {
+    public HttpResponse changeGroupChatMetadata(String chatId, UpdateGroupChatMetadataRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -141,14 +151,14 @@ public class GroupChatApplicationService {
 
         groupChat.updateName(request.getNewName());
         groupChat.updateDescription(request.getNewDescription());
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new HttpResponse("Group chat metadata has been changed", 200);
     }
 
 
     @Transactional
-    public HttpResponse changeGroupChatPublicStatus(@NotNull String chatId) {
+    public HttpResponse changeGroupChatPublicStatus(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -162,13 +172,13 @@ public class GroupChatApplicationService {
         } else {
             groupChat.markAsPublic();
         }
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new HttpResponse("Group chat status has been changed", 200);
     }
 
 
-    public HttpResponse changeGroupChatOwner(@NotNull String chatId, @NotNull UserIdRequest request) {
+    public HttpResponse changeGroupChatOwner(String chatId, UserIdRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -178,18 +188,18 @@ public class GroupChatApplicationService {
         groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
         GroupChatMember futureOwner = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
-                groupChat.getId(), UUID.fromString(request.getUserId())
+                groupChat.getId(), request.getUserIdAsUUID()
         );
 
         groupChat.updateOwnerId(futureOwner.getUserId());
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new HttpResponse("New owner of group chat has been changed", 200);
     }
 
 
     @Transactional
-    public HttpResponse deleteGroupChat(@NotNull String chatId) {
+    public HttpResponse deleteGroupChat(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -204,7 +214,7 @@ public class GroupChatApplicationService {
         }
 
         groupChat.updateOwnerId(null);
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new HttpResponse("Group chat has been deleted", 200);
     }

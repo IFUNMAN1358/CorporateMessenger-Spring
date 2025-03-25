@@ -4,7 +4,7 @@ import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.UserProfilePhotoApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -24,7 +24,7 @@ public class UserProfilePhotoController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserProfilePhoto> loadUserProfilePhoto(@Validated @ModelAttribute FileRequest request) {
-        final UserProfilePhoto response =
+        UserProfilePhoto response =
                 userProfilePhotoApplicationService.loadUserProfilePhoto(request);
         return ResponseEntity.status(201).body(response);
     }
@@ -35,7 +35,7 @@ public class UserProfilePhotoController {
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> getMainUserProfilePhotoByUserId(@ValidUuid @PathVariable("userId") String userId) {
-        final Resource response =
+        Resource response =
                 userProfilePhotoApplicationService.getMainUserProfilePhotoByUserId(userId);
         return ResponseEntity.status(200).body(response);
     }
@@ -46,7 +46,7 @@ public class UserProfilePhotoController {
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> getUserProfilePhotoByPhotoId(@ValidUuid @PathVariable("photoId") String photoId) {
-        final Resource response =
+        Resource response =
                 userProfilePhotoApplicationService.getUserProfilePhotoByPhotoId(photoId);
         return ResponseEntity.status(200).body(response);
     }
@@ -57,7 +57,7 @@ public class UserProfilePhotoController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserProfilePhoto> setMainUserProfilePhoto(@ValidUuid @PathVariable("photoId") String photoId) {
-        final UserProfilePhoto response =
+        UserProfilePhoto response =
                 userProfilePhotoApplicationService.setMainUserProfilePhoto(photoId);
         return ResponseEntity.status(200).body(response);
     }
@@ -68,7 +68,7 @@ public class UserProfilePhotoController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> deleteUserProfilePhoto(@ValidUuid @PathVariable("photoId") String photoId) {
-        final HttpResponse response =
+        HttpResponse response =
                 userProfilePhotoApplicationService.deleteUserProfilePhoto(photoId);
         return ResponseEntity.status(200).body(response);
     }

@@ -3,8 +3,8 @@ package com.nagornov.CorporateMessenger.infrastructure.logback.appender;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaLogProducerService;
-import com.nagornov.CorporateMessenger.domain.factory.LogFactory;
-import com.nagornov.CorporateMessenger.domain.model.Log;
+import com.nagornov.CorporateMessenger.infrastructure.logback.factory.LogFactory;
+import com.nagornov.CorporateMessenger.domain.model.log.Log;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 

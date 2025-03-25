@@ -4,16 +4,15 @@ import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.User;
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserProfilePhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisSessionDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +34,7 @@ public class UserDataApplicationService {
 
 
     @Transactional
-    public HttpResponse changeUserPassword(@NotNull PasswordRequest request) {
+    public HttpResponse changeUserPassword(PasswordRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(
@@ -46,18 +45,14 @@ public class UserDataApplicationService {
 
         String encodedPassword = passwordDomainService.encodePassword(request.getNewPassword());
         postgresUser.updatePassword(encodedPassword);
-        jpaUserDomainService.update(postgresUser);
+        jpaUserDomainService.save(postgresUser);
 
         return new HttpResponse("Password changed", 200);
     }
 
 
     @Transactional(readOnly = true)
-    public List<UserResponseWithMainPhoto> searchUsersByUsername(
-            @NotNull String username,
-            @NotNull int page,
-            @NotNull int pageSize
-    ) {
+    public List<UserResponseWithMainPhoto> searchUsersByUsername(String username, int page, int pageSize) {
 
         jwtDomainService.getAuthInfo();
 
@@ -90,7 +85,7 @@ public class UserDataApplicationService {
 
 
     @Transactional(readOnly = true)
-    public UserResponseWithAllPhotos getUserById(@NotNull String userId) {
+    public UserResponseWithAllPhotos getUserById(String userId) {
 
         jwtDomainService.getAuthInfo();
         UUID uuidUserId = UUID.fromString(userId);

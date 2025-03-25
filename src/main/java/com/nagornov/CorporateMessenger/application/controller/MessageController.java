@@ -29,7 +29,7 @@ public class MessageController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<MessageResponse> createMessage(@Validated @ModelAttribute CreateMessageRequest request) {
-        final MessageResponse response =
+        MessageResponse response =
                 messageApplicationService.createMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
@@ -47,7 +47,7 @@ public class MessageController {
             @PathVariable("chatId") @ValidUuid String chatId,
             @PathVariable("page") int page
     ) {
-        final List<MessageResponse> response =
+        List<MessageResponse> response =
                 messageApplicationService.getAllMessages(chatId, page, 20);
         return ResponseEntity.status(200).body(response);
     }
@@ -59,7 +59,7 @@ public class MessageController {
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<MessageResponse> updateMessageContent(@Validated @RequestBody UpdateMessageContentRequest request) {
-        final MessageResponse response =
+        MessageResponse response =
                 messageApplicationService.updateMessageContent(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
@@ -75,7 +75,7 @@ public class MessageController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<MessageResponse> deleteMessage(@Validated @RequestBody DeleteMessageRequest request) {
-        final MessageResponse response =
+        MessageResponse response =
                 messageApplicationService.deleteMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
@@ -91,7 +91,7 @@ public class MessageController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<MessageResponse> readMessage(@Validated @RequestBody ReadMessageRequest request) {
-        final MessageResponse response =
+        MessageResponse response =
                 messageApplicationService.readMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
@@ -109,7 +109,7 @@ public class MessageController {
             @PathVariable("messageId") @ValidUuid String messageId,
             @PathVariable("fileId") @ValidUuid String fileId
     ) {
-        final MinioFileDto minioFileDto =
+        MinioFileDto minioFileDto =
                 messageApplicationService.getMessageFile(chatId, messageId, fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(minioFileDto.getStatObject().contentType()))

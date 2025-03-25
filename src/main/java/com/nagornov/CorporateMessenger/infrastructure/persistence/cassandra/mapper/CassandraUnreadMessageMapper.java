@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.UnreadMessage;
+import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraUnreadMessageByChatIdAndUserIdEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

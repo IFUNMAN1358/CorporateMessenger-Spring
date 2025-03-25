@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 79b2e50e-a30e-444d-a64a-6e52742ba3e4
+      author: 'IFUNMAN'
+      changes:
+        - createTable:
+            tableName: 'contacts'
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    updatable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    updatable: false
+              - column:
+                  name: contact_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    updatable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: added_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                    updatable: false
+            constraints:
+              - uniqueConstraint:
+                  name: 'unique_contact'
+                  columnNames: 'user_id, contact_id'
+        - addForeignKeyConstraint:
+            constraintName: 'fk_contacts_user_id'
+            baseTableName: 'contacts'
+            baseColumnNames: 'user_id'
+            referencedTableName: 'users'
+            referencedColumnNames: 'id'
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: 'fk_contacts_contact_id'
+            baseTableName: 'contacts'
+            baseColumnNames: 'contact_id'
+            referencedTableName: 'users'
+            referencedColumnNames: 'id'
+            onDelete: CASCADE
+        - createIndex:
+            tableName: 'contacts'
+            indexName: 'idx_contacts_contact_id'
+            columns:
+              - column:
+                  name: 'contact_id'

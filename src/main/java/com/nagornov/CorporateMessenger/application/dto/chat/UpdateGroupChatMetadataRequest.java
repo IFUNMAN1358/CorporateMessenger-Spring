@@ -8,11 +8,15 @@ import lombok.Data;
 @Data
 public class UpdateGroupChatMetadataRequest {
 
-    @NotBlank
     @NotNull
+    @NotBlank
     private String newName;
 
     private String newDescription;
+
+    //
+    //
+    //
 
     @PostConstruct
     public void initialize() {

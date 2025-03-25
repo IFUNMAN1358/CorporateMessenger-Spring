@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.minio;
 
 import io.minio.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +12,7 @@ public class MinioRepository {
 
     private final MinioClient minioClient;
 
-    public void upload(@NotNull String bucketName, @NotNull String objectName, @NotNull InputStream inputStream, @NotNull String contentType) {
+    public void upload(String bucketName, String objectName, InputStream inputStream, String contentType) {
         try {
             minioClient.putObject(
                 PutObjectArgs.builder()
@@ -28,7 +27,7 @@ public class MinioRepository {
         }
     }
 
-    public InputStream download(@NotNull String bucketName, @NotNull String objectName) {
+    public InputStream download(String bucketName, String objectName) {
         try {
             return minioClient.getObject(
                 GetObjectArgs.builder()
@@ -41,7 +40,7 @@ public class MinioRepository {
         }
     }
 
-    public void delete(@NotNull String bucketName, @NotNull String objectName) {
+    public void delete(String bucketName, String objectName) {
         try {
             minioClient.removeObject(
                 RemoveObjectArgs.builder()
@@ -54,7 +53,7 @@ public class MinioRepository {
         }
     }
 
-    public boolean objectExists(@NotNull String bucketName, @NotNull String objectName) {
+    public boolean objectExists(String bucketName, String objectName) {
         try {
             minioClient.statObject(
                 StatObjectArgs.builder()
@@ -68,7 +67,7 @@ public class MinioRepository {
         }
     }
 
-    public StatObjectResponse statObject(@NotNull String bucketName, @NotNull String objectName) {
+    public StatObjectResponse statObject(String bucketName, String objectName) {
         try {
             return minioClient.statObject(
                 StatObjectArgs.builder()

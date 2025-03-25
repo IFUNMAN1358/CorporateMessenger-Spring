@@ -25,7 +25,7 @@ public class UserDataController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> changeUserPassword(@Validated @RequestBody PasswordRequest request) {
-        final HttpResponse response =
+        HttpResponse response =
                 userDataApplicationService.changeUserPassword(request);
         return ResponseEntity.status(200).body(response);
     }
@@ -37,7 +37,7 @@ public class UserDataController {
     ResponseEntity<List<UserResponseWithMainPhoto>> searchUsersByUsername(
             @PathVariable("username") String username, @PathVariable("page") int page
     ) {
-        final List<UserResponseWithMainPhoto> response =
+        List<UserResponseWithMainPhoto> response =
                 userDataApplicationService.searchUsersByUsername(username, page, 10);
         return ResponseEntity.status(200).body(response);
     }
@@ -47,7 +47,7 @@ public class UserDataController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserResponseWithAllPhotos> getYourUserData() {
-        final UserResponseWithAllPhotos response =
+        UserResponseWithAllPhotos response =
                 userDataApplicationService.getYourUserData();
         return ResponseEntity.status(200).body(response);
     }
@@ -57,7 +57,7 @@ public class UserDataController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserResponseWithAllPhotos> getUserById(@PathVariable("userId") String userId) {
-        final UserResponseWithAllPhotos response =
+        UserResponseWithAllPhotos response =
                 userDataApplicationService.getUserById(userId);
         return ResponseEntity.status(200).body(response);
     }
@@ -67,7 +67,7 @@ public class UserDataController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> deleteAccount() {
-        final HttpResponse response =
+        HttpResponse response =
                 userDataApplicationService.deleteAccount();
         return ResponseEntity.status(200).body(response);
     }

@@ -1,11 +1,14 @@
 package com.nagornov.CorporateMessenger.domain.service.businessService.cassandra;
 
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +23,7 @@ public class CassandraChatBusinessService {
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
 
-    public Chat getAvailableById(@NotNull UUID id) {
+    public Chat getAvailableById(@NonNull UUID id) {
 
         Optional<PrivateChat> privateChat = cassandraPrivateChatDomainService.findAvailableById(id);
         if (privateChat.isPresent()) {
@@ -35,17 +38,17 @@ public class CassandraChatBusinessService {
         throw new ResourceNotFoundException("Chat with this id does not exist: " + id);
     }
 
-    public void update(@NotNull Chat chat) {
+    public void update(@NonNull Chat chat) {
         if (chat instanceof PrivateChat privateChat) {
-            cassandraPrivateChatDomainService.update(privateChat);
+            cassandraPrivateChatDomainService.save(privateChat);
         } else if (chat instanceof GroupChat groupChat) {
-            cassandraGroupChatDomainService.update(groupChat);
+            cassandraGroupChatDomainService.save(groupChat);
         } else {
             throw new RuntimeException("Chat type is unknown or there was an error updating the chat");
         }
     }
 
-    public void validateUserOwnership(@NotNull Chat chat, @NotNull User user) {
+    public void validateUserOwnership(@NonNull Chat chat, @NonNull User user) {
         if (chat instanceof PrivateChat privateChat) {
             privateChat.validateUserIdOwnership(user.getId());
         } else if (chat instanceof GroupChat groupChat) {

@@ -1,8 +1,7 @@
 package com.nagornov.CorporateMessenger.application.dto.user;
 
-import com.nagornov.CorporateMessenger.domain.model.User;
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -20,7 +19,7 @@ public class UserResponseWithAllPhotos {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public UserResponseWithAllPhotos(@NotNull User user, @NotNull List<UserProfilePhoto> userProfilePhotos) {
+    public UserResponseWithAllPhotos(User user, List<UserProfilePhoto> userProfilePhotos) {
         this.userProfilePhotos = userProfilePhotos;
         this.id = user.getId();
         this.username = user.getUsername();

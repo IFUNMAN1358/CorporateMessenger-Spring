@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;

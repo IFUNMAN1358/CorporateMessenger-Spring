@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserProfilePhotoEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserProfilePhotoMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaUserProfilePhotoRepository;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -18,49 +18,50 @@ public class JpaUserProfilePhotoRepository {
     private final SpringDataJpaUserProfilePhotoRepository springDataJpaUserProfilePhotoRepository;
     private final JpaUserProfilePhotoMapper jpaUserProfilePhotoMapper;
 
-    public void save(@NotNull UserProfilePhoto userProfilePhoto) {
-        springDataJpaUserProfilePhotoRepository.save(
+    public UserProfilePhoto save(UserProfilePhoto userProfilePhoto) {
+        JpaUserProfilePhotoEntity entity = springDataJpaUserProfilePhotoRepository.save(
+                jpaUserProfilePhotoMapper.toEntity(userProfilePhoto)
+        );
+        return jpaUserProfilePhotoMapper.toDomain(entity);
+    }
+
+    public void delete(UserProfilePhoto userProfilePhoto) {
+        springDataJpaUserProfilePhotoRepository.delete(
                 jpaUserProfilePhotoMapper.toEntity(userProfilePhoto)
         );
     }
 
-    public Optional<UserProfilePhoto> findById(@NotNull UUID id) {
+    public void deleteById(UUID id) {
+        springDataJpaUserProfilePhotoRepository.deleteById(id);
+    }
+
+    public void modDeleteById(UUID id) {
+        springDataJpaUserProfilePhotoRepository.modDeleteJpaUserProfilePhotoEntityById(id);
+    }
+
+    public Optional<UserProfilePhoto> findById(UUID id) {
         return springDataJpaUserProfilePhotoRepository
                 .findJpaUserProfilePhotoEntityById(id)
                 .map(jpaUserProfilePhotoMapper::toDomain);
     }
 
-    public Optional<UserProfilePhoto> findByIdAndUserId(@NotNull UUID id, @NotNull UUID userId) {
+    public Optional<UserProfilePhoto> findByIdAndUserId(UUID id, UUID userId) {
         return springDataJpaUserProfilePhotoRepository
                 .findJpaUserProfilePhotoEntityByIdAndUserId(id, userId)
                 .map(jpaUserProfilePhotoMapper::toDomain);
     }
 
-    public Optional<UserProfilePhoto> findMainByUserId(@NotNull UUID userId) {
+    public Optional<UserProfilePhoto> findMainByUserId(UUID userId) {
         return springDataJpaUserProfilePhotoRepository
                 .findMainJpaUserProfilePhotoEntityByUserId(userId)
                 .map(jpaUserProfilePhotoMapper::toDomain);
     }
 
-    public List<UserProfilePhoto> findAllByUserIdOrderByCreatedAtDesc(@NotNull UUID userId) {
+    public List<UserProfilePhoto> findAllByUserIdOrderByCreatedAtDesc(UUID userId) {
         return springDataJpaUserProfilePhotoRepository
                 .findAllJpaUserProfilePhotoEntityByUserIdOrderByCreatedAtDesc(userId)
                 .stream().map(jpaUserProfilePhotoMapper::toDomain)
                 .toList();
-    }
-
-    public void deleteById(@NotNull UUID id) {
-        springDataJpaUserProfilePhotoRepository.deleteById(id);
-    }
-
-    public void modDeleteById(@NotNull UUID id) {
-        springDataJpaUserProfilePhotoRepository.modDeleteJpaUserProfilePhotoEntityById(id);
-    }
-
-    public void delete(@NotNull UserProfilePhoto userProfilePhoto) {
-        springDataJpaUserProfilePhotoRepository.delete(
-                jpaUserProfilePhotoMapper.toEntity(userProfilePhoto)
-        );
     }
 
 }

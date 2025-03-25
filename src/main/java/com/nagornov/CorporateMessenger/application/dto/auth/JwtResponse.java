@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.application.dto.auth;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -8,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class JwtResponse {
 
-    private @NotNull String accessToken;
-    private @NotNull String refreshToken;
+    private String accessToken;
+    private String refreshToken;
 
 }

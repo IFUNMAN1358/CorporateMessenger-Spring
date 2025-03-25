@@ -5,9 +5,11 @@ import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.AuthApplicationService;
+import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,9 +26,16 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> registration(@Validated @RequestBody RegistrationRequest request) {
-        final JwtResponse response =
-                authApplicationService.registration(request);
+    ResponseEntity<JwtResponse> registration(
+            @Validated @RequestBody RegistrationRequest request,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException(bindingResult);
+        }
+
+        JwtResponse response = authApplicationService.registration(request);
+
         return ResponseEntity.status(201).body(response);
     }
 
@@ -36,9 +45,16 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> login(@Validated @RequestBody LoginRequest request) {
-        final JwtResponse response =
-                authApplicationService.login(request);
+    ResponseEntity<JwtResponse> login(
+            @Validated @RequestBody LoginRequest request,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException(bindingResult);
+        }
+
+        JwtResponse response = authApplicationService.login(request);
+
         return ResponseEntity.status(200).body(response);
     }
 
@@ -48,8 +64,7 @@ public class AuthController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> logout() {
-        final HttpResponse response =
-                authApplicationService.logout();
+        HttpResponse response = authApplicationService.logout();
         return ResponseEntity.status(200).body(response);
     }
 }

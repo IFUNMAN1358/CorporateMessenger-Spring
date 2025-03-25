@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.utils;
 
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.Role;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
@@ -31,12 +31,6 @@ public class JwtUtils {
     //
     //
     //
-
-    public static Set<String> convertRoleToString(Set<Role> roles) {
-        return roles.stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-    }
 
     private static Set<Role> getRolesFromClaims(Claims claims) {
         List<String> roles = claims.get("roles", List.class);

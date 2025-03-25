@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.application.dto.user;
 
-import com.nagornov.CorporateMessenger.domain.model.User;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,7 +16,7 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public UserResponse(@NotNull User user) {
+    public UserResponse(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.firstName = user.getFirstName();

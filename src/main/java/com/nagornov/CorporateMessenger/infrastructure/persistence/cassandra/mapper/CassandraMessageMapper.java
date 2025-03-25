@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraMessageByChatIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraMessageByIdEntity;
 import org.mapstruct.Mapper;

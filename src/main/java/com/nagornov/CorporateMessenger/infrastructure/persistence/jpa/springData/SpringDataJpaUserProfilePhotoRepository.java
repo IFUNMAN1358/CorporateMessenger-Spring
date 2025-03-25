@@ -14,22 +14,19 @@ import java.util.UUID;
 @Repository
 public interface SpringDataJpaUserProfilePhotoRepository extends JpaRepository<JpaUserProfilePhotoEntity, UUID> {
 
-    @Query("select p from JpaUserProfilePhotoEntity p where p.user.id = :userId and p.isMain = true")
+    @Query("select p from JpaUserProfilePhotoEntity p where p.userId = :userId and p.isMain = true")
     Optional<JpaUserProfilePhotoEntity> findMainJpaUserProfilePhotoEntityByUserId(@Param("userId") UUID userId);
 
-    @Query("select p from JpaUserProfilePhotoEntity p where p.user.id = :userId order by p.createdAt desc")
+    @Query("select p from JpaUserProfilePhotoEntity p where p.userId = :userId order by p.createdAt desc")
     List<JpaUserProfilePhotoEntity> findAllJpaUserProfilePhotoEntityByUserIdOrderByCreatedAtDesc(@Param("userId") UUID userId);
 
     @Query("select p from JpaUserProfilePhotoEntity p where p.id = :id")
     Optional<JpaUserProfilePhotoEntity> findJpaUserProfilePhotoEntityById(@Param("id") UUID id);
 
-    @Query("select p from JpaUserProfilePhotoEntity p where p.id = :id and p.user.id = :userId")
+    @Query("select p from JpaUserProfilePhotoEntity p where p.id = :id and p.userId = :userId")
     Optional<JpaUserProfilePhotoEntity> findJpaUserProfilePhotoEntityByIdAndUserId(
             @Param("id") UUID id, @Param("userId") UUID userId
     );
-
-    @Query("select p from JpaUserProfilePhotoEntity p where p.filePath = :filePath")
-    Optional<JpaUserProfilePhotoEntity> findJpaUserProfilePhotoEntityByFilePath(@Param("filePath") String filePath);
 
     @Modifying
     @Query("delete from JpaUserProfilePhotoEntity p where p.id = :id")

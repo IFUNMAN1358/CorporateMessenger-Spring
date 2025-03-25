@@ -1,17 +1,17 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.kafka;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
-import com.nagornov.CorporateMessenger.domain.model.Chat;
-import com.nagornov.CorporateMessenger.domain.model.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.PrivateChat;
-import com.nagornov.CorporateMessenger.domain.model.User;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaChatEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaUserEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaChatMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaUserMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.repository.KafkaUnreadMessageProducerRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.dto.KafkaUnreadMessageDTO;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +24,10 @@ public class KafkaUnreadMessageProducerDomainService {
     private final KafkaUserMapper kafkaUserMapper;
     private final KafkaChatMapper kafkaChatMapper;
 
-    public void sendToIncrementUnreadMessageCountForOther(@NotNull User user, @NotNull Chat chat) {
+    public void sendToIncrementUnreadMessageCountForOther(@NonNull User user, @NonNull Chat chat) {
 
         KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
-        KafkaUserEntity userEntity = kafkaUserMapper.toKafkaUserEntity(user);
+        KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
                 userEntity, chatEntity,
@@ -36,10 +36,10 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToDecrementUnreadMessageCountForOther(@NotNull User user, @NotNull Chat chat) {
+    public void sendToDecrementUnreadMessageCountForOther(@NonNull User user, @NonNull Chat chat) {
 
         KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
-        KafkaUserEntity userEntity = kafkaUserMapper.toKafkaUserEntity(user);
+        KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
                 userEntity, chatEntity,
@@ -48,10 +48,10 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToIncrementUnreadMessageCountForUser(@NotNull User user, @NotNull Chat chat) {
+    public void sendToIncrementUnreadMessageCountForUser(@NonNull User user, @NonNull Chat chat) {
 
         KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
-        KafkaUserEntity userEntity = kafkaUserMapper.toKafkaUserEntity(user);
+        KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
                 userEntity, chatEntity,
@@ -60,10 +60,10 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToDecrementUnreadMessageCountForUser(@NotNull User user, @NotNull Chat chat) {
+    public void sendToDecrementUnreadMessageCountForUser(@NonNull User user, @NonNull Chat chat) {
 
         KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
-        KafkaUserEntity userEntity = kafkaUserMapper.toKafkaUserEntity(user);
+        KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
                 userEntity, chatEntity,
@@ -72,7 +72,7 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    private KafkaChatEntity getChatEntityFromChatInterface(@NotNull Chat chat) {
+    private KafkaChatEntity getChatEntityFromChatInterface(@NonNull Chat chat) {
         KafkaChatEntity chatEntity;
 
         if (chat instanceof GroupChat) {

@@ -20,7 +20,12 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
     @Query("select u from JpaUserEntity u where u.username = :username")
     Optional<JpaUserEntity> findJpaUserEntityByUsername(@Param("username") String username);
 
-    @Query("select u from JpaUserEntity u where :username = '' or lower(u.username) like lower(concat('%', :username, '%'))")
+    @Query(
+            "select u from JpaUserEntity u " +
+            "where :username = '' or lower(u.username) like lower(concat('%', :username, '%'))"
+    )
     List<JpaUserEntity> searchByUsername(@Param("username") String username, Pageable pageable);
+
+    boolean existsByUsername(String username);
 
 }

@@ -13,6 +13,5 @@ public class LogServiceProperties {
 
     private String url;
     private String apiKey;
-    private String level;
 
 }

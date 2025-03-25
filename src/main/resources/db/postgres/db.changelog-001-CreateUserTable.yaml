@@ -12,7 +12,6 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-                    unique: true
                     updatable: false
               - column:
                   name: username
@@ -38,13 +37,17 @@ databaseChangeLog:
               - column:
                   name: created_at
                   type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
                     updatable: false
               - column:
                   name: updated_at
                   type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
+        - createIndex:
+            tableName: 'users'
+            indexName: 'idx_users_username'
+            columns:
+              - column:
+                  name: 'username'

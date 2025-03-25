@@ -2,13 +2,12 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.domain.model.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioGroupChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -28,7 +27,7 @@ public class GroupChatPhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource getGroupChatPhoto(@NotNull String chatId) {
+    public Resource getGroupChatPhoto(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -43,7 +42,7 @@ public class GroupChatPhotoApplicationService {
 
 
     @Transactional
-    public Resource uploadOrChangeGroupChatPhoto(@NotNull String chatId, @NotNull FileRequest request) {
+    public Resource uploadOrChangeGroupChatPhoto(String chatId, FileRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -58,7 +57,7 @@ public class GroupChatPhotoApplicationService {
 
         String filePath = minioGroupChatPhotoDomainService.upload(request.getFile());
         groupChat.updateFilePath(filePath);
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new InputStreamResource(
                 minioGroupChatPhotoDomainService.download(groupChat.getFilePath())
@@ -67,7 +66,7 @@ public class GroupChatPhotoApplicationService {
 
 
     @Transactional
-    public HttpResponse deleteGroupChatPhoto(@NotNull String chatId) {
+    public HttpResponse deleteGroupChatPhoto(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -81,7 +80,7 @@ public class GroupChatPhotoApplicationService {
         }
 
         groupChat.updateFilePath(null);
-        cassandraGroupChatDomainService.update(groupChat);
+        cassandraGroupChatDomainService.save(groupChat);
 
         return new HttpResponse("Photo has been successfully deleted", 200);
     }

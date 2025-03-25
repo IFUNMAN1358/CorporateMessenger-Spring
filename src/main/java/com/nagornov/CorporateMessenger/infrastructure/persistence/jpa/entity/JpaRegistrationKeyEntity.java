@@ -18,24 +18,19 @@ import java.util.UUID;
 public class JpaRegistrationKeyEntity {
 
     @Id
-    @Column(name = "id", insertable = false, updatable = false, nullable = false, unique = true)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    @Column(name = "user_id", updatable = false, unique = true)
+    private UUID userId;
 
     @Column(name = "value", nullable = false, unique = true, updatable = false)
     private String value;
 
     @Column(name = "is_applied", nullable = false)
-    private Boolean isApplied = false;
+    private Boolean isApplied;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    //
-    // Methods
-    //
-
-    @PrePersist
-    public void createTimestamps() {
-        createdAt = LocalDateTime.now();
-    }
 }

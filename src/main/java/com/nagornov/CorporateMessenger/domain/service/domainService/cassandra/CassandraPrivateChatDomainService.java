@@ -1,13 +1,12 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.cassandra;
 
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceConflictException;
-import com.nagornov.CorporateMessenger.domain.exception.custom.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraPrivateChatByFirstUserRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraPrivateChatByIdRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraPrivateChatBySecondUserRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraPrivateChatByUsersRepository;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,27 +24,14 @@ public class CassandraPrivateChatDomainService {
     private final CassandraPrivateChatBySecondUserRepository cassandraPrivateChatBySecondUserRepository;
     private final CassandraPrivateChatByUsersRepository cassandraPrivateChatByUsersRepository;
 
-    public void save(@NotNull PrivateChat privateChat) {
-        cassandraPrivateChatByIdRepository.findById(privateChat.getId())
-                        .ifPresent(_ -> {
-                            throw new ResourceConflictException("Private chat already exists during save");
-                        });
-        cassandraPrivateChatByIdRepository.saveWithoutCheck(privateChat);
-        cassandraPrivateChatByFirstUserRepository.saveWithoutCheck(privateChat);
-        cassandraPrivateChatBySecondUserRepository.saveWithoutCheck(privateChat);
-        cassandraPrivateChatByUsersRepository.saveWithoutCheck(privateChat);
+    public PrivateChat save(@NonNull PrivateChat privateChat) {
+        cassandraPrivateChatByIdRepository.save(privateChat);
+        cassandraPrivateChatByFirstUserRepository.save(privateChat);
+        cassandraPrivateChatBySecondUserRepository.save(privateChat);
+        return cassandraPrivateChatByUsersRepository.save(privateChat);
     }
 
-    public void update(@NotNull PrivateChat privateChat) {
-        cassandraPrivateChatByIdRepository.findById(privateChat.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Private chat not found during update"));
-        cassandraPrivateChatByIdRepository.updateWithoutCheck(privateChat);
-        cassandraPrivateChatByFirstUserRepository.updateWithoutCheck(privateChat);
-        cassandraPrivateChatBySecondUserRepository.updateWithoutCheck(privateChat);
-        cassandraPrivateChatByUsersRepository.updateWithoutCheck(privateChat);
-    }
-
-    public Optional<PrivateChat> findAvailableByFirstUserIdAndSecondUserId(@NotNull UUID firstUserId, @NotNull UUID secondUserId) {
+    public Optional<PrivateChat> findAvailableByFirstUserIdAndSecondUserId(@NonNull UUID firstUserId, @NonNull UUID secondUserId) {
         return cassandraPrivateChatByUsersRepository
                 .getAllByFirstUserIdAndSecondUserId(firstUserId, secondUserId)
                 .stream()
@@ -53,18 +39,18 @@ public class CassandraPrivateChatDomainService {
                 .findFirst();
     }
 
-    public PrivateChat getAvailableById(@NotNull UUID id) {
+    public PrivateChat getAvailableById(@NonNull UUID id) {
         return cassandraPrivateChatByIdRepository.findById(id)
                 .filter(PrivateChat::getIsAvailable)
                 .orElseThrow(() -> new ResourceNotFoundException("Available private chat with this id not found"));
     }
 
-    public Optional<PrivateChat> findAvailableById(@NotNull UUID id) {
-            return cassandraPrivateChatByIdRepository.findById(id)
-                    .filter(PrivateChat::getIsAvailable);
+    public Optional<PrivateChat> findAvailableById(@NonNull UUID id) {
+        return cassandraPrivateChatByIdRepository.findById(id)
+                .filter(PrivateChat::getIsAvailable);
     }
 
-    public List<PrivateChat> getAllAvailableByFirstUserId(@NotNull UUID firstUserId) {
+    public List<PrivateChat> getAllAvailableByFirstUserId(@NonNull UUID firstUserId) {
         return cassandraPrivateChatByFirstUserRepository
                 .getAllByFirstUserId(firstUserId)
                 .stream()
@@ -72,7 +58,7 @@ public class CassandraPrivateChatDomainService {
                 .toList();
     }
 
-    public List<PrivateChat> getAllAvailableBySecondUserId(@NotNull UUID secondUserId) {
+    public List<PrivateChat> getAllAvailableBySecondUserId(@NonNull UUID secondUserId) {
         return cassandraPrivateChatBySecondUserRepository
                 .getAllBySecondUserId(secondUserId)
                 .stream()
@@ -80,7 +66,7 @@ public class CassandraPrivateChatDomainService {
                 .toList();
     }
 
-    public List<PrivateChat> getAllAvailableByAllUserId(@NotNull UUID userId) {
+    public List<PrivateChat> getAllAvailableByAllUserId(@NonNull UUID userId) {
         List<PrivateChat> listOfPrivateChats = new ArrayList<>();
         listOfPrivateChats.addAll(
                 cassandraPrivateChatByFirstUserRepository
@@ -99,7 +85,7 @@ public class CassandraPrivateChatDomainService {
         return listOfPrivateChats;
     }
 
-    public Optional<PrivateChat> findById(@NotNull UUID id) {
+    public Optional<PrivateChat> findById(@NonNull UUID id) {
         return cassandraPrivateChatByIdRepository.findById(id);
     }
 }

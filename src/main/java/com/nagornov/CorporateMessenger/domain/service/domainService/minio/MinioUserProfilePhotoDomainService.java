@@ -3,7 +3,7 @@ package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
-import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ public class MinioUserProfilePhotoDomainService {
 
     private final MinioRepository minioRepository;
 
-    public String upload(@NotNull InputStream inputStream) {
+    public String upload(@NonNull InputStream inputStream) {
         try {
             final String objectName = String.valueOf(UUID.randomUUID());
             minioRepository.upload(
@@ -31,7 +31,7 @@ public class MinioUserProfilePhotoDomainService {
         }
     }
 
-    public InputStream download(@NotNull String objectName) {
+    public InputStream download(@NonNull String objectName) {
         try {
             return minioRepository.download(
                 MinioBucket.USER_PROFILE_PHOTOS.getBucketName(),
@@ -42,7 +42,7 @@ public class MinioUserProfilePhotoDomainService {
         }
     }
 
-    public void delete(@NotNull String objectName) {
+    public void delete(@NonNull String objectName) {
         try {
             minioRepository.delete(
                 MinioBucket.USER_PROFILE_PHOTOS.getBucketName(),

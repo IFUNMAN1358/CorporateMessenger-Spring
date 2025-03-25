@@ -1,30 +1,35 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
 import com.nagornov.CorporateMessenger.application.dto.message.*;
-import com.nagornov.CorporateMessenger.domain.factory.MessageFactory;
-import com.nagornov.CorporateMessenger.domain.factory.MessageFileFactory;
-import com.nagornov.CorporateMessenger.domain.factory.ReadMessageFactory;
-import com.nagornov.CorporateMessenger.domain.model.*;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.message.Message;
+import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
+import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
+import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaUnreadMessageProducerDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioMessageFileDomainService;
+import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisMessageDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraChatBusinessService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageFileDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraReadMessageDomainService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +43,11 @@ public class MessageApplicationService {
     private final CassandraMessageFileDomainService cassandraMessageFileDomainService;
     private final MinioMessageFileDomainService minioMessageFileDomainService;
     private final KafkaUnreadMessageProducerDomainService kafkaUnreadMessageProducerDomainService;
+    private final RedisMessageDomainService redisMessageDomainService;
 
 
     @Transactional
-    public MessageResponse createMessage(@NotNull CreateMessageRequest request) {
+    public MessageResponse createMessage(CreateMessageRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
@@ -49,20 +55,34 @@ public class MessageApplicationService {
         Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
         cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
 
-        Message message = MessageFactory.createWithRandomId();
-        message.updateChatId(chat.getId());
-        message.updateSenderId(postgresUser.getId());
-        message.updateSenderFirstName(postgresUser.getFirstName());
-        message.updateSenderUsername(postgresUser.getUsername());
-        message.updateContent(request.getContent());
+        Message message = new Message(
+                Uuids.timeBased(),
+                chat.getId(),
+                postgresUser.getId(),
+                postgresUser.getFirstName(),
+                postgresUser.getUsername(),
+                request.getContent(),
+                false,
+                false,
+                false,
+                Instant.now()
+        );
 
         if (request.getFiles() != null && !request.getFiles().isEmpty()) {
             message.markAsHasFiles();
 
             for (MultipartFile file : request.getFiles()) {
-                MessageFile messageFile = MessageFileFactory.createFromMultipartFile(file);
-                messageFile.updateMessageId(message.getId());
 
+                UUID timeUuid = Uuids.timeBased();
+
+                MessageFile messageFile = new MessageFile(
+                        timeUuid,
+                        message.getId(),
+                        file.getOriginalFilename(),
+                        timeUuid + "_" + file.getOriginalFilename(),
+                        file.getContentType(),
+                        Instant.now()
+                );
                 cassandraMessageFileDomainService.save(messageFile);
                 minioMessageFileDomainService.upload(messageFile, file);
             }
@@ -75,6 +95,8 @@ public class MessageApplicationService {
         kafkaUnreadMessageProducerDomainService
                 .sendToIncrementUnreadMessageCountForOther(postgresUser, chat);
 
+        redisMessageDomainService.leftSave(chat.getId(), message);
+
         return new MessageResponse(
                 message,
                 message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
@@ -84,18 +106,25 @@ public class MessageApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<MessageResponse> getAllMessages(@NotNull String chatId, @NotNull int page, @NotNull int size) {
+    public List<MessageResponse> getAllMessages(String chatId, int page, int size) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+        UUID uuidChatId = UUID.fromString(chatId);
+
+        List<Message> messages = redisMessageDomainService.getAll(uuidChatId, page, size);
+
+        if (messages.isEmpty()) {
+            Chat chat = cassandraChatBusinessService.getAvailableById(uuidChatId);
+            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+
+            messages = cassandraMessageDomainService.getAllByChatId(chat.getId(), page, size);
+            redisMessageDomainService.rightSaveAll(uuidChatId, messages, 1, TimeUnit.DAYS);
+        }
 
         List<MessageResponse> listMessageResponses = new ArrayList<>();
-        List<Message> listOfMessages = cassandraMessageDomainService.getAllByChatId(chat.getId(), page, size);
-
-        for (Message message : listOfMessages) {
+        for (Message message : messages) {
             listMessageResponses.add(
                     new MessageResponse(
                             message,
@@ -110,7 +139,7 @@ public class MessageApplicationService {
 
 
     @Transactional
-    public MessageResponse updateMessageContent(@NotNull UpdateMessageContentRequest request) {
+    public MessageResponse updateMessageContent(UpdateMessageContentRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -120,7 +149,8 @@ public class MessageApplicationService {
 
         message.updateContent(request.getContent());
         message.markAsChanged();
-        cassandraMessageDomainService.update(message);
+        cassandraMessageDomainService.save(message);
+        redisMessageDomainService.update(request.getChatIdAsUUID(), message);
 
         return new MessageResponse(
             message,
@@ -131,7 +161,7 @@ public class MessageApplicationService {
 
 
     @Transactional
-    public MessageResponse deleteMessage(@NotNull DeleteMessageRequest request) {
+    public MessageResponse deleteMessage(DeleteMessageRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
@@ -150,6 +180,7 @@ public class MessageApplicationService {
             }
         }
         cassandraMessageDomainService.delete(message);
+        redisMessageDomainService.delete(chat.getId(), message);
 
         Optional<Message> existingPreviousMessage = cassandraMessageDomainService.findLastByChatId(chat.getId());
         chat.updateLastMessageId(
@@ -170,7 +201,7 @@ public class MessageApplicationService {
 
 
     @Transactional
-    public MessageResponse readMessage(@NotNull ReadMessageRequest request) {
+    public MessageResponse readMessage(ReadMessageRequest request) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
@@ -189,12 +220,15 @@ public class MessageApplicationService {
         }
 
         message.markAsRead();
-        cassandraMessageDomainService.update(message);
+        cassandraMessageDomainService.save(message);
+        redisMessageDomainService.update(chat.getId(), message);
 
-        ReadMessage readMessage = ReadMessageFactory.createWithRandomId();
-        readMessage.updateUserId(postgresUser.getId());
-        readMessage.updateChatId(chat.getId());
-        readMessage.updateMessageId(message.getId());
+        ReadMessage readMessage = new ReadMessage(
+                UUID.randomUUID(),
+                postgresUser.getId(),
+                chat.getId(),
+                message.getId()
+        );
         cassandraReadMessageDomainService.save(readMessage);
 
         kafkaUnreadMessageProducerDomainService
@@ -208,7 +242,7 @@ public class MessageApplicationService {
     }
 
 
-    public MinioFileDto getMessageFile(@NotNull String chatId, @NotNull String messageId, @NotNull String fileId) {
+    public MinioFileDto getMessageFile(String chatId, String messageId, String fileId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
