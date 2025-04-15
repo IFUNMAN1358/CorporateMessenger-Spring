@@ -9,10 +9,18 @@ databaseChangeLog:
   - include:
       file: db/postgres/db.changelog-003-CreateUserRoleTable.yaml
   - include:
-      file: db/postgres/db.changelog-004-CreateRegistrationKeysTable.yaml
+      file: db/postgres/db.changelog-004-CreateRegistrationKeyTable.yaml
   - include:
       file: db/postgres/db.changelog-005-CreateUserProfilePhotoTable.yaml
   - include:
       file: db/postgres/db.changelog-006-RoleInitialize.yaml
   - include:
       file: db/postgres/db.changelog-007-CreateContactTable.yaml
+  - include:
+      file: db/postgres/db.changelog-008-CreateEmployeeTable.yaml
+  - include:
+      file: db/postgres/db.changelog-009-UpdateUserTable.yaml
+  - include:
+      file: db/postgres/db.changelog-010-CreateEmployeePhotoTable.yaml
+  - include:
+      file: db/postgres/db.changelog-011-ChangeNameUserProfilePhotoTable.yaml

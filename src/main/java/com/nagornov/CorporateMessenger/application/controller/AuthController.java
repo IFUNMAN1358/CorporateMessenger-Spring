@@ -31,11 +31,9 @@ public class AuthController {
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException(bindingResult);
+            throw new BindingErrorException("Registration form validation error", bindingResult);
         }
-
         JwtResponse response = authApplicationService.registration(request);
-
         return ResponseEntity.status(201).body(response);
     }
 
@@ -45,16 +43,8 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> login(
-            @Validated @RequestBody LoginRequest request,
-            BindingResult bindingResult
-    ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException(bindingResult);
-        }
-
+    ResponseEntity<JwtResponse> login(@Validated @RequestBody LoginRequest request) {
         JwtResponse response = authApplicationService.login(request);
-
         return ResponseEntity.status(200).body(response);
     }
 

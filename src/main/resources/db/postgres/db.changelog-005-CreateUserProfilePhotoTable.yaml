@@ -11,13 +11,10 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
-                    updatable: false
               - column:
                   name: user_id
                   type: uuid
                   constraints:
-                    updatable: false
                     nullable: false
               - column:
                   name: file_name
@@ -30,6 +27,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: content_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
                   name: is_main
                   type: boolean
                   constraints:
@@ -39,7 +41,6 @@ databaseChangeLog:
                   type: timestamp
                   constraints:
                     nullable: false
-                    updatable: false
         - addForeignKeyConstraint:
             constraintName: 'fk_user_profile_photos_user_id'
             baseTableName: 'user_profile_photos'

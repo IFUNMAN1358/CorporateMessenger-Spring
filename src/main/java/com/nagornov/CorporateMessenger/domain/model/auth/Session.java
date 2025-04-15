@@ -17,10 +17,6 @@ public class Session {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    //
-    //
-    //
-
     public void updateAccessToken(@NonNull String newAccessToken) {
         this.accessToken = newAccessToken;
         this.updatedAt = LocalDateTime.now();

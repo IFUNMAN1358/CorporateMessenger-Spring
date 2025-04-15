@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface SpringDataJpaRegistrationKeyRepository extends JpaRepository<JpaRegistrationKeyEntity, UUID> {
 
-    Optional<JpaRegistrationKeyEntity> findJpaRegistrationKeyEntityByValue(String value);
+    Optional<JpaRegistrationKeyEntity> findByValue(String value);
 
 }

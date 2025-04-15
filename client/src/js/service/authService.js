@@ -8,8 +8,10 @@ export async function handleRegister(registerForm) {
             jwtResponse.data.accessToken,
             jwtResponse.data.refreshToken
         );
+        return { success: true };
     } catch (error) {
         console.error('Registration failed:', error);
+        throw error;
     }
 }
 
@@ -17,11 +19,13 @@ export async function handleLogin(loginForm) {
     try {
         const jwtResponse = await axios.post('/api/auth/login', loginForm);
         await authStore.actions.login(
-            jwtResponse.data.accessToken,
-            jwtResponse.data.refreshToken
+          jwtResponse.data.accessToken,
+          jwtResponse.data.refreshToken
         );
+        return { success: true };
     } catch (error) {
         console.error('Login failed:', error);
+        throw error;
     }
 }
 
@@ -33,7 +37,9 @@ export async function handleLogout() {
             }
         });
         await authStore.actions.logout();
+        return { success: true };
     } catch (error) {
         console.error('Logout failed:', error);
+        throw error;
     }
 }

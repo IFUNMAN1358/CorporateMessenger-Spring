@@ -4,6 +4,7 @@ import com.nagornov.CorporateMessenger.domain.model.error.ApiError;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
@@ -24,11 +26,20 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleException(ResourceNotFoundException ex, HttpServletRequest request) {
+
+        List<FieldError> fieldErrors = ex.getFieldErrors();
+
+        Map<String, String> validationErrors = new HashMap<>();
+
+        fieldErrors.forEach(fe -> validationErrors.put(
+                fe.getFieldKey(), fe.getFieldValue()
+        ));
+
         ApiError apiError = new ApiError(
                 request.getRequestURI(),
                 ex.getMessage(),
                 HttpStatus.NOT_FOUND.value(),
-                null,
+                validationErrors,
                 LocalDateTime.now()
         );
         log.error(apiError.toString(), ex);
@@ -37,11 +48,20 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ApiError> handleException(ResourceConflictException ex, HttpServletRequest request) {
+
+        List<FieldError> fieldErrors = ex.getFieldErrors();
+
+        Map<String, String> validationErrors = new HashMap<>();
+
+        fieldErrors.forEach(fe -> validationErrors.put(
+                fe.getFieldKey(), fe.getFieldValue()
+        ));
+
         ApiError apiError = new ApiError(
                 request.getRequestURI(),
                 ex.getMessage(),
                 HttpStatus.CONFLICT.value(),
-                null,
+                validationErrors,
                 LocalDateTime.now()
         );
         log.error(apiError.toString(), ex);
@@ -52,6 +72,7 @@ public class CustomExceptionHandler {
     public ResponseEntity<ApiError> handleUnprocessableEntityException(BindingErrorException ex, HttpServletRequest request) {
 
         BindingResult bindingResult = ex.getBindingResult();
+
         Map<String, String> validationErrors = new HashMap<>();
 
         bindingResult.getFieldErrors().forEach(e -> {

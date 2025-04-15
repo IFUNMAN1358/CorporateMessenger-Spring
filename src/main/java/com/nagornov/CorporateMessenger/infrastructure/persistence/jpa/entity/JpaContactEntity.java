@@ -30,7 +30,7 @@ public class JpaContactEntity {
     @Column(name = "contact_id", updatable = false, nullable = false)
     private UUID contactId;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", length = 20, nullable = false)
     private String status;
 
     @Column(name = "added_at", updatable = false, nullable = false)

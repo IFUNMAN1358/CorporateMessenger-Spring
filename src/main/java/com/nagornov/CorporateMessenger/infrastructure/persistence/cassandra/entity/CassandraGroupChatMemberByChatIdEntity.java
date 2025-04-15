@@ -25,9 +25,6 @@ public class CassandraGroupChatMemberByChatIdEntity {
     @Column("user_id")
     private UUID userId;
 
-    @Column("user_first_name")
-    private String userFirstName;
-
     @Column("joined_at")
     private Instant joinedAt;
 

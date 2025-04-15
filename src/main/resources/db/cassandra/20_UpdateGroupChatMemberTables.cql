@@ -1,0 +1,3 @@
+ALTER TABLE messenger_ks.group_chat_members_by_chat_id DROP user_first_name;
+ALTER TABLE messenger_ks.group_chat_members_by_chat_id_and_user_id DROP user_first_name;
+ALTER TABLE messenger_ks.group_chat_members_by_user_id DROP user_first_name;

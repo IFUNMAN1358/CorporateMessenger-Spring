@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-UpdateUserTable
+      author: IFUNMAN
+      changes:
+        - dropColumn:
+            tableName: users
+            columnName: first_name
+        - dropColumn:
+            tableName: users
+            columnName: last_name
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: phone
+                  type: varchar(20)
+                  constraints:
+                    unique: true
+              - column:
+                  name: main_email
+                  type: varchar(321)
+                  constraints:
+                    unique: true

@@ -13,6 +13,6 @@ import java.util.UUID;
 public interface SpringDataJpaRoleRepository extends JpaRepository<JpaRoleEntity, UUID> {
 
     @Query("select r from JpaRoleEntity r where r.name = :name")
-    Optional<JpaRoleEntity> findJpaRoleEntityByName(@Param("name") String name);
+    Optional<JpaRoleEntity> findByName(@Param("name") String name);
 
 }

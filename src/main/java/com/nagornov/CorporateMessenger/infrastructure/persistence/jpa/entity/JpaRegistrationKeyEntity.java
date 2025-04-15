@@ -21,7 +21,7 @@ public class JpaRegistrationKeyEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "user_id", updatable = false, unique = true)
+    @Column(name = "user_id", unique = true)
     private UUID userId;
 
     @Column(name = "value", nullable = false, unique = true, updatable = false)

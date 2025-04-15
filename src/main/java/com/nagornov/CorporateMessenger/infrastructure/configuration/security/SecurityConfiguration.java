@@ -72,9 +72,11 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/logout").access(allOf(hasRole("USER"), hasSession))
 
-                    // UserDataController
+                    // UserController
+                    .requestMatchers(HttpMethod.POST, "/api/user/phone").access(allOf(hasRole("USER"), hasSession)) /////////
+                    .requestMatchers(HttpMethod.POST, "/api/user/main-email").access(allOf(hasRole("USER"), hasSession)) /////////
                     .requestMatchers(HttpMethod.PATCH, "/api/user/password").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user/search/{username}/{page}").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.GET, "/api/user/search").access(allOf(hasRole("USER"), hasSession))
                     .requestMatchers(HttpMethod.GET, "/api/user").access(allOf(hasRole("USER"), hasSession))
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}").access(allOf(hasRole("USER"), hasSession))
                     .requestMatchers(HttpMethod.DELETE, "/api/user").access(allOf(hasRole("USER"), hasSession))

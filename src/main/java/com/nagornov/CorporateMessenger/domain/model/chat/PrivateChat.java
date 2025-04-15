@@ -17,11 +17,7 @@ public class PrivateChat implements Chat {
     private UUID secondUserId;
     private UUID lastMessageId;
     private Instant createdAt;
-    private Boolean isAvailable = true;
-
-    //
-    //
-    //
+    private Boolean isAvailable;
 
     @Override
     public void updateLastMessageId(UUID lastMessageId) {

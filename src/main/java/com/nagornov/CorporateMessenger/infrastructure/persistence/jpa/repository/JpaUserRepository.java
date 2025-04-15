@@ -43,13 +43,13 @@ public class JpaUserRepository {
 
     public Optional<User> findById(UUID id) {
         return springDataJpaUserRepository
-                .findJpaUserEntityById(id)
+                .findById(id)
                 .map(jpaUserMapper::toDomain);
     }
 
     public Optional<User> findByUsername(String username) {
         return springDataJpaUserRepository
-                .findJpaUserEntityByUsername(username)
+                .findByUsername(username)
                 .map(jpaUserMapper::toDomain);
     }
 

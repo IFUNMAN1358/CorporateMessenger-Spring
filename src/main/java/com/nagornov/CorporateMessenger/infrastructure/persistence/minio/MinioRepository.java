@@ -12,13 +12,13 @@ public class MinioRepository {
 
     private final MinioClient minioClient;
 
-    public void upload(String bucketName, String objectName, InputStream inputStream, String contentType) {
+    public void upload(String bucketName, String objectName, InputStream inputStream, long objectSize,  String contentType) {
         try {
             minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
-                        .stream(inputStream, inputStream.available(), -1)
+                        .stream(inputStream, objectSize, -1)
                         .contentType(contentType)
                         .build()
         );

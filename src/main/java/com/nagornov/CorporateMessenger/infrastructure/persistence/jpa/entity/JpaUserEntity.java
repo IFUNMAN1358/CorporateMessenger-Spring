@@ -27,11 +27,11 @@ public class JpaUserEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
+    @Column(name = "phone", length = 20, unique = true)
+    private String phone;
 
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
+    @Column(name = "main_email", length = 321, unique = true)
+    private String mainEmail;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

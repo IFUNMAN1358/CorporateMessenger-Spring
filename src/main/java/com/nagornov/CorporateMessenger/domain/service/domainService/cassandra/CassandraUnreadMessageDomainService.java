@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.domain.service.domainService.cassandra;
 
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraUnreadMessageByChatIdAndUserIdRepository;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraUnreadMessageRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,18 +13,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CassandraUnreadMessageDomainService {
 
-    private final CassandraUnreadMessageByChatIdAndUserIdRepository cassandraUnreadMessageByChatIdAndUserIdRepository;
+    private final CassandraUnreadMessageRepository cassandraUnreadMessageRepository;
 
     public UnreadMessage save(@NonNull UnreadMessage unreadMessage) {
-        return cassandraUnreadMessageByChatIdAndUserIdRepository.save(unreadMessage);
+        return cassandraUnreadMessageRepository.save(unreadMessage);
     }
 
     public void delete(@NonNull UnreadMessage unreadMessage) {
-        cassandraUnreadMessageByChatIdAndUserIdRepository.delete(unreadMessage);
+        cassandraUnreadMessageRepository.delete(unreadMessage);
     }
 
     public UnreadMessage getByChatIdAndUserId(@NonNull UUID chatId, @NonNull UUID userId) {
-        return cassandraUnreadMessageByChatIdAndUserIdRepository
+        return cassandraUnreadMessageRepository
                 .findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unread message with chatId and userId not found"));
     }

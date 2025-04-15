@@ -103,7 +103,6 @@ public class GroupChatMemberApplicationService {
                 UUID.randomUUID(),
                 groupChat.getId(),
                 user.getId(),
-                user.getFirstName(),
                 Instant.now()
             );
             cassandraGroupChatMemberDomainService.save(chatMember);

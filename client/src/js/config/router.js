@@ -1,21 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import RegisterComponent from "@/components/auth/RegisterComponent.vue";
-import LoginComponent from "@/components/auth/LoginComponent.vue";
-import AuthComponent from "@/components/auth/AuthComponent.vue";
 import authStore from "@/js/store/stores/authStore";
-import DialogsComponent from "@/components/dialog/DialogsComponent.vue";
-import ProfileComponent from "@/components/user/ProfileComponent.vue";
-import UserComponent from "@/components/user/UserComponent.vue";
-import CreateGroupChatComponent from "@/components/groupChat/CreateGroupChatComponent.vue";
-import PrivateChatComponent from "@/components/dialog/PrivateChatComponent.vue";
-import GroupChatComponent from "@/components/dialog/GroupChatComponent.vue";
-import MainGroupChatComponent from "@/components/groupChat/MainGroupChatComponent.vue";
+import LoginComponent from "@/components/LoginComponent.vue";
+import RegisterComponent from "@/components/RegisterComponent.vue";
+import ProfileComponent from "@/components/ProfileComponent.vue";
+import UserComponent from "@/components/UserComponent.vue";
+import DialogsComponent from "@/components/DialogsComponent.vue";
+import PrivateChatComponent from "@/components/PrivateChatComponent.vue";
+import GroupChatComponent from "@/components/GroupChatComponent.vue";
+import CreateGroupChatComponent from "@/components/CreateGroupChatComponent.vue";
+import MainGroupChatComponent from "@/components/MainGroupChatComponent.vue";
 
 const routes = [
 
-    {path: '/', name: "Auth", component: AuthComponent},
+    {path: '/', name: "Login", component: LoginComponent},
     {path: '/register', name: "Register", component: RegisterComponent},
-    {path: '/login', name: "Login", component: LoginComponent},
 
     {path: '/profile', name: "Profile", component: ProfileComponent, meta: { requiresRole: 'ROLE_USER' }},
     {path: '/user/:id', name: "User", component: UserComponent, meta: { requiresRole: 'ROLE_USER' }},
@@ -30,32 +28,34 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
+    history: createWebHistory(),
+    routes
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = authStore.state.accessToken && !authStore.actions.isTokenExpired(authStore.state.accessToken);
 
-  if (isAuthenticated) {
-    const requiresRole = to.meta.requiresRole;
+    const isAuthenticated =
+        authStore.state.accessToken && !authStore.actions.isTokenExpired(authStore.state.accessToken);
 
-    if (requiresRole && !authStore.actions.hasRole(requiresRole)) {
-      return next({ name: 'Auth' });
+    if (isAuthenticated) {
+        const requiresRole = to.meta.requiresRole;
+
+        if (requiresRole && !authStore.actions.hasRole(requiresRole)) {
+            return next({ name: 'Login' });
+        }
+
+        if (to.name === 'Login' || to.name === 'Register') {
+            return next({ name: 'Dialogs' });
+        }
+
+        return next();
     }
 
-    if (to.name === 'Auth' || to.name === 'Login' || to.name === 'Register') {
-      return next({ name: 'Dialogs' });
+    if (!isAuthenticated && to.meta.requiresRole) {
+        return next({ name: 'Login' });
     }
 
-    return next();
-  }
-
-  if (!isAuthenticated && to.meta.requiresRole) {
-    return next({ name: 'Auth' });
-  }
-
-  next();
+    next();
 });
 
 

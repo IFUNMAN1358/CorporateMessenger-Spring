@@ -14,14 +14,10 @@ public class User {
     private UUID id;
     private String username;
     private String password;
-    private String firstName;
-    private String lastName;
+    private String phone;
+    private String mainEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    //
-    //
-    //
 
     public void updateUsername(@NonNull String newUsername) {
         this.username = newUsername;
@@ -33,13 +29,13 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateFirstName(@NonNull String newFirstName) {
-        this.firstName = newFirstName;
+    public void updatePhone(@NonNull String newPhone) {
+        this.phone = newPhone;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateLastName(@NonNull String newLastName) {
-        this.lastName = newLastName;
+    public void updateMainEmail(@NonNull String newMainEmail) {
+        this.mainEmail = newMainEmail;
         this.updatedAt = LocalDateTime.now();
     }
 

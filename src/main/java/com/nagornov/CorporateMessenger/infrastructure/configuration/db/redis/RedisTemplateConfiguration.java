@@ -3,7 +3,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.db.redis;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagornov.CorporateMessenger.domain.model.auth.Session;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessage;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +20,8 @@ public class RedisTemplateConfiguration {
     private final ObjectMapper objectMapper;
 
     @Bean(name = "redisMessageTemplate")
-    public RedisTemplate<String, RedisMessage> redisMessageTemplate() {
-        RedisTemplate<String, RedisMessage> template = new RedisTemplate<>();
+    public RedisTemplate<String, RedisMessageEntity> redisMessageTemplate() {
+        RedisTemplate<String, RedisMessageEntity> template = new RedisTemplate<>();
 
         template.setConnectionFactory(redisConnectionFactory);
 

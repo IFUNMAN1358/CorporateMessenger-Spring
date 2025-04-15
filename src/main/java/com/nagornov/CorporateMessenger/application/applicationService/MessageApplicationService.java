@@ -59,7 +59,6 @@ public class MessageApplicationService {
                 Uuids.timeBased(),
                 chat.getId(),
                 postgresUser.getId(),
-                postgresUser.getFirstName(),
                 postgresUser.getUsername(),
                 request.getContent(),
                 false,
@@ -73,18 +72,17 @@ public class MessageApplicationService {
 
             for (MultipartFile file : request.getFiles()) {
 
-                UUID timeUuid = Uuids.timeBased();
+                String filePath = minioMessageFileDomainService.upload(file);
 
                 MessageFile messageFile = new MessageFile(
-                        timeUuid,
+                        Uuids.timeBased(),
                         message.getId(),
                         file.getOriginalFilename(),
-                        timeUuid + "_" + file.getOriginalFilename(),
+                        filePath,
                         file.getContentType(),
                         Instant.now()
                 );
                 cassandraMessageFileDomainService.save(messageFile);
-                minioMessageFileDomainService.upload(messageFile, file);
             }
         }
         cassandraMessageDomainService.save(message);

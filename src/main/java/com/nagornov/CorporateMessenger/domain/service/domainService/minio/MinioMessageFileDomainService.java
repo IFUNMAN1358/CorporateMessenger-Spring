@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
-import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import io.minio.StatObjectResponse;
 import lombok.NonNull;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -17,14 +17,17 @@ public class MinioMessageFileDomainService {
 
     private final MinioRepository minioRepository;
 
-    public void upload(@NonNull MessageFile messageFile, @NonNull MultipartFile file) {
+    public String upload(@NonNull MultipartFile file) {
         try {
+            String filePath = UUID.randomUUID() + "_" + file.getOriginalFilename();
             minioRepository.upload(
                 MinioBucket.MESSAGE_FILES.getBucketName(),
-                messageFile.getFilePath(),
+                filePath,
                 file.getInputStream(),
+                file.getSize(),
                 file.getContentType()
             );
+            return filePath;
         } catch (Exception e) {
             throw new RuntimeException("Error uploading message file in service " + e.getMessage());
         }
@@ -51,7 +54,6 @@ public class MinioMessageFileDomainService {
             throw new RuntimeException("Error deleting message file in service " + e.getMessage());
         }
     }
-
 
     public StatObjectResponse statObject(@NonNull String filePath) {
         try {

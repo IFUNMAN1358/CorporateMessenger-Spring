@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-CreateEmployeePhotoTable
+      author: IFUNMAN
+      changes:
+        - createTable:
+            tableName: employee_photos
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: employee_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_path
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_employee_photos_employee_id
+            baseTableName: employee_photos
+            baseColumnNames: employee_id
+            referencedTableName: employees
+            referencedColumnNames: id
+            onDelete: CASCADE

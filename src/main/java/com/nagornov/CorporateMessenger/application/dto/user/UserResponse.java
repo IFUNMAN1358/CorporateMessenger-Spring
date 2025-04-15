@@ -19,8 +19,6 @@ public class UserResponse {
     public UserResponse(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
     }

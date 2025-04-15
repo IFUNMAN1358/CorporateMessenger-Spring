@@ -11,24 +11,14 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
-                    updatable: false
               - column:
                   name: name
                   type: varchar(255)
                   constraints:
                     nullable: false
                     unique: true
-                    updatable: false
               - column:
                   name: created_at
                   type: timestamp
                   constraints:
                     nullable: false
-                    updatable: false
-        - createIndex:
-            tableName: 'roles'
-            indexName: 'idx_roles_name'
-            columns:
-              - column:
-                  name: 'name'

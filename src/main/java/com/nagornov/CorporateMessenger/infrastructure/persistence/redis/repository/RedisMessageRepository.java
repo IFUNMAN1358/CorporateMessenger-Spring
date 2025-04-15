@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository;
 
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessage;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.mapper.RedisMessageMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.utils.RedisKeyUtils;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisMessageRepository {
 
-    private final RedisTemplate<String, RedisMessage> redisMessageTemplate;
+    private final RedisTemplate<String, RedisMessageEntity> redisMessageTemplate;
     private final RedisMessageMapper redisMessageMapper;
 
     public void leftSave(UUID chatId, Message message) {
@@ -50,7 +50,7 @@ public class RedisMessageRepository {
     public void update(UUID chatId, Message message) {
         String messageKey = RedisKeyUtils.messageKey(chatId);
 
-        List<RedisMessage> messages = redisMessageTemplate.opsForList().range(messageKey, 0, -1);
+        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(messageKey, 0, -1);
 
         int index = -1;
         for (int i = 0; i < messages.size(); i++) {

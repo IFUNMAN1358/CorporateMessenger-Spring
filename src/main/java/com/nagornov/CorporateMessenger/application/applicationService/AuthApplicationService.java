@@ -41,39 +41,33 @@ public class AuthApplicationService {
     @Transactional
     public JwtResponse registration(RegistrationRequest request) {
 
-        // 1 : Checking key exists by value from form and its status
+        passwordDomainService.ensureMatchConfirmPassword(request.getPassword(), request.getConfirmPassword());
+
         RegistrationKey registrationKey = jpaRegistrationKeyDomainService.getByValue(request.getRegistrationKey());
         registrationKey.ensureNotApplied();
 
-        // 2 : Checking user exists by username
-        jpaUserDomainService.ensureExistsByUsername(request.getUsername());
+        jpaUserDomainService.ensureNotExistsByUsername(request.getUsername());
 
-        // 3 : Creating user with encoded password
+        String encodedPassword = passwordDomainService.encodePassword(request.getPassword());
         User user = new User(
                 UUID.randomUUID(),
                 request.getUsername(),
+                encodedPassword,
                 null,
-                request.getFirstName(),
-                request.getLastName(),
+                null,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        String encodedPassword = passwordDomainService.encodePassword(request.getPassword());
-        user.updatePassword(encodedPassword);
         jpaUserDomainService.save(user);
 
-        // 4 : Applying reg key with userId
         jpaRegistrationKeyDomainService.apply(registrationKey, user.getId());
 
-        // 5 : Assigning USER role to the user
-        Role userRole = jpaRoleDomainService.getByName(RoleEnum.USER);
-        jpaUserRoleDomainService.assignRoleIdToUserId(userRole.getId(), user.getId());
+        Role role = jpaRoleDomainService.getByName(RoleEnum.USER);
+        jpaUserRoleDomainService.assignRoleToUser(role.getId(), user.getId());
 
-        // 6 : Generating JWT tokens
-        String accessToken = jwtDomainService.generateAccessToken(user, List.of(userRole));
+        String accessToken = jwtDomainService.generateAccessToken(user, List.of(role));
         String refreshToken = jwtDomainService.generateRefreshToken(user);
 
-        // 7 : Saving tokens to redis session
         Session session = new Session(
                 UUID.randomUUID(),
                 accessToken,
@@ -83,7 +77,6 @@ public class AuthApplicationService {
         );
         redisSessionDomainService.save(user.getId(), session);
 
-        // 8 : Return JWT tokens
         return new JwtResponse(accessToken, refreshToken);
     }
 
@@ -93,7 +86,7 @@ public class AuthApplicationService {
 
         User user = jpaUserDomainService.getByUsername(request.getUsername());
 
-        passwordDomainService.ensureMatchPassword(request.getPassword(), user.getPassword());
+        passwordDomainService.ensureMatchEncodedPassword(request.getPassword(), user.getPassword());
 
         List<Role> userRoles = jpaUserRoleDomainService.findRolesByUserId(user.getId());
 

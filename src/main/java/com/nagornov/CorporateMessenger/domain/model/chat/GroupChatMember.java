@@ -13,7 +13,6 @@ public class GroupChatMember {
     private UUID id;
     private UUID chatId;
     private UUID userId;
-    private String userFirstName;
     private Instant joinedAt;
 
 }

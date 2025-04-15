@@ -21,9 +21,6 @@ public class CassandraGroupChatMemberByChatIdAndUserIdEntity {
     @PrimaryKey
     private CassandraGroupChatMemberByChatIdAndUserIdKey key;
 
-    @Column("user_first_name")
-    private String userFirstName;
-
     @Column("joined_at")
     private Instant joinedAt;
 

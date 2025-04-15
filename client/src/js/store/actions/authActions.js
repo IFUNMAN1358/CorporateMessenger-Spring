@@ -27,7 +27,7 @@ const authActions = {
     logout() {
         authState.accessToken = null;
         removeCookies('accessToken', 'refreshToken');
-        router.push({ name: 'Auth' }).catch(() => {});
+        router.push({ name: 'Login' }).catch(() => {});
     },
 
     isTokenExpired(token) {

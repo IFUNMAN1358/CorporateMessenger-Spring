@@ -14,11 +14,8 @@ import java.util.UUID;
 @Repository
 public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity, UUID> {
 
-    @Query("select u from JpaUserEntity u where u.id = :id")
-    Optional<JpaUserEntity> findJpaUserEntityById(@Param("id") UUID id);
-
     @Query("select u from JpaUserEntity u where u.username = :username")
-    Optional<JpaUserEntity> findJpaUserEntityByUsername(@Param("username") String username);
+    Optional<JpaUserEntity> findByUsername(@Param("username") String username);
 
     @Query(
             "select u from JpaUserEntity u " +

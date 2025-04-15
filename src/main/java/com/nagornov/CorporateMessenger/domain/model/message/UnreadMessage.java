@@ -13,10 +13,6 @@ public class UnreadMessage {
     private UUID userId;
     private Integer unreadCount;
 
-    //
-    //
-    //
-
     public void incrementUnreadCount() {
         this.unreadCount++;
     }

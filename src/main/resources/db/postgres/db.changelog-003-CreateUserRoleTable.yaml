@@ -11,20 +11,16 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    nullable: false
-                    updatable: false
               - column:
                   name: user_id
                   type: uuid
                   constraints:
                     nullable: false
-                    updatable: false
               - column:
                   name: role_id
                   type: uuid
                   constraints:
                     nullable: false
-                    updatable: false
             constraints:
               - uniqueConstraint:
                   name: 'unique_user_role'

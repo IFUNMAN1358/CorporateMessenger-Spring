@@ -36,7 +36,7 @@ public class JpaRoleRepository {
 
     public Optional<Role> findByName(String name) {
         return springDataJpaRoleRepository
-                .findJpaRoleEntityByName(name)
+                .findByName(name)
                 .map(jpaRoleMapper::toDomain);
 
     }

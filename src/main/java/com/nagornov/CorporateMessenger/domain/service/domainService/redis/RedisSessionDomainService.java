@@ -26,7 +26,7 @@ public class RedisSessionDomainService {
 
     public Session getById(@NonNull UUID userId) {
         return redisSessionRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Session with this id not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Session[id=%s] not found".formatted(userId)));
     }
 
 }

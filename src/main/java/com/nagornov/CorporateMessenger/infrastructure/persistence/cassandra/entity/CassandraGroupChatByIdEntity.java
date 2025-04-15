@@ -30,11 +30,11 @@ public class CassandraGroupChatByIdEntity {
     @Column("owner_id")
     private UUID ownerId;
 
-    @Column("file_path")
-    private String filePath;
-
     @Column("last_message_id")
     private UUID lastMessageId;
+
+    @Column("has_photos")
+    private Boolean hasPhotos;
 
     @Column("is_public")
     private Boolean isPublic;

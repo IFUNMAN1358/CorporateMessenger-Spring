@@ -23,7 +23,7 @@ public interface KafkaChatMapper {
     @Mapping(target = "name", ignore = true)
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "ownerId", ignore = true)
-    @Mapping(target = "filePath", ignore = true)
+    @Mapping(target = "hasPhotos", ignore = true)
     @Mapping(target = "isPublic", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     KafkaChatEntity toChatEntity(PrivateChat domain);

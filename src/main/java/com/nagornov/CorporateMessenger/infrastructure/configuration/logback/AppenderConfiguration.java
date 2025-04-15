@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.logback;
 
+import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaLogProducerService;
 import com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomAsyncKafkaAppender;
@@ -25,20 +26,23 @@ public class AppenderConfiguration implements ApplicationListener<ContextRefresh
     public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-        // ASYNC
-        // root
-        var rootAppender =
-                loggerContext.getLogger("ROOT");
-        // async custom
-        CustomAsyncKafkaAppender asyncAppender =
-                (CustomAsyncKafkaAppender) rootAppender.getAppender("ASYNC_KAFKA_APPENDER");
-        // custom
-        CustomKafkaAppender customKafkaAppender =
-                (CustomKafkaAppender) asyncAppender.getAppender("KAFKA_APPENDER");
+        Logger rootAppender = null;
+        CustomAsyncKafkaAppender asyncKafkaAppender = null;
+        CustomKafkaAppender kafkaAppender = null;
 
-        customKafkaAppender.setKafkaLogProducerService(kafkaLogProducerService);
-        customKafkaAppender.setServiceName(serviceName);
-        customKafkaAppender.start();
+        rootAppender = loggerContext.getLogger("ROOT");
+
+        if (rootAppender != null) {
+            asyncKafkaAppender = (CustomAsyncKafkaAppender) rootAppender.getAppender("ASYNC_KAFKA_APPENDER");
+        }
+
+        if (asyncKafkaAppender != null) {
+            kafkaAppender = (CustomKafkaAppender) asyncKafkaAppender.getAppender("KAFKA_APPENDER");
+
+            kafkaAppender.setKafkaLogProducerService(kafkaLogProducerService);
+            kafkaAppender.setServiceName(serviceName);
+            kafkaAppender.start();
+        }
     }
 
     @Override

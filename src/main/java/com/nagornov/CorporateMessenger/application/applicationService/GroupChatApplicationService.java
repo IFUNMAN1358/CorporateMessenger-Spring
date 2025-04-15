@@ -8,19 +8,18 @@ import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
+import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.*;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioGroupChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ public class GroupChatApplicationService {
     private final JpaUserDomainService jpaUserDomainService;
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
+    private final CassandraGroupChatPhotoDomainService cassandraGroupChatPhotoDomainService;
     private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
     private final CassandraMessageDomainService cassandraMessageDomainService;
     private final MinioGroupChatPhotoDomainService minioGroupChatPhotoDomainService;
@@ -63,8 +63,19 @@ public class GroupChatApplicationService {
             groupChat.updateDescription(request.getDescription());
         }
         if (request.getFile() != null) {
-            String filePath = minioGroupChatPhotoDomainService.upload(request.getFile());
-            groupChat.updateFilePath(filePath);
+
+            MultipartFile file = request.getFile();
+            String filePath = minioGroupChatPhotoDomainService.upload(file);
+
+            GroupChatPhoto groupChatPhoto = new GroupChatPhoto(
+                    UUID.randomUUID(),
+                    groupChat.getId(),
+                    file.getOriginalFilename(),
+                    filePath,
+                    file.getContentType(),
+                    Instant.now()
+            );
+            cassandraGroupChatPhotoDomainService.save(groupChatPhoto);
         }
         if (request.getIsPublic()) {
             groupChat.markAsPublic();
@@ -77,7 +88,6 @@ public class GroupChatApplicationService {
                 UUID.randomUUID(),
                 groupChat.getId(),
                 postgresUser.getId(),
-                postgresUser.getFirstName(),
                 Instant.now()
         );
         cassandraGroupChatMemberDomainService.save(member);

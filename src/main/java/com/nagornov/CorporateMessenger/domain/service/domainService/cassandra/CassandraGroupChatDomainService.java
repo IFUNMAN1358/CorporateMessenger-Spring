@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.domain.service.domainService.cassandra;
 
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraGroupChatByIdRepository;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraGroupChatRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,19 +14,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CassandraGroupChatDomainService {
 
-    private final CassandraGroupChatByIdRepository cassandraGroupChatByIdRepository;
+    private final CassandraGroupChatRepository cassandraGroupChatRepository;
 
     public GroupChat save(@NonNull GroupChat groupChat) {
-        return cassandraGroupChatByIdRepository.save(groupChat);
+        return cassandraGroupChatRepository.save(groupChat);
     }
 
     public GroupChat getById(@NonNull UUID id) {
-        return cassandraGroupChatByIdRepository.findById(id)
+        return cassandraGroupChatRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Group chat with this id does not exist"));
     }
 
     public Optional<GroupChat> findById(@NonNull UUID id) {
-        return cassandraGroupChatByIdRepository.findById(id);
+        return cassandraGroupChatRepository.findById(id);
     }
 
 }

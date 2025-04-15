@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-ChangeNameUserProfilePhotoTable
+      author: IFUNMAN
+      changes:
+        - renameTable:
+            oldTableName: user_profile_photos
+            newTableName: user_photos

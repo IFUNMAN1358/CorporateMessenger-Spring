@@ -15,10 +15,6 @@ public class JwtAuthentication implements Authentication {
     private String userId;
     private Set<? extends GrantedAuthority> roles;
 
-    //
-    //
-    //
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;

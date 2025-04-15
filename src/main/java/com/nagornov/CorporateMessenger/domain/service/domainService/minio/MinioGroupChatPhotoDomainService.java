@@ -1,9 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
-import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
-import io.minio.StatObjectResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +23,8 @@ public class MinioGroupChatPhotoDomainService {
                 MinioBucket.GROUP_CHAT_PHOTOS.getBucketName(),
                 filePath,
                 file.getInputStream(),
-                ContentType.IMAGE_JPEG.getContentType()
+                file.getSize(),
+                file.getContentType()
             );
             return filePath;
         } catch (Exception e) {
@@ -52,18 +51,6 @@ public class MinioGroupChatPhotoDomainService {
             );
         } catch (Exception e) {
             throw new RuntimeException("Error deleting group chat photo in service " + e.getMessage());
-        }
-    }
-
-
-    public StatObjectResponse statObject(@NonNull String filePath) {
-        try {
-            return minioRepository.statObject(
-                MinioBucket.GROUP_CHAT_PHOTOS.getBucketName(),
-                filePath
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Error get metadata about group chat photo in service " + e.getMessage());
         }
     }
 

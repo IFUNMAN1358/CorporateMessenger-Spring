@@ -15,10 +15,6 @@ public class Role implements GrantedAuthority {
     private String name;
     private LocalDateTime createdAt;
 
-    //
-    //
-    //
-
     @Override
     public String getAuthority() {
         return this.name;

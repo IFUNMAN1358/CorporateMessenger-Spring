@@ -19,8 +19,8 @@ public class KafkaChatEntity {
     private String name;
     private String description;
     private UUID ownerId;
-    private String filePath;
     private UUID lastMessageId;
+    private Boolean hasPhotos;
     private Boolean isPublic;
     private UUID firstUserId;
     private UUID secondUserId;

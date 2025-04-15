@@ -27,9 +27,6 @@ public class CassandraMessageByIdEntity {
     @Column("sender_id")
     private UUID senderId;
 
-    @Column("sender_first_name")
-    private String senderFirstName;
-
     @Column("sender_username")
     private String senderUsername;
 

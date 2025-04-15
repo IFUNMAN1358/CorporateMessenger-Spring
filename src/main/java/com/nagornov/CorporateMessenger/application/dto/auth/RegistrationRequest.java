@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.ToString;
 
 @Data
-@ToString(exclude = {"password"})
+@ToString(exclude = {"password", "confirmPassword"})
 public class RegistrationRequest {
 
     @NotNull(message = "Имя пользователя не может быть null")
@@ -20,15 +20,10 @@ public class RegistrationRequest {
     @Size(message = "Пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
     private String password;
 
-    @NotNull(message = "Имя не может быть null")
-    @NotBlank(message = "Имя не может быть пустым")
-    @Size(message = "Имя должно содержать от 2 до 20 символов", min = 2, max = 20)
-    private String firstName;
-
-    @NotNull(message = "Фамилия не может быть null")
-    @NotBlank(message = "Фамилия не может быть пустой")
-    @Size(message = "Фамилия должна содержать от 2 до 20 символов", min = 2, max = 20)
-    private String lastName;
+    @NotNull(message = "Повторный пароль не может быть null")
+    @NotBlank(message = "Повторный пароль не может быть пустым")
+    @Size(message = "Повторный пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
+    private String confirmPassword;
 
     @NotNull(message = "Ключ регистрации не может быть null")
     @NotBlank(message = "Ключ регистрации не может быть пустым")

@@ -6,10 +6,10 @@ import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllP
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserProfilePhotoDomainService;
+import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
+import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserProfilePhotoDomainService;
+import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisSessionDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
@@ -27,8 +27,8 @@ public class UserDataApplicationService {
 
     private final JwtDomainService jwtDomainService;
     private final JpaUserDomainService jpaUserDomainService;
-    private final JpaUserProfilePhotoDomainService jpaUserProfilePhotoDomainService;
-    private final MinioUserProfilePhotoDomainService minioUserProfilePhotoDomainService;
+    private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
+    private final MinioUserPhotoDomainService minioUserPhotoDomainService;
     private final RedisSessionDomainService redisSessionDomainService;
     private final PasswordDomainService passwordDomainService;
 
@@ -41,7 +41,7 @@ public class UserDataApplicationService {
                 UUID.fromString(authInfo.getUserId())
         );
 
-        passwordDomainService.matchPassword(request.getCurrentPassword(), postgresUser.getPassword());
+        passwordDomainService.matchEncodedPassword(request.getCurrentPassword(), postgresUser.getPassword());
 
         String encodedPassword = passwordDomainService.encodePassword(request.getNewPassword());
         postgresUser.updatePassword(encodedPassword);
@@ -59,7 +59,7 @@ public class UserDataApplicationService {
         List<User> userList = jpaUserDomainService.searchByUsername(username, page, pageSize);
 
         return userList.stream().map(user -> {
-            Optional<UserProfilePhoto> currentUserPhoto = jpaUserProfilePhotoDomainService.findMainByUserId(user.getId());
+            Optional<UserPhoto> currentUserPhoto = jpaUserPhotoDomainService.findMainByUserId(user.getId());
             return new UserResponseWithMainPhoto(
                     user,
                     currentUserPhoto.orElse(null)
@@ -76,11 +76,11 @@ public class UserDataApplicationService {
                 UUID.fromString(authInfo.getUserId())
         );
 
-        List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(
+        List<UserPhoto> userPhotos = jpaUserPhotoDomainService.getAllByUserId(
                 user.getId()
         );
 
-        return new UserResponseWithAllPhotos(user, userProfilePhotos);
+        return new UserResponseWithAllPhotos(user, userPhotos);
     }
 
 
@@ -91,9 +91,9 @@ public class UserDataApplicationService {
         UUID uuidUserId = UUID.fromString(userId);
 
         User user = jpaUserDomainService.getById(uuidUserId);
-        List<UserProfilePhoto> userProfilePhotos = jpaUserProfilePhotoDomainService.getAllByUserId(uuidUserId);
+        List<UserPhoto> userPhotos = jpaUserPhotoDomainService.getAllByUserId(uuidUserId);
 
-        return new UserResponseWithAllPhotos(user, userProfilePhotos);
+        return new UserResponseWithAllPhotos(user, userPhotos);
     }
 
 
@@ -105,8 +105,8 @@ public class UserDataApplicationService {
                 UUID.fromString(authInfo.getUserId())
         );
 
-        jpaUserProfilePhotoDomainService.getAllByUserId(postgresUser.getId())
-                .forEach(photo -> minioUserProfilePhotoDomainService.delete(photo.getFilePath()));
+        jpaUserPhotoDomainService.getAllByUserId(postgresUser.getId())
+                .forEach(photo -> minioUserPhotoDomainService.delete(photo.getFilePath()));
 
         jpaUserDomainService.deleteById(postgresUser.getId());
 

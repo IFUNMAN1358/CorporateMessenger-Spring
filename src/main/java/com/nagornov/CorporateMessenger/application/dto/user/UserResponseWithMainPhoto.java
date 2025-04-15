@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.application.dto.user;
 
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.model.user.UserProfilePhoto;
+import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 public class UserResponseWithMainPhoto {
 
-    private UserProfilePhoto userProfilePhoto;
+    private UserPhoto userPhoto;
     private UUID id;
     private String username;
     private String firstName;
@@ -18,12 +18,10 @@ public class UserResponseWithMainPhoto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public UserResponseWithMainPhoto(User user, UserProfilePhoto userProfilePhoto) {
-        this.userProfilePhoto = userProfilePhoto;
+    public UserResponseWithMainPhoto(User user, UserPhoto userPhoto) {
+        this.userPhoto = userPhoto;
         this.id = user.getId();
         this.username = user.getUsername();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
     }

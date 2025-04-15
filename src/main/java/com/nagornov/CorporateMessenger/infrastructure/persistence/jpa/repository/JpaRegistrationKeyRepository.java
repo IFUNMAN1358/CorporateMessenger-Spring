@@ -36,7 +36,7 @@ public class JpaRegistrationKeyRepository {
 
     public Optional<RegistrationKey> findByValue(String key) {
         return springDataJpaRegistrationKeyRepository
-                .findJpaRegistrationKeyEntityByValue(key)
+                .findByValue(key)
                 .map(jpaRegistrationKeyMapper::toDomain);
     }
 

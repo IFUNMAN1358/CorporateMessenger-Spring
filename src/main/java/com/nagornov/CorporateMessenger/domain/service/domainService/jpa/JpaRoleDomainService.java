@@ -12,8 +12,6 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 @CacheConfig(cacheNames = "roles")
 @RequiredArgsConstructor
@@ -21,26 +19,19 @@ public class JpaRoleDomainService {
 
     private final JpaRoleRepository jpaRoleRepository;
 
-    @CachePut(key = "#result.id")
+    @CachePut(key = "#role.name")
     public Role save(@NonNull Role role) {
         return jpaRoleRepository.save(role);
     }
 
-    @CacheEvict(key = "#role.id")
+    @CacheEvict(key = "#role.name")
     public void delete(@NonNull Role role) {
         jpaRoleRepository.delete(role);
     }
 
-    @CacheEvict(key = "#id")
-    public void deleteById(@NonNull UUID id) {
-        jpaRoleRepository.deleteById(id);
-    }
-
-    @Cacheable(key = "#result.id")
-    public Role getByName(@NonNull RoleEnum enumRole) {
-        return jpaRoleRepository.findByName(enumRole.getName())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Role with this name not found: %s".formatted(enumRole.getName()))
-                );
+    @Cacheable(key = "#roleEnum.name()")
+    public Role getByName(@NonNull RoleEnum roleEnum) {
+        return jpaRoleRepository.findByName(roleEnum.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Role[name=%s] not found".formatted(roleEnum.getName())));
     }
 }
