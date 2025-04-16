@@ -24,11 +24,19 @@ public class AspectLoggingBusinessService {
 
         try {
 
-            log.info("BusService started");
+            log.info(
+                    "BusService {}{} started",
+                    joinPoint.getSignature().getName(),
+                    joinPoint.getArgs()
+            );
 
             Object result = joinPoint.proceed();
 
-            log.info("BusService finished");
+            log.info(
+                    "BusService {}{} finished",
+                    joinPoint.getSignature().getName(),
+                    result == null ? null : result.toString()
+            );
 
             return result;
 

@@ -16,9 +16,14 @@ public class RedisMessageDomainService {
 
     private final RedisMessageRepository redisMessageRepository;
 
-    public void leftSave(@NonNull UUID chatId, @NonNull Message message) {
+    public void leftSave(
+            @NonNull UUID chatId,
+            @NonNull Message message,
+            long timeout,
+            @NonNull TimeUnit unit
+    ) {
         try {
-            redisMessageRepository.leftSave(chatId, message);
+            redisMessageRepository.leftSave(chatId, message, timeout, unit);
         } catch (Exception e) {
             throw new RuntimeException("Error while left saving message to Redis", e);
         }
@@ -37,9 +42,9 @@ public class RedisMessageDomainService {
         }
     }
 
-    public List<Message> getAll(@NonNull UUID chatId, int page, int size) {
+    public List<Message> findAll(@NonNull UUID chatId, int page, int size) {
         try {
-            return redisMessageRepository.getAll(chatId, page, size);
+            return redisMessageRepository.findAll(chatId, page, size);
         } catch (Exception e) {
             throw new RuntimeException("Error while getting messages from Redis", e);
         }

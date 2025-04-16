@@ -3,26 +3,27 @@ package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ServiceProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class CustomCorsFilter extends GenericFilterBean {
+public class CustomCorsFilter extends OncePerRequestFilter {
 
     private final ServiceProperties serviceProperties;
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain fc) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse response = (HttpServletResponse) servletResponse;
+    protected void doFilterInternal(
+            @NotNull HttpServletRequest request,
+            @NotNull HttpServletResponse response,
+            @NotNull FilterChain filterChain
+    ) throws ServletException, IOException {
 
         response.setHeader("Access-Control-Allow-Origin", serviceProperties.getClientUrl());
         response.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,PATCH,OPTIONS");
@@ -33,8 +34,7 @@ public class CustomCorsFilter extends GenericFilterBean {
             response.setStatus(HttpServletResponse.SC_OK);
             return;
         }
-        fc.doFilter(servletRequest, response);
-
+        filterChain.doFilter(request, response);
     }
 
 }

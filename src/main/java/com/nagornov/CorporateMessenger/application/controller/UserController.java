@@ -4,7 +4,7 @@ import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
-import com.nagornov.CorporateMessenger.application.applicationService.UserDataApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.UserApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserDataApplicationService userDataApplicationService;
+    private final UserApplicationService userApplicationService;
 
     @PatchMapping(
             value = "/api/user/password",
@@ -26,7 +26,7 @@ public class UserController {
     )
     ResponseEntity<HttpResponse> changeUserPassword(@Validated @RequestBody PasswordRequest request) {
         HttpResponse response =
-                userDataApplicationService.changeUserPassword(request);
+                userApplicationService.changeUserPassword(request);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -39,7 +39,7 @@ public class UserController {
             @RequestParam("page") int page
     ) {
         List<UserResponseWithMainPhoto> response =
-                userDataApplicationService.searchUsersByUsername(username, page, 10);
+                userApplicationService.searchUsersByUsername(username, page, 10);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -49,7 +49,7 @@ public class UserController {
     )
     ResponseEntity<UserResponseWithAllPhotos> getYourUserData() {
         UserResponseWithAllPhotos response =
-                userDataApplicationService.getYourUserData();
+                userApplicationService.getYourUserData();
         return ResponseEntity.status(200).body(response);
     }
 
@@ -59,7 +59,7 @@ public class UserController {
     )
     ResponseEntity<UserResponseWithAllPhotos> getUserById(@PathVariable("userId") String userId) {
         UserResponseWithAllPhotos response =
-                userDataApplicationService.getUserById(userId);
+                userApplicationService.getUserById(userId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -69,7 +69,7 @@ public class UserController {
     )
     ResponseEntity<HttpResponse> deleteAccount() {
         HttpResponse response =
-                userDataApplicationService.deleteAccount();
+                userApplicationService.deleteAccount();
         return ResponseEntity.status(200).body(response);
     }
 }

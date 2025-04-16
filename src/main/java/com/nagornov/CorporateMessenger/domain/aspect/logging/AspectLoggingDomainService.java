@@ -36,11 +36,19 @@ public class AspectLoggingDomainService {
 
         try {
 
-            log.info("DomService started");
+            log.info(
+                    "DomService {}{} started",
+                    joinPoint.getSignature().getName(),
+                    joinPoint.getArgs()
+            );
 
             Object result = joinPoint.proceed();
 
-            log.info("DomService finished");
+            log.info(
+                    "DomService {}{} finished",
+                    joinPoint.getSignature().getName(),
+                    result == null ? null : result.toString()
+            );
 
             return result;
 

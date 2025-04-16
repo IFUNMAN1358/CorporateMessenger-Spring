@@ -13,7 +13,7 @@ public class JwtProperties {
 
     private String accessSecret;
     private String refreshSecret;
-    private Integer accessExpireMinutes;
-    private Integer refreshExpireDays;
+    private Integer accessExpire;
+    private Integer refreshExpire;
 
 }

@@ -93,7 +93,7 @@ public class MessageApplicationService {
         kafkaUnreadMessageProducerDomainService
                 .sendToIncrementUnreadMessageCountForOther(postgresUser, chat);
 
-        redisMessageDomainService.leftSave(chat.getId(), message);
+        redisMessageDomainService.leftSave(chat.getId(), message, 1, TimeUnit.DAYS);
 
         return new MessageResponse(
                 message,
@@ -111,7 +111,7 @@ public class MessageApplicationService {
 
         UUID uuidChatId = UUID.fromString(chatId);
 
-        List<Message> messages = redisMessageDomainService.getAll(uuidChatId, page, size);
+        List<Message> messages = redisMessageDomainService.findAll(uuidChatId, page, size);
 
         if (messages.isEmpty()) {
             Chat chat = cassandraChatBusinessService.getAvailableById(uuidChatId);

@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.db.redis;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisJwtSessionEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -42,18 +42,37 @@ public class RedisTemplateConfiguration {
         return template;
     }
 
-    @Bean(name = "redisSessionTemplate")
-    public RedisTemplate<String, Session> redisSessionTemplate() {
-        RedisTemplate<String, Session> template = new RedisTemplate<>();
+    @Bean(name = "redisJwtSessionTemplate")
+    public RedisTemplate<String, RedisJwtSessionEntity> redisJwtSessionTemplate() {
+        RedisTemplate<String, RedisJwtSessionEntity> template = new RedisTemplate<>();
 
         template.setConnectionFactory(redisConnectionFactory);
 
-        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        ObjectMapper customMapper = objectMapper.copy();
+        customMapper.activateDefaultTyping(
+            customMapper.getPolymorphicTypeValidator(),
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(customMapper);
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean(name = "redisCsrfTemplate")
+    public RedisTemplate<String, String> redisCsrfTemplate() {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+
+        template.setConnectionFactory(redisConnectionFactory);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
 
         template.afterPropertiesSet();
         return template;

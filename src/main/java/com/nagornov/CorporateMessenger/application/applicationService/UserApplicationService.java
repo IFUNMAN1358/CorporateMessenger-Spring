@@ -10,7 +10,7 @@ import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisSessionDomainService;
+import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +23,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserDataApplicationService {
+public class UserApplicationService {
 
     private final JwtDomainService jwtDomainService;
     private final JpaUserDomainService jpaUserDomainService;
     private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
     private final MinioUserPhotoDomainService minioUserPhotoDomainService;
-    private final RedisSessionDomainService redisSessionDomainService;
+    private final RedisJwtSessionDomainService redisJwtSessionDomainService;
     private final PasswordDomainService passwordDomainService;
 
 
@@ -110,7 +110,7 @@ public class UserDataApplicationService {
 
         jpaUserDomainService.deleteById(postgresUser.getId());
 
-        redisSessionDomainService.deleteByUserId(postgresUser.getId());
+        redisJwtSessionDomainService.deleteByKey(postgresUser.getId());
 
         return new HttpResponse("User deleted successfully", 200);
     }

@@ -19,11 +19,19 @@ public class AspectLoggingApplicationService {
 
         try {
 
-            log.info("AppService started");
+            log.info(
+                    "AppService {}{} started",
+                    joinPoint.getSignature().getName(),
+                    joinPoint.getArgs()
+            );
 
             Object result = joinPoint.proceed();
 
-            log.info("AppService finished");
+            log.info(
+                    "AppService {}{} finished",
+                    joinPoint.getSignature().getName(),
+                    result == null ? null : result.toString()
+            );
 
             return result;
 

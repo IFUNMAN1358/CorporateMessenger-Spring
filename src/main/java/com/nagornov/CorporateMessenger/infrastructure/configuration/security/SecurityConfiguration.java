@@ -6,7 +6,6 @@ import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAut
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCorsFilter;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCsrfFilter;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomJwtFilter;
-import com.nagornov.CorporateMessenger.infrastructure.security.manager.SessionAuthorizationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,9 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
-import static org.springframework.security.authorization.AuthorizationManagers.allOf;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -33,8 +29,6 @@ public class SecurityConfiguration {
     private final CustomCsrfFilter csrfFilter;
     private final CustomJwtFilter jwtFilter;
     private final CustomTraceFilter traceFilter;
-
-    private final SessionAuthorizationManager hasSession;
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
@@ -61,67 +55,71 @@ public class SecurityConfiguration {
 
                     // WEBSOCKET
                     .requestMatchers("/ws-chat/**").permitAll()
+
+                    // CsrfController
+                    .requestMatchers(HttpMethod.GET, "/api/csrf-token").permitAll()
                     
                     // TestController
                     .requestMatchers(HttpMethod.POST, "/api/test/1").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/test/2").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/test/3").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
                     // AuthController
                     .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasRole("USER")
 
                     // UserController
-                    .requestMatchers(HttpMethod.POST, "/api/user/phone").access(allOf(hasRole("USER"), hasSession)) /////////
-                    .requestMatchers(HttpMethod.POST, "/api/user/main-email").access(allOf(hasRole("USER"), hasSession)) /////////
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/password").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user/search").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/user").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/user/phone").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/user/main-email").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/password").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/search").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user").hasRole("USER")
 
                     // UserPhotoController
-                    .requestMatchers(HttpMethod.POST, "/api/user/photo").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/user/photo/{photoId}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/photo/{photoId}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/user/photo/{photoId}").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/user/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/photo/{photoId}").hasRole("USER")
 
                     // PrivateChatController
-                    .requestMatchers(HttpMethod.POST, "/api/chat/private").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/private/all").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/private/{chatId}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.POST, "/api/chat/private/unavailable").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/chat/private").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/private/all").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/private/{chatId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/chat/private/unavailable").hasRole("USER")
 
                     // GroupChatController
-                    .requestMatchers(HttpMethod.POST, "/api/chat/group").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/all").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/metadata").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/status").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/owner").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/chat/group").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/all").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/metadata").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/status").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/owner").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}").hasRole("USER")
 
                     // GroupChatMemberController
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members/available").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/members").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/members").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/leave").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members/available").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/members").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/members").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/leave").hasRole("USER")
 
                     // GroupChatPhotoController
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/photo").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/photo").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/photo").hasRole("USER")
 
                     // MessageController
-                    .requestMatchers(HttpMethod.POST, "/api/message").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/message/{chatId}/{page}").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.PATCH, "/api/message/content").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.DELETE, "/api/message").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.POST, "/api/message/read").access(allOf(hasRole("USER"), hasSession))
-                    .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}/message/{messageId}/file/{fileId}").access(allOf(hasRole("USER"), hasSession))
+                    .requestMatchers(HttpMethod.POST, "/api/message").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/message/{chatId}/{page}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/message/content").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/message").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/message/read").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}/message/{messageId}/file/{fileId}").hasRole("USER")
 
                     .anyRequest().authenticated()
             )

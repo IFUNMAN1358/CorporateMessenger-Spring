@@ -24,6 +24,7 @@ public class CsrfProperties {
         private Boolean httpOnly;
         private Boolean secure;
         private String sameSite;
+        private Integer maxAge;
 
     }
 

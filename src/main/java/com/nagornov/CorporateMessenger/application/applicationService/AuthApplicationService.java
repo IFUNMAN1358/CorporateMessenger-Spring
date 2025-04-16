@@ -8,13 +8,13 @@ import com.nagornov.CorporateMessenger.domain.enums.RoleEnum;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
-import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtSession;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaRegistrationKeyDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaRoleDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserRoleDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisSessionDomainService;
+import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class AuthApplicationService {
     private final JpaUserRoleDomainService jpaUserRoleDomainService;
     private final JpaRoleDomainService jpaRoleDomainService;
     private final JpaRegistrationKeyDomainService jpaRegistrationKeyDomainService;
-    private final RedisSessionDomainService redisSessionDomainService;
+    private final RedisJwtSessionDomainService redisJwtSessionDomainService;
     private final PasswordDomainService passwordDomainService;
     private final JwtDomainService jwtDomainService;
 
@@ -68,14 +69,13 @@ public class AuthApplicationService {
         String accessToken = jwtDomainService.generateAccessToken(user, List.of(role));
         String refreshToken = jwtDomainService.generateRefreshToken(user);
 
-        Session session = new Session(
-                UUID.randomUUID(),
+        JwtSession jwtSession = new JwtSession(
                 accessToken,
                 refreshToken,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        redisSessionDomainService.save(user.getId(), session);
+        redisJwtSessionDomainService.saveByKeyExpire(user.getId(), jwtSession, 2, TimeUnit.DAYS);
 
         return new JwtResponse(accessToken, refreshToken);
     }
@@ -93,14 +93,13 @@ public class AuthApplicationService {
         String accessToken = jwtDomainService.generateAccessToken(user, userRoles);
         String refreshToken = jwtDomainService.generateRefreshToken(user);
 
-        Session session = new Session(
-                UUID.randomUUID(),
+        JwtSession jwtSession = new JwtSession(
                 accessToken,
                 refreshToken,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        redisSessionDomainService.save(user.getId(), session);
+        redisJwtSessionDomainService.saveByKeyExpire(user.getId(), jwtSession, 2, TimeUnit.DAYS);
 
         return new JwtResponse(accessToken, refreshToken);
     }
@@ -115,7 +114,7 @@ public class AuthApplicationService {
                 UUID.fromString(authInfo.getUserId())
         );
 
-        redisSessionDomainService.deleteByUserId(user.getId());
+        redisJwtSessionDomainService.deleteByKey(user.getId());
 
         return new HttpResponse("Successfully logged out", 200);
     }

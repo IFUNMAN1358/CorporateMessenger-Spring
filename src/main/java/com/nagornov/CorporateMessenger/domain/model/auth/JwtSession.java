@@ -5,13 +5,11 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class Session {
+public class JwtSession {
 
-    private UUID id;
     private String accessToken;
     private String refreshToken;
     private LocalDateTime createdAt;

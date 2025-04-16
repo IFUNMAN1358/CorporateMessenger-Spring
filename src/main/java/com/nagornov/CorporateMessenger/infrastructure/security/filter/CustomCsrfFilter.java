@@ -1,87 +1,46 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CsrfProperties;
+import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisCsrfDomainService;
+import com.nagornov.CorporateMessenger.infrastructure.security.utils.HttpMethodUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class CustomCsrfFilter extends GenericFilterBean {
+public class CustomCsrfFilter extends OncePerRequestFilter {
 
-    private final CsrfProperties csrfProperties;
+    private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    private final RedisCsrfDomainService redisCsrfDomainService;
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain fc) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse response = (HttpServletResponse) servletResponse;
+    protected void doFilterInternal(
+            @NotNull HttpServletRequest request,
+            @NotNull HttpServletResponse response,
+            @NotNull FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        if (isSafeMethod(request.getMethod())) {
-            fc.doFilter(request, response);
+        if (HttpMethodUtils.isSafeMethod(request.getMethod())) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        CsrfToken csrfToken = csrfTokenRepository().loadToken(request);
+        CsrfToken csrfToken = cookieCsrfTokenRepository.loadToken(request);
 
-        if (csrfToken == null) {
-            csrfToken = csrfTokenRepository().generateToken(request);
-            csrfTokenRepository().saveToken(csrfToken, request, response);
-        }
-
-        String csrfTokenFromCookie = getCsrfTokenFromCookie(request);
-
-        if (csrfTokenFromCookie == null || !csrfTokenFromCookie.equals(csrfToken.getToken())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect.");
+        if (csrfToken.getToken() == null || !redisCsrfDomainService.exists(csrfToken.getToken())) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
             return;
         }
-        fc.doFilter(request, response);
-    }
-
-    private CookieCsrfTokenRepository csrfTokenRepository() {
-        CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
-
-        repository.setHeaderName(csrfProperties.getHeaderName());
-        repository.setCookieName(csrfProperties.getCookie().getName());
-
-        repository.setCookieCustomizer(cookieBuilder ->
-            cookieBuilder
-                .domain(csrfProperties.getCookie().getDomain())
-                .path(csrfProperties.getCookie().getPath())
-                .httpOnly(csrfProperties.getCookie().getHttpOnly())
-                .secure(csrfProperties.getCookie().getSecure())
-                .sameSite(csrfProperties.getCookie().getSameSite())
-        );
-        return repository;
-    }
-
-    private String getCsrfTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (csrfProperties.getCookie().getName().equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
-    private boolean isSafeMethod(String method) {
-        return "GET".equalsIgnoreCase(method) ||
-               "HEAD".equalsIgnoreCase(method) ||
-               "OPTIONS".equalsIgnoreCase(method) ||
-               "TRACE".equalsIgnoreCase(method);
+        filterChain.doFilter(request, response);
     }
 
 }

@@ -8,11 +8,11 @@ import java.util.UUID;
 @UtilityClass
 public class RedisKeyUtils {
 
-    private final static String SESSION = RedisPrefix.SESSION.getPrefix();
+    private final static String JWT_SESSION = RedisPrefix.JWT_SESSION.getPrefix();
     private final static String MESSAGE = RedisPrefix.MESSAGE.getPrefix();
 
-    public static String sessionKey(UUID userId) {
-        return "%s:%s".formatted(SESSION, userId);
+    public static String jwtSessionKey(UUID userId) {
+        return "%s:%s".formatted(JWT_SESSION, userId);
     }
 
     public static String messageKey(UUID chatId) {
