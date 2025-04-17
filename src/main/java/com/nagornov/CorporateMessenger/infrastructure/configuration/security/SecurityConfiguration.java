@@ -122,11 +122,11 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}/message/{messageId}/file/{fileId}").hasRole("USER")
 
                     .anyRequest().authenticated()
-            )
-            .exceptionHandling(exceptions -> exceptions
-                    .authenticationEntryPoint(authenticationEntryPoint)
-                    .accessDeniedHandler(accessDeniedHandler)
             );
+//            .exceptionHandling(exceptions -> exceptions
+//                    .authenticationEntryPoint(authenticationEntryPoint)
+//                    .accessDeniedHandler(accessDeniedHandler)
+//            );
         return http.build();
     }
 

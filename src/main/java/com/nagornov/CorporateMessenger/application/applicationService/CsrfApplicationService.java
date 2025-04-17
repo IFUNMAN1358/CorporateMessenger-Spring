@@ -20,10 +20,23 @@ public class CsrfApplicationService {
 
     public HttpResponse getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
 
-        CsrfToken csrfToken = cookieCsrfTokenRepository.generateToken(request);
-        cookieCsrfTokenRepository.saveToken(csrfToken, request, response);
+        CsrfToken currentCsrfToken = cookieCsrfTokenRepository.loadToken(request);
+        CsrfToken newCsrfToken = cookieCsrfTokenRepository.generateToken(request);
 
-        redisCsrfDomainService.saveExpire(csrfToken.getToken(), 3600, TimeUnit.SECONDS);
+        // If token not exists
+        if (currentCsrfToken == null || !redisCsrfDomainService.exists(currentCsrfToken.getToken())) {
+
+            cookieCsrfTokenRepository.saveToken(newCsrfToken, request, response);
+            redisCsrfDomainService.saveExpire(newCsrfToken.getToken(), 3600, TimeUnit.SECONDS);
+
+        // If token exists
+        } else {
+
+            cookieCsrfTokenRepository.saveToken(newCsrfToken, request, response);
+            redisCsrfDomainService.delete(currentCsrfToken.getToken());
+            redisCsrfDomainService.saveExpire(newCsrfToken.getToken(), 3600, TimeUnit.SECONDS);
+
+        }
 
         return new HttpResponse("Csrf token successfully generated and saved in cookie", 200);
     }
