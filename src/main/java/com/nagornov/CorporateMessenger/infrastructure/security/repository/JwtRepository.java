@@ -10,11 +10,9 @@ import org.springframework.stereotype.Repository;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @Slf4j
@@ -35,24 +33,22 @@ public class JwtRepository {
     }
 
     public String generateAccessToken(String userId, Set<String> userRoles) {
-        final LocalDateTime now = LocalDateTime.now();
-        final Instant accessExpirationInstant = now.plusSeconds(jwtAccessExpire).atZone(ZoneId.systemDefault()).toInstant();
-        final Date accessExpiration = Date.from(accessExpirationInstant);
+        Date currentDate = new Date();
+        Date accessExpirationInstant = new Date(currentDate.getTime() + TimeUnit.SECONDS.toMillis(jwtAccessExpire));
         return Jwts.builder()
                 .setSubject(userId)
-                .setExpiration(accessExpiration)
+                .setExpiration(accessExpirationInstant)
                 .signWith(jwtAccessSecret)
                 .claim("roles", userRoles)
                 .compact();
     }
 
     public String generateRefreshToken(String userId) {
-        final LocalDateTime now = LocalDateTime.now();
-        final Instant refreshExpirationInstant = now.plusSeconds(jwtRefreshExpire).atZone(ZoneId.systemDefault()).toInstant();
-        final Date refreshExpiration = Date.from(refreshExpirationInstant);
+        Date currentDate = new Date();
+        Date accessExpirationInstant = new Date(currentDate.getTime() + TimeUnit.SECONDS.toMillis(jwtRefreshExpire));
         return Jwts.builder()
                 .setSubject(userId)
-                .setExpiration(refreshExpiration)
+                .setExpiration(accessExpirationInstant)
                 .signWith(jwtRefreshSecret)
                 .compact();
     }

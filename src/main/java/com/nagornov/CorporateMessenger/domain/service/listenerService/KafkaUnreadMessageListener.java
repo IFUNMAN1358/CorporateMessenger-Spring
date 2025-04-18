@@ -4,7 +4,7 @@ import com.nagornov.CorporateMessenger.domain.enums.ChatType;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaTopic;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
-import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatInterface;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraUnreadMessageBusinessService;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper.KafkaChatMapper;
@@ -32,23 +32,23 @@ public class KafkaUnreadMessageListener {
     )
     public void distributor(ConsumerRecord<String, KafkaUnreadMessageDTO> record, Acknowledgment ack) {
 
-        Chat chat = getChatFromRecord(record);
+        ChatInterface chatInterface = getChatFromRecord(record);
         User user = getUserFromRecord(record);
         String operation = record.value().getOperation();
 
         try {
             switch (operation) {
                 case (KafkaUnreadMessageOperation.INCREMENT_UNREAD_MESSAGE_COUNT_FOR_OTHER_OPERATION):
-                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForOther(chat, user);
+                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForOther(chatInterface, user);
                     break;
                 case (KafkaUnreadMessageOperation.DECREMENT_UNREAD_MESSAGE_COUNT_FOR_OTHER_OPERATION):
-                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForOther(chat, user);
+                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForOther(chatInterface, user);
                     break;
                 case (KafkaUnreadMessageOperation.INCREMENT_UNREAD_MESSAGE_COUNT_FOR_USER_OPERATION):
-                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForUser(chat, user);
+                    cassandraUnreadMessageBusinessService.incrementUnreadMessageCountForUser(chatInterface, user);
                     break;
                 case (KafkaUnreadMessageOperation.DECREMENT_UNREAD_MESSAGE_COUNT_FOR_USER_OPERATION):
-                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForUser(chat, user);
+                    cassandraUnreadMessageBusinessService.decrementUnreadMessageCountForUser(chatInterface, user);
                     break;
                 default:
                     throw new RuntimeException("Unsupported operation for unread message kafka distributor");
@@ -59,7 +59,7 @@ public class KafkaUnreadMessageListener {
         }
     }
 
-    private Chat getChatFromRecord(@NonNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
+    private ChatInterface getChatFromRecord(@NonNull ConsumerRecord<String, KafkaUnreadMessageDTO> record) {
         try {
             if (record.value().getChat().getChatType().equals(ChatType.PRIVATE_CHAT.getType())) {
 

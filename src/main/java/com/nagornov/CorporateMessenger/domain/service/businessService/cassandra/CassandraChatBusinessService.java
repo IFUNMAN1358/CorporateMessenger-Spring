@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.service.businessService.cassandra;
 
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatInterface;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
@@ -23,7 +23,7 @@ public class CassandraChatBusinessService {
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
 
-    public Chat getAvailableById(@NonNull UUID id) {
+    public ChatInterface getAvailableById(@NonNull UUID id) {
 
         Optional<PrivateChat> privateChat = cassandraPrivateChatDomainService.findAvailableById(id);
         if (privateChat.isPresent()) {
@@ -38,20 +38,20 @@ public class CassandraChatBusinessService {
         throw new ResourceNotFoundException("Chat with this id does not exist: " + id);
     }
 
-    public void update(@NonNull Chat chat) {
-        if (chat instanceof PrivateChat privateChat) {
+    public void update(@NonNull ChatInterface chatInterface) {
+        if (chatInterface instanceof PrivateChat privateChat) {
             cassandraPrivateChatDomainService.save(privateChat);
-        } else if (chat instanceof GroupChat groupChat) {
+        } else if (chatInterface instanceof GroupChat groupChat) {
             cassandraGroupChatDomainService.save(groupChat);
         } else {
             throw new RuntimeException("Chat type is unknown or there was an error updating the chat");
         }
     }
 
-    public void validateUserOwnership(@NonNull Chat chat, @NonNull User user) {
-        if (chat instanceof PrivateChat privateChat) {
+    public void validateUserOwnership(@NonNull ChatInterface chatInterface, @NonNull User user) {
+        if (chatInterface instanceof PrivateChat privateChat) {
             privateChat.validateUserIdOwnership(user.getId());
-        } else if (chat instanceof GroupChat groupChat) {
+        } else if (chatInterface instanceof GroupChat groupChat) {
             cassandraGroupChatMemberDomainService.validateUserOwnership(groupChat.getId(), user.getId());
         } else {
             throw new RuntimeException(

@@ -17,6 +17,7 @@ import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserR
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class AuthApplicationService {
     private final RedisJwtSessionDomainService redisJwtSessionDomainService;
     private final PasswordDomainService passwordDomainService;
     private final JwtDomainService jwtDomainService;
+    private final JwtProperties jwtProperties;
 
 
     @Transactional
@@ -75,7 +77,10 @@ public class AuthApplicationService {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        redisJwtSessionDomainService.saveByKeyExpire(user.getId(), jwtSession, 2, TimeUnit.DAYS);
+        redisJwtSessionDomainService.saveByKeyExpire(
+                user.getId(), jwtSession,
+                jwtProperties.getRefreshExpire(), TimeUnit.SECONDS
+        );
 
         return new JwtResponse(accessToken, refreshToken);
     }
@@ -99,7 +104,10 @@ public class AuthApplicationService {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        redisJwtSessionDomainService.saveByKeyExpire(user.getId(), jwtSession, 2, TimeUnit.DAYS);
+        redisJwtSessionDomainService.saveByKeyExpire(
+                user.getId(), jwtSession,
+                jwtProperties.getRefreshExpire(), TimeUnit.SECONDS
+        );
 
         return new JwtResponse(accessToken, refreshToken);
     }

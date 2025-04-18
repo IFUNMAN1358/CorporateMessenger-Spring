@@ -1,0 +1,50 @@
+package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
+
+import java.time.Instant;
+
+@Table("chats_by_id")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class CassandraChatByIdEntity {
+
+    @PrimaryKey("id")
+    private Long id;
+
+    @Column("type")
+    private String type;
+
+    @Column("username")
+    private String username;
+
+    @Column("title")
+    private String title;
+
+    @Column("description")
+    private String description;
+
+    @Column("invite_link")
+    private String inviteLink;
+
+    @Column("join_by_request")
+    private Boolean joinByRequest;
+
+    @Column("has_hidden_members")
+    private Boolean hasHiddenMembers;
+
+    @Column("created_at")
+    private Instant createdAt;
+
+    @Column("updated_at")
+    private Instant updatedAt;
+
+}

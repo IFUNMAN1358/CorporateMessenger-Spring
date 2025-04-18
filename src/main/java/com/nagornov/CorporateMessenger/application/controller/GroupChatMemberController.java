@@ -5,7 +5,7 @@ import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.GroupChatMemberApplicationService;
 import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +25,10 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/members",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<GroupChatMember>> getGroupChatMembers(@ValidUuid @PathVariable("chatId") String chatId) {
-        List<GroupChatMember> groupChatMembers =
+    ResponseEntity<List<ChatMember>> getGroupChatMembers(@ValidUuid @PathVariable("chatId") String chatId) {
+        List<ChatMember> chatMembers =
                 groupChatMemberApplicationService.getGroupChatMembers(chatId);
-        return ResponseEntity.status(200).body(groupChatMembers);
+        return ResponseEntity.status(200).body(chatMembers);
     }
 
 

@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public enum ChatType {
 
-    PRIVATE_CHAT("PRIVATE_CHAT"),
-    GROUP_CHAT("GROUP_CHAT");
+    PRIVATE("private"),
+    GROUP("group");
 
     private final String type;
 

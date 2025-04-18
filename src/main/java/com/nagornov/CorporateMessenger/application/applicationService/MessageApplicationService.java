@@ -4,7 +4,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
 import com.nagornov.CorporateMessenger.application.dto.message.*;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatInterface;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
@@ -52,12 +52,12 @@ public class MessageApplicationService {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+        ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+        cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
         Message message = new Message(
                 Uuids.timeBased(),
-                chat.getId(),
+                chatInterface.getId(),
                 postgresUser.getId(),
                 postgresUser.getUsername(),
                 request.getContent(),
@@ -87,13 +87,13 @@ public class MessageApplicationService {
         }
         cassandraMessageDomainService.save(message);
 
-        chat.updateLastMessageId(message.getId());
-        cassandraChatBusinessService.update(chat);
+        chatInterface.updateLastMessageId(message.getId());
+        cassandraChatBusinessService.update(chatInterface);
 
         kafkaUnreadMessageProducerDomainService
-                .sendToIncrementUnreadMessageCountForOther(postgresUser, chat);
+                .sendToIncrementUnreadMessageCountForOther(postgresUser, chatInterface);
 
-        redisMessageDomainService.leftSave(chat.getId(), message, 1, TimeUnit.DAYS);
+        redisMessageDomainService.leftSave(chatInterface.getId(), message, 1, TimeUnit.DAYS);
 
         return new MessageResponse(
                 message,
@@ -114,10 +114,10 @@ public class MessageApplicationService {
         List<Message> messages = redisMessageDomainService.findAll(uuidChatId, page, size);
 
         if (messages.isEmpty()) {
-            Chat chat = cassandraChatBusinessService.getAvailableById(uuidChatId);
-            cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+            ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(uuidChatId);
+            cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
-            messages = cassandraMessageDomainService.getAllByChatId(chat.getId(), page, size);
+            messages = cassandraMessageDomainService.getAllByChatId(chatInterface.getId(), page, size);
             redisMessageDomainService.rightSaveAll(uuidChatId, messages, 1, TimeUnit.DAYS);
         }
 
@@ -164,8 +164,8 @@ public class MessageApplicationService {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+        ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+        cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
         Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
         message.validateUserIdOwnership(postgresUser.getId());
@@ -178,20 +178,20 @@ public class MessageApplicationService {
             }
         }
         cassandraMessageDomainService.delete(message);
-        redisMessageDomainService.delete(chat.getId(), message);
+        redisMessageDomainService.delete(chatInterface.getId(), message);
 
-        Optional<Message> existingPreviousMessage = cassandraMessageDomainService.findLastByChatId(chat.getId());
-        chat.updateLastMessageId(
+        Optional<Message> existingPreviousMessage = cassandraMessageDomainService.findLastByChatId(chatInterface.getId());
+        chatInterface.updateLastMessageId(
                 existingPreviousMessage.map(Message::getId).orElse(null)
         );
-        cassandraChatBusinessService.update(chat);
+        cassandraChatBusinessService.update(chatInterface);
 
         cassandraReadMessageDomainService.getAllByMessageId(message.getId())
                 .forEach(cassandraReadMessageDomainService::delete);
 
         if (!message.getIsRead()) {
             kafkaUnreadMessageProducerDomainService
-                    .sendToDecrementUnreadMessageCountForOther(postgresUser, chat);
+                    .sendToDecrementUnreadMessageCountForOther(postgresUser, chatInterface);
         }
 
         return new MessageResponse(message, null, null);
@@ -204,11 +204,11 @@ public class MessageApplicationService {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+        ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
+        cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
         Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
-        chat.validateMessageChatIdOwnership(message.getChatId());
+        chatInterface.validateMessageChatIdOwnership(message.getChatId());
 
         if (message.getSenderId().equals(postgresUser.getId())) {
             return null;
@@ -219,18 +219,18 @@ public class MessageApplicationService {
 
         message.markAsRead();
         cassandraMessageDomainService.save(message);
-        redisMessageDomainService.update(chat.getId(), message);
+        redisMessageDomainService.update(chatInterface.getId(), message);
 
         ReadMessage readMessage = new ReadMessage(
                 UUID.randomUUID(),
                 postgresUser.getId(),
-                chat.getId(),
+                chatInterface.getId(),
                 message.getId()
         );
         cassandraReadMessageDomainService.save(readMessage);
 
         kafkaUnreadMessageProducerDomainService
-                .sendToDecrementUnreadMessageCountForUser(postgresUser, chat);
+                .sendToDecrementUnreadMessageCountForUser(postgresUser, chatInterface);
 
         return new MessageResponse(
                 message,
@@ -245,8 +245,8 @@ public class MessageApplicationService {
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
         User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
-        cassandraChatBusinessService.validateUserOwnership(chat, postgresUser);
+        ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
+        cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
         Message message = cassandraMessageDomainService.getById(UUID.fromString(messageId));
         Optional<MessageFile> messageFile = cassandraMessageFileDomainService.findByIdAndMessageId(

@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from '@/js/config/router';
-import VueCookies from 'vue-cookies';
-import authStore from "@/js/store/stores/authStore";
+import authStore from "@/store/authStore";
+import router from "@/router/router";
+import VueCookies from "vue-cookies";
 
 const app = createApp(App);
 

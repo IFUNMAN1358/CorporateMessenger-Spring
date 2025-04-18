@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisCsrfDomainService;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CsrfProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class CsrfApplicationService {
 
     private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
     private final RedisCsrfDomainService redisCsrfDomainService;
+    private final CsrfProperties csrfProperties;
 
     public HttpResponse getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
 
@@ -27,14 +29,22 @@ public class CsrfApplicationService {
         if (currentCsrfToken == null || !redisCsrfDomainService.exists(currentCsrfToken.getToken())) {
 
             cookieCsrfTokenRepository.saveToken(newCsrfToken, request, response);
-            redisCsrfDomainService.saveExpire(newCsrfToken.getToken(), 3600, TimeUnit.SECONDS);
+            redisCsrfDomainService.saveExpire(
+                    newCsrfToken.getToken(),
+                    csrfProperties.getCookie().getMaxAge(),
+                    TimeUnit.SECONDS
+            );
 
         // If token exists
         } else {
 
             cookieCsrfTokenRepository.saveToken(newCsrfToken, request, response);
             redisCsrfDomainService.delete(currentCsrfToken.getToken());
-            redisCsrfDomainService.saveExpire(newCsrfToken.getToken(), 3600, TimeUnit.SECONDS);
+            redisCsrfDomainService.saveExpire(
+                    newCsrfToken.getToken(),
+                    csrfProperties.getCookie().getMaxAge(),
+                    TimeUnit.SECONDS
+            );
 
         }
 

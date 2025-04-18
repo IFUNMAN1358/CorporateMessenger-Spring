@@ -1,0 +1,4 @@
+DROP TABLE messenger_ks.private_chats_by_id;
+DROP TABLE messenger_ks.private_chats_by_first_user;
+DROP TABLE messenger_ks.private_chats_by_second_user;
+DROP TABLE messenger_ks.private_chats_by_users;

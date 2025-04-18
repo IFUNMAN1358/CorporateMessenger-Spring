@@ -7,8 +7,13 @@
 </template>
 
 <script>
+import {fetchCsrfToken} from "@/js/service/csrfService";
+
 export default {
-  name: 'App'
+  name: 'App',
+  async created() {
+    await fetchCsrfToken();
+  }
 };
 </script>
 

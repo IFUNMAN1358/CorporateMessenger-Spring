@@ -6,9 +6,9 @@ import com.nagornov.CorporateMessenger.application.dto.chat.UpdateGroupChatMetad
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
@@ -67,7 +67,7 @@ public class GroupChatApplicationService {
             MultipartFile file = request.getFile();
             String filePath = minioGroupChatPhotoDomainService.upload(file);
 
-            GroupChatPhoto groupChatPhoto = new GroupChatPhoto(
+            ChatPhoto chatPhoto = new ChatPhoto(
                     UUID.randomUUID(),
                     groupChat.getId(),
                     file.getOriginalFilename(),
@@ -75,7 +75,7 @@ public class GroupChatApplicationService {
                     file.getContentType(),
                     Instant.now()
             );
-            cassandraGroupChatPhotoDomainService.save(groupChatPhoto);
+            cassandraGroupChatPhotoDomainService.save(chatPhoto);
         }
         if (request.getIsPublic()) {
             groupChat.markAsPublic();
@@ -84,7 +84,7 @@ public class GroupChatApplicationService {
         }
         cassandraGroupChatDomainService.save(groupChat);
 
-        GroupChatMember member = new GroupChatMember(
+        ChatMember member = new ChatMember(
                 UUID.randomUUID(),
                 groupChat.getId(),
                 postgresUser.getId(),
@@ -110,7 +110,7 @@ public class GroupChatApplicationService {
 
         List<GroupChatSummaryResponse> listOfResponse = new ArrayList<>();
 
-        for (GroupChatMember member : cassandraGroupChatMemberDomainService.getAllByUserId(postgresUser.getId())) {
+        for (ChatMember member : cassandraGroupChatMemberDomainService.getAllByUserId(postgresUser.getId())) {
 
             GroupChat groupChat = cassandraGroupChatDomainService.getById(member.getChatId());
             Message lastMessage = null;
@@ -197,7 +197,7 @@ public class GroupChatApplicationService {
         );
         groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
-        GroupChatMember futureOwner = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
+        ChatMember futureOwner = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
                 groupChat.getId(), request.getUserIdAsUUID()
         );
 
@@ -218,8 +218,8 @@ public class GroupChatApplicationService {
         );
         groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
-        List<GroupChatMember> members = cassandraGroupChatMemberDomainService.getAllByChatId(groupChat.getId());
-        for (GroupChatMember member : members) {
+        List<ChatMember> members = cassandraGroupChatMemberDomainService.getAllByChatId(groupChat.getId());
+        for (ChatMember member : members) {
             cassandraGroupChatMemberDomainService.delete(member);
         }
 

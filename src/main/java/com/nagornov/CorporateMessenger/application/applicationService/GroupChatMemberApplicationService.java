@@ -4,8 +4,8 @@ import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
 import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
@@ -35,7 +35,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<GroupChatMember> getGroupChatMembers(String chatId) {
+    public List<ChatMember> getGroupChatMembers(String chatId) {
 
         JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
 
@@ -69,7 +69,7 @@ public class GroupChatMemberApplicationService {
         List<UUID> memberIds =
                 cassandraGroupChatMemberDomainService.getAllByChatId(groupChat.getId())
                         .stream().map(
-                                GroupChatMember::getUserId
+                                ChatMember::getUserId
                         ).toList();
 
         return companionIds
@@ -99,7 +99,7 @@ public class GroupChatMemberApplicationService {
                     UUID.fromString(requestUserId)
             );
 
-            GroupChatMember chatMember = new GroupChatMember(
+            ChatMember chatMember = new ChatMember(
                 UUID.randomUUID(),
                 groupChat.getId(),
                 user.getId(),
@@ -127,7 +127,7 @@ public class GroupChatMemberApplicationService {
 
         for (String requestUserId : request.getUserIds()) {
 
-            GroupChatMember member = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
+            ChatMember member = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
                     groupChat.getId(), UUID.fromString(requestUserId)
             );
             cassandraGroupChatMemberDomainService.delete(member);
@@ -151,7 +151,7 @@ public class GroupChatMemberApplicationService {
                 UUID.fromString(chatId)
         );
 
-        GroupChatMember member = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
+        ChatMember member = cassandraGroupChatMemberDomainService.getByChatIdAndUserId(
                 groupChat.getId(), authInfo.getUserIdAsUUID()
         );
 

@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.kafka;
 
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaUnreadMessageOperation;
-import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatInterface;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
@@ -24,9 +24,9 @@ public class KafkaUnreadMessageProducerDomainService {
     private final KafkaUserMapper kafkaUserMapper;
     private final KafkaChatMapper kafkaChatMapper;
 
-    public void sendToIncrementUnreadMessageCountForOther(@NonNull User user, @NonNull Chat chat) {
+    public void sendToIncrementUnreadMessageCountForOther(@NonNull User user, @NonNull ChatInterface chatInterface) {
 
-        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
+        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chatInterface);
         KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
@@ -36,9 +36,9 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToDecrementUnreadMessageCountForOther(@NonNull User user, @NonNull Chat chat) {
+    public void sendToDecrementUnreadMessageCountForOther(@NonNull User user, @NonNull ChatInterface chatInterface) {
 
-        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
+        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chatInterface);
         KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
@@ -48,9 +48,9 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToIncrementUnreadMessageCountForUser(@NonNull User user, @NonNull Chat chat) {
+    public void sendToIncrementUnreadMessageCountForUser(@NonNull User user, @NonNull ChatInterface chatInterface) {
 
-        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
+        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chatInterface);
         KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
@@ -60,9 +60,9 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    public void sendToDecrementUnreadMessageCountForUser(@NonNull User user, @NonNull Chat chat) {
+    public void sendToDecrementUnreadMessageCountForUser(@NonNull User user, @NonNull ChatInterface chatInterface) {
 
-        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chat);
+        KafkaChatEntity chatEntity = getChatEntityFromChatInterface(chatInterface);
         KafkaUserEntity userEntity = kafkaUserMapper.toEntity(user);
 
         final KafkaUnreadMessageDTO message = new KafkaUnreadMessageDTO(
@@ -72,18 +72,18 @@ public class KafkaUnreadMessageProducerDomainService {
         kafkaUnreadMessageProducerRepository.sendMessage(message);
     }
 
-    private KafkaChatEntity getChatEntityFromChatInterface(@NonNull Chat chat) {
+    private KafkaChatEntity getChatEntityFromChatInterface(@NonNull ChatInterface chatInterface) {
         KafkaChatEntity chatEntity;
 
-        if (chat instanceof GroupChat) {
-            chatEntity = kafkaChatMapper.toChatEntity((GroupChat) chat);
-        } else if (chat instanceof PrivateChat) {
-            chatEntity = kafkaChatMapper.toChatEntity((PrivateChat) chat);
+        if (chatInterface instanceof GroupChat) {
+            chatEntity = kafkaChatMapper.toChatEntity((GroupChat) chatInterface);
+        } else if (chatInterface instanceof PrivateChat) {
+            chatEntity = kafkaChatMapper.toChatEntity((PrivateChat) chatInterface);
         } else {
             throw new RuntimeException("Invalid chat type for kafka method to send message in unread message topic");
         }
 
-        chatEntity.setChatType(chat.getChatType());
+        chatEntity.setChatType(chatInterface.getChatType());
         return chatEntity;
     }
 

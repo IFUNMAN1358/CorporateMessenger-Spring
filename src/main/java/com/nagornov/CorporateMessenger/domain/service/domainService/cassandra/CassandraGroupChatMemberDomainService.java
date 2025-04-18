@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.cassandra;
 
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatMember;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraGroupChatMemberRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,29 +17,29 @@ public class CassandraGroupChatMemberDomainService {
 
     private final CassandraGroupChatMemberRepository cassandraGroupChatMemberRepository;
 
-    public GroupChatMember save(@NonNull GroupChatMember groupChatMember) {
-        return cassandraGroupChatMemberRepository.save(groupChatMember);
+    public ChatMember save(@NonNull ChatMember chatMember) {
+        return cassandraGroupChatMemberRepository.save(chatMember);
     }
 
-    public void delete(@NonNull GroupChatMember groupChatMember) {
-        cassandraGroupChatMemberRepository.delete(groupChatMember);
+    public void delete(@NonNull ChatMember chatMember) {
+        cassandraGroupChatMemberRepository.delete(chatMember);
     }
 
-    public GroupChatMember getByChatIdAndUserId(@NonNull UUID chatId, @NonNull UUID userId) {
+    public ChatMember getByChatIdAndUserId(@NonNull UUID chatId, @NonNull UUID userId) {
         return cassandraGroupChatMemberRepository
                 .findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group chat member with this chatId and userId is not found"));
     }
 
-    public Optional<GroupChatMember> findByChatIdAndUserId(@NonNull UUID chatId, @NonNull UUID userId) {
+    public Optional<ChatMember> findByChatIdAndUserId(@NonNull UUID chatId, @NonNull UUID userId) {
         return cassandraGroupChatMemberRepository.findByChatIdAndUserId(chatId, userId);
     }
 
-    public List<GroupChatMember> getAllByChatId(@NonNull UUID chatId) {
+    public List<ChatMember> getAllByChatId(@NonNull UUID chatId) {
         return cassandraGroupChatMemberRepository.getAllByChatId(chatId);
     }
 
-    public List<GroupChatMember> getAllByUserId(@NonNull UUID userId) {
+    public List<ChatMember> getAllByUserId(@NonNull UUID userId) {
         return cassandraGroupChatMemberRepository.getAllByUserId(userId);
     }
 

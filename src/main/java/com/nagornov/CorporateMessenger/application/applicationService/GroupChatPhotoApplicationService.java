@@ -2,9 +2,9 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChatPhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatPhotoDomainService;
@@ -41,10 +41,10 @@ public class GroupChatPhotoApplicationService {
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(UUID.fromString(chatId));
 
-        GroupChatPhoto groupChatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(groupChat.getId());
+        ChatPhoto chatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(groupChat.getId());
 
         return new InputStreamResource(
-                minioGroupChatPhotoDomainService.download(groupChatPhoto.getFilePath())
+                minioGroupChatPhotoDomainService.download(chatPhoto.getFilePath())
         );
     }
 
@@ -59,7 +59,7 @@ public class GroupChatPhotoApplicationService {
         );
         groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
-        Optional<GroupChatPhoto> groupChatPhoto = cassandraGroupChatPhotoDomainService.findFirstByChatId(groupChat.getId());
+        Optional<ChatPhoto> groupChatPhoto = cassandraGroupChatPhotoDomainService.findFirstByChatId(groupChat.getId());
 
         if (groupChatPhoto.isPresent()) {
             cassandraGroupChatPhotoDomainService.delete(groupChatPhoto.get());
@@ -69,7 +69,7 @@ public class GroupChatPhotoApplicationService {
         MultipartFile file = request.getFile();
         String filePath = minioGroupChatPhotoDomainService.upload(file);
 
-        GroupChatPhoto newGroupChatPhoto = new GroupChatPhoto(
+        ChatPhoto newChatPhoto = new ChatPhoto(
                 UUID.randomUUID(),
                 groupChat.getId(),
                 file.getOriginalFilename(),
@@ -77,13 +77,13 @@ public class GroupChatPhotoApplicationService {
                 file.getContentType(),
                 Instant.now()
         );
-        cassandraGroupChatPhotoDomainService.save(newGroupChatPhoto);
+        cassandraGroupChatPhotoDomainService.save(newChatPhoto);
 
         groupChat.markAsHasPhotos();
         cassandraGroupChatDomainService.save(groupChat);
 
         return new InputStreamResource(
-                minioGroupChatPhotoDomainService.download(newGroupChatPhoto.getFilePath())
+                minioGroupChatPhotoDomainService.download(newChatPhoto.getFilePath())
         );
     }
 
@@ -97,10 +97,10 @@ public class GroupChatPhotoApplicationService {
         GroupChat groupChat = cassandraGroupChatDomainService.getById(chatIdUuid);
         groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
 
-        GroupChatPhoto groupChatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(chatIdUuid);
-        cassandraGroupChatPhotoDomainService.delete(groupChatPhoto);
+        ChatPhoto chatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(chatIdUuid);
+        cassandraGroupChatPhotoDomainService.delete(chatPhoto);
 
-        minioGroupChatPhotoDomainService.delete(groupChatPhoto.getFilePath());
+        minioGroupChatPhotoDomainService.delete(chatPhoto.getFilePath());
 
         groupChat.markAsHasNotPhotos();
         cassandraGroupChatDomainService.save(groupChat);

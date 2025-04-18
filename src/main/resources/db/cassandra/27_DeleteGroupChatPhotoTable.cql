@@ -1,0 +1,1 @@
+DROP TABLE messenger_ks.group_chat_photos_by_chat_id;
