@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class RegistrationKey {
     private UUID userId;
     private String value;
     private Boolean isApplied;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public void initUserId(@NonNull UUID userId) {
         if (this.userId != null) {

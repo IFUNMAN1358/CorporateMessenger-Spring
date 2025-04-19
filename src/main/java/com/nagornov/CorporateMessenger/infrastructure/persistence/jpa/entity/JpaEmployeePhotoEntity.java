@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JpaEmployeePhotoEntity {
+public class JpaEmployeePhotoEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -30,13 +31,22 @@ public class JpaEmployeePhotoEntity {
     @Column(name = "file_name", nullable = false, updatable = false)
     private String fileName;
 
-    @Column(name = "file_path", nullable = false, updatable = false)
-    private String filePath;
+    @Column(name = "small_file_path", nullable = false)
+    private String smallFilePath;
 
-    @Column(name = "content_type", length = 20, nullable = false, updatable = false)
-    private String contentType;
+    @Column(name = "small_file_size", nullable = false)
+    private Long smallFileSize;
+
+    @Column(name = "big_file_path", nullable = false)
+    private String bigFilePath;
+
+    @Column(name = "big_file_size", nullable = false)
+    private Long bigFileSize;
+
+    @Column(name = "mime_type", length = 32, nullable = false)
+    private String mimeType;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

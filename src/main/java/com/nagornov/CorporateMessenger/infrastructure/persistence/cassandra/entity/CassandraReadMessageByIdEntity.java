@@ -8,6 +8,7 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 @Table("read_messages_by_id")
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CassandraReadMessageByIdEntity {
+public class CassandraReadMessageByIdEntity implements Serializable {
 
     @PrimaryKey
     private UUID id;

@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,7 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class RedisMessageEntity {
+public class RedisMessageEntity implements Serializable {
 
     private UUID id;
     private UUID chatId;

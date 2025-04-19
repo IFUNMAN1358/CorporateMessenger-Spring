@@ -24,3 +24,7 @@ databaseChangeLog:
       file: db/postgres/db.changelog-010-CreateEmployeePhotoTable.yaml
   - include:
       file: db/postgres/db.changelog-011-ChangeNameUserProfilePhotoTable.yaml
+  - include:
+      file: db/postgres/db.changelog-012-UpdateUserPhotoTable.yaml
+  - include:
+      file: db/postgres/db.changelog-013-UpdateEmployeePhotoTable.yaml

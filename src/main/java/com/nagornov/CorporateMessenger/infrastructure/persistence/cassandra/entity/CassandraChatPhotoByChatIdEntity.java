@@ -9,6 +9,7 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Table("chat_photos_by_chat_id")
@@ -16,7 +17,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraChatPhotoByChatIdEntity {
+public class CassandraChatPhotoByChatIdEntity implements Serializable {
 
     @PrimaryKey
     private CassandraChatPhotoByChatIdKey key;
@@ -27,8 +28,20 @@ public class CassandraChatPhotoByChatIdEntity {
     @Column("small_file_path")
     private String smallFilePath;
 
+    @Column("small_file_size")
+    private Long smallFileSize;
+
     @Column("big_file_path")
     private String bigFilePath;
+
+    @Column("big_file_size")
+    private Long bigFileSize;
+
+    @Column("mime_type")
+    private String mimeType;
+
+    @Column("is_main")
+    private Boolean isMain;
 
     @Column("created_at")
     private Instant createdAt;

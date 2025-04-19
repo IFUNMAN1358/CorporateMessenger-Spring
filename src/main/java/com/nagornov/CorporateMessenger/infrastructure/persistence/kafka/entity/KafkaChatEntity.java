@@ -5,27 +5,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class KafkaChatEntity {
+public class KafkaChatEntity implements Serializable {
 
-    private String chatType;
-    private UUID id;
-    private String name;
+    private Long id;
+    private String type;
+    private String username;
+    private String title;
     private String description;
-    private UUID ownerId;
-    private UUID lastMessageId;
-    private Boolean hasPhotos;
-    private Boolean isPublic;
-    private UUID firstUserId;
-    private UUID secondUserId;
-    private Boolean isAvailable;
-    private Instant updatedAt;
+    private String inviteLink;
+    private Boolean joinByRequest;
+    private Boolean hasHiddenMembers;
     private Instant createdAt;
+    private Instant updatedAt;
 
 }

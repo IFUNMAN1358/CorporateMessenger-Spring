@@ -4,7 +4,7 @@ import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
@@ -21,7 +21,7 @@ public class ChatDTO {
     private String inviteLink;
     private Boolean joinByRequest;
     private Boolean hasHiddenMembers;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

@@ -3,7 +3,7 @@ package com.nagornov.CorporateMessenger.domain.model.user;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -13,8 +13,11 @@ public class EmployeePhoto {
     private UUID id;
     private UUID employeeId;
     private String fileName;
-    private String filePath;
-    private String contentType;
-    private LocalDateTime createdAt;
+    private String smallFilePath;
+    private Long smallFileSize;
+    private String bigFilePath;
+    private Long bigFileSize;
+    private String mimeType;
+    private Instant createdAt;
 
 }

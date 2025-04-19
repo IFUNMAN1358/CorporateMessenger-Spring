@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-UpdateEmployeePhotoTable
+      author: IFUNMAN
+      changes:
+        - dropColumn:
+            tableName: employee_photos
+            columnName: file_path
+        - dropColumn:
+            tableName: employee_photos
+            columnName: content_type
+        - addColumn:
+            tableName: employee_photos
+            columns:
+              - column:
+                  name: small_file_path
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: small_file_size
+                  type: bigint
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: big_file_path
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: big_file_size
+                  type: bigint
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: mime_type
+                  type: varchar(32)
+                  constraints:
+                    unique: true
+                    nullable: false

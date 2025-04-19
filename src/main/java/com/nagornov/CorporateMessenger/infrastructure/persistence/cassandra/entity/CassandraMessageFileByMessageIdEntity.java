@@ -9,6 +9,7 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Table("message_files_by_message_id")
@@ -16,7 +17,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraMessageFileByMessageIdEntity {
+public class CassandraMessageFileByMessageIdEntity implements Serializable {
 
     @PrimaryKey
     private CassandraMessageFileByMessageIdKey key;
@@ -24,11 +25,20 @@ public class CassandraMessageFileByMessageIdEntity {
     @Column("file_name")
     private String fileName;
 
-    @Column("file_path")
-    private String filePath;
+    @Column("small_file_path")
+    private String smallFilePath;
 
-    @Column("content_type")
-    private String contentType;
+    @Column("small_file_size")
+    private Long smallFileSize;
+
+    @Column("big_file_path")
+    private String bigFilePath;
+
+    @Column("big_file_size")
+    private Long bigFileSize;
+
+    @Column("mime_type")
+    private String mimeType;
 
     @Column("created_at")
     private Instant createdAt;

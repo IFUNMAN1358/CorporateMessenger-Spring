@@ -13,8 +13,11 @@ public class MessageFile {
     private UUID id;
     private UUID messageId;
     private String fileName;
-    private String filePath;
-    private String contentType;
+    private String smallFilePath;
+    private Long smallFileSize;
+    private String bigFilePath;
+    private Long bigFileSize;
+    private String mimeType;
     private Instant createdAt;
 
 }

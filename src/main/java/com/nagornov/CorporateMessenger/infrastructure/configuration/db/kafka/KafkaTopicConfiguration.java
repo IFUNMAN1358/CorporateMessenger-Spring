@@ -16,11 +16,6 @@ public class KafkaTopicConfiguration {
     }
 
     @Bean
-    public NewTopic testTopic() {
-        return new NewTopic(KafkaTopic.TEST_TOPIC.getName(), 1, (short) 1);
-    }
-
-    @Bean
     public NewTopic logTopic() {
         return new NewTopic(KafkaTopic.LOG_TOPIC.getName(), 1, (short) 1);
     }

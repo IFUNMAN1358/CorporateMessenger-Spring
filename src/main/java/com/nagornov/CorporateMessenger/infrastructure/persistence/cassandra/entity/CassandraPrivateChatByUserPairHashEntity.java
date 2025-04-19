@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity;
 
-import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.key.CassandraReadMessageByMessageIdKey;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,22 +9,18 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.io.Serializable;
-import java.util.UUID;
 
-@Table("read_messages_by_message_id")
+@Table("private_chats_by_user_pair_hash")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraReadMessageByMessageIdEntity implements Serializable {
+public class CassandraPrivateChatByUserPairHashEntity implements Serializable {
 
-    @PrimaryKey
-    private CassandraReadMessageByMessageIdKey key;
-
-    @Column("user_id")
-    private UUID userId;
+    @PrimaryKey("user_pair_hash")
+    private String userPairHash;
 
     @Column("chat_id")
-    private UUID chatId;
+    private Long chatId;
 
 }

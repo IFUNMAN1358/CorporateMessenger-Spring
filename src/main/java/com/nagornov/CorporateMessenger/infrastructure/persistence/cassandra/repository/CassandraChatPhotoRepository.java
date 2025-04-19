@@ -7,6 +7,7 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.spri
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,9 +32,9 @@ public class CassandraChatPhotoRepository {
         );
     }
 
-    public Optional<ChatPhoto> findByChatId(Long chatId) {
-        return springDataCassandraChatPhotoByChatIdRepository.findByChatId(chatId)
-                .map(cassandraChatPhotoMapper::toDomain);
+    public List<ChatPhoto> findAllByChatId(Long chatId) {
+        return springDataCassandraChatPhotoByChatIdRepository.findAllByChatId(chatId)
+                .stream().map(cassandraChatPhotoMapper::toDomain).toList();
     }
 
     public Optional<ChatPhoto> findByIdAndChatId(UUID id, Long chatId) {

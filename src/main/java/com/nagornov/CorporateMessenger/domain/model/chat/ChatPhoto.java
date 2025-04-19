@@ -14,7 +14,11 @@ public class ChatPhoto {
     private Long chatId;
     private String fileName;
     private String smallFilePath;
+    private Long smallFileSize;
     private String bigFilePath;
+    private Long bigFileSize;
+    private String mimeType;
+    private Boolean isMain;
     private Instant createdAt;
 
 }

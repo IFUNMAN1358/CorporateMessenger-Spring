@@ -8,12 +8,14 @@ import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyClass;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 
+import java.io.Serializable;
+
 @PrimaryKeyClass
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraChatByUsernameKey {
+public class CassandraChatByUsernameKey implements Serializable {
 
     @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.CLUSTERED)
     private Long id;

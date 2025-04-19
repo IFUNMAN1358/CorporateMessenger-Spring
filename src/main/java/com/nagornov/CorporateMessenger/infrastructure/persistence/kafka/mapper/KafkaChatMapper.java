@@ -1,32 +1,14 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.mapper;
 
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
-import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaChatEntity;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface KafkaChatMapper {
 
-    GroupChat toGroupChatDomain(KafkaChatEntity entity);
+    Chat toDomain(KafkaChatEntity entity);
 
-    PrivateChat toPrivateChatDomain(KafkaChatEntity entity);
-
-    @Mapping(target = "chatType", ignore = true)
-    @Mapping(target = "firstUserId", ignore = true)
-    @Mapping(target = "secondUserId", ignore = true)
-    @Mapping(target = "isAvailable", ignore = true)
-    KafkaChatEntity toChatEntity(GroupChat domain);
-
-    @Mapping(target = "chatType", ignore = true)
-    @Mapping(target = "name", ignore = true)
-    @Mapping(target = "description", ignore = true)
-    @Mapping(target = "ownerId", ignore = true)
-    @Mapping(target = "hasPhotos", ignore = true)
-    @Mapping(target = "isPublic", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    KafkaChatEntity toChatEntity(PrivateChat domain);
-
+    KafkaChatEntity toEntity(Chat domain);
 
 }

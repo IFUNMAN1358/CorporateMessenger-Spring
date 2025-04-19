@@ -6,7 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JpaContactEntity {
+public class JpaContactEntity implements Serializable {
 
     @Id
     @Column(name = "id", updatable = false, nullable = false)
@@ -34,6 +35,6 @@ public class JpaContactEntity {
     private String status;
 
     @Column(name = "added_at", updatable = false, nullable = false)
-    private LocalDateTime addedAt;
+    private Instant addedAt;
 
 }

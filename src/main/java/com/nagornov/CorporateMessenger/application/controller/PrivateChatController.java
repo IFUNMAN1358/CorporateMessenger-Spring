@@ -2,9 +2,10 @@ package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.SecondUserIdRequest;
-import com.nagornov.CorporateMessenger.application.dto.chat.PrivateChatSummaryResponse;
+import com.nagornov.CorporateMessenger.application.dto.chat.ChatSummaryResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.PrivateChatApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,8 @@ public class PrivateChatController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<PrivateChatSummaryResponse> getOrCreatePrivateChat(@Validated @RequestBody SecondUserIdRequest request) {
-        PrivateChatSummaryResponse response =
+    ResponseEntity<ChatSummaryResponse> getOrCreatePrivateChat(@Validated @RequestBody UserIdRequest request) {
+        ChatSummaryResponse response =
                 privateChatApplicationService.getOrCreatePrivateChat(request);
         return ResponseEntity.status(200).body(response);
     }
@@ -34,8 +35,8 @@ public class PrivateChatController {
             value = "/api/chat/private/all",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<PrivateChatSummaryResponse>> getAllPrivateChats() {
-        List<PrivateChatSummaryResponse> response =
+    ResponseEntity<List<ChatSummaryResponse>> getAllPrivateChats() {
+        List<ChatSummaryResponse> response =
                 privateChatApplicationService.getAllPrivateChats();
         return ResponseEntity.status(200).body(response);
     }
@@ -44,8 +45,8 @@ public class PrivateChatController {
             value = "/api/chat/private/{chatId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<PrivateChatSummaryResponse> getPrivateChat(@PathVariable("chatId") String chatId) {
-        PrivateChatSummaryResponse response =
+    ResponseEntity<ChatSummaryResponse> getPrivateChat(@PathVariable("chatId") String chatId) {
+        ChatSummaryResponse response =
                 privateChatApplicationService.getPrivateChat(chatId);
         return ResponseEntity.status(200).body(response);
     }

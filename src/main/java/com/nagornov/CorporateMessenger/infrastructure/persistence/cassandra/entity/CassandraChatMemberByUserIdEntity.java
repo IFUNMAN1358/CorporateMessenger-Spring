@@ -9,6 +9,7 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Table("chat_members_by_user_id")
@@ -16,7 +17,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraChatMemberByUserIdEntity {
+public class CassandraChatMemberByUserIdEntity implements Serializable {
 
     @PrimaryKey
     private CassandraChatMemberByUserIdKey key;

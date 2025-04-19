@@ -8,6 +8,7 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Table("chats_by_id")
@@ -15,7 +16,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CassandraChatByIdEntity {
+public class CassandraChatByIdEntity implements Serializable {
 
     @PrimaryKey("id")
     private Long id;

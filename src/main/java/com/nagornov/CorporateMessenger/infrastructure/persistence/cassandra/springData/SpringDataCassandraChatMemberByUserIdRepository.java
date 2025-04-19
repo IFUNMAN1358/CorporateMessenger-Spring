@@ -7,7 +7,7 @@ import org.springframework.data.cassandra.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -15,6 +15,6 @@ public interface SpringDataCassandraChatMemberByUserIdRepository
         extends CassandraRepository<CassandraChatMemberByUserIdEntity, CassandraChatMemberByUserIdKey> {
 
     @Query("SELECT * FROM chat_members_by_user_id WHERE user_id = :userId")
-    Optional<CassandraChatMemberByUserIdEntity> findByUserId(@Param("userId") UUID userId);
+    List<CassandraChatMemberByUserIdEntity> findAllByUserId(@Param("userId") UUID userId);
 
 }
