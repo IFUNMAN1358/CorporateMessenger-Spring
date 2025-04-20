@@ -4,6 +4,7 @@ import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -15,8 +16,8 @@ public class UserResponseWithMainPhoto {
     private String username;
     private String firstName;
     private String lastName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public UserResponseWithMainPhoto(User user, UserPhoto userPhoto) {
         this.userPhoto = userPhoto;

@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.domain.service.domainService.minio;
 
-import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.enums.MinioBucket;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
 import lombok.NonNull;

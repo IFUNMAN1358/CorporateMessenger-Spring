@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.model.chat;
 
+import com.nagornov.CorporateMessenger.domain.enums.ChatMemberStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,5 +16,29 @@ public class ChatMember {
     private String status;
     private Instant joinedAt;
     private Instant updatedAt;
+
+    public boolean isCreator() {
+        return status.equals(ChatMemberStatus.CREATOR.getStatus());
+    }
+
+    public boolean isAdministrator() {
+        return status.equals(ChatMemberStatus.ADMINISTRATOR.getStatus());
+    }
+
+    public boolean isMember() {
+        return status.equals(ChatMemberStatus.MEMBER.getStatus());
+    }
+
+    public boolean isRestricted() {
+        return status.equals(ChatMemberStatus.RESTRICTED.getStatus());
+    }
+
+    public boolean isLeft() {
+        return status.equals(ChatMemberStatus.LEFT.getStatus());
+    }
+
+    public boolean isKicked() {
+        return status.equals(ChatMemberStatus.KICKED.getStatus());
+    }
 
 }

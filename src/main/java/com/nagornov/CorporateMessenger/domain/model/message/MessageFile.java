@@ -14,9 +14,7 @@ public class MessageFile {
     private UUID messageId;
     private String fileName;
     private String smallFilePath;
-    private Long smallFileSize;
     private String bigFilePath;
-    private Long bigFileSize;
     private String mimeType;
     private Instant createdAt;
 

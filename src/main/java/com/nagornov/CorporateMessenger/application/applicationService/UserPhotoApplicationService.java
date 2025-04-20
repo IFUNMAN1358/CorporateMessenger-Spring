@@ -7,9 +7,9 @@ import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
+import com.nagornov.CorporateMessenger.domain.service.UserService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
+import com.nagornov.CorporateMessenger.domain.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -26,17 +26,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserPhotoApplicationService {
 
-    private final JpaUserDomainService jpaUserDomainService;
+    private final UserService userService;
     private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
     private final MinioUserPhotoDomainService minioUserPhotoDomainService;
-    private final JwtDomainService jwtDomainService;
+    private final JwtService jwtService;
 
 
     @Transactional
     public UserPhoto loadUserPhoto(FileRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(
                 authInfo.getUserIdAsUUID()
         );
 
@@ -65,7 +65,7 @@ public class UserPhotoApplicationService {
     @Transactional(readOnly = true)
     public Resource getMainUserPhotoByUserId(String userId) {
 
-        jwtDomainService.getAuthInfo();
+        jwtService.getAuthInfo();
 
         Optional<UserPhoto> userPhoto = jpaUserPhotoDomainService.findMainByUserId(
                 UUID.fromString(userId)
@@ -84,7 +84,7 @@ public class UserPhotoApplicationService {
     @Transactional(readOnly = true)
     public Resource getUserPhotoByPhotoId(String photoId) {
 
-        jwtDomainService.getAuthInfo();
+        jwtService.getAuthInfo();
 
         UserPhoto userPhoto = jpaUserPhotoDomainService.getById(
                 UUID.fromString(photoId)
@@ -98,8 +98,8 @@ public class UserPhotoApplicationService {
 
     @Transactional
     public UserPhoto setMainUserPhoto(String photoId) {
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(
                 authInfo.getUserIdAsUUID()
         );
 
@@ -122,8 +122,8 @@ public class UserPhotoApplicationService {
 
     @Transactional
     public HttpResponse deleteUserPhoto(String photoId) {
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(
                 authInfo.getUserIdAsUUID()
         );
 

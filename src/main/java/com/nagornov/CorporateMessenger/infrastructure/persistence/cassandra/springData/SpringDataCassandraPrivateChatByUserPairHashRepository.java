@@ -15,4 +15,7 @@ public interface SpringDataCassandraPrivateChatByUserPairHashRepository
     @Query("SELECT * FROM private_chats_by_user_pair_hash WHERE user_pair_hash = :userPairHash")
     Optional<CassandraPrivateChatByUserPairHashEntity> findByUserPairHash(@Param("userPairHash") String userPairHash);
 
+    @Query("DELETE FROM private_chats_by_user_pair_hash WHERE user_pair_hash = :userPairHash")
+    void deleteByUserPairHash(@Param("userPairHash") String userPairHash);
+
 }

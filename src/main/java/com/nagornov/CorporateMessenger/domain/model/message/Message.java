@@ -12,7 +12,7 @@ import java.util.UUID;
 public class Message {
 
     private UUID id;
-    private UUID chatId;
+    private Long chatId;
     private UUID senderId;
     private String senderUsername;
     private String content;

@@ -43,13 +43,13 @@ public class CassandraMessageRepository {
         );
     }
 
-    public Optional<Message> findLastByChatId(UUID chatId) {
+    public Optional<Message> findLastByChatId(Long chatId) {
         return springDataCassandraMessageByChatIdRepository
                 .findLastMessageByChatId(chatId)
                 .map(cassandraMessageMapper::toDomain);
     }
 
-    public List<Message> getAllByChatId(UUID chatId, int page, int size) {
+    public List<Message> getAllByChatId(Long chatId, int page, int size) {
         Pageable pageable = CassandraPageRequest.of(0, size);
 
         for (int i = 0; i < page; i++) {

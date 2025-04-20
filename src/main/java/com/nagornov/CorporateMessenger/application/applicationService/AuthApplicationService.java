@@ -12,11 +12,11 @@ import com.nagornov.CorporateMessenger.domain.model.auth.JwtSession;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaRegistrationKeyDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaRoleDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
+import com.nagornov.CorporateMessenger.domain.service.UserService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserRoleDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
+import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.PasswordService;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,27 +31,27 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
-    private final JpaUserDomainService jpaUserDomainService;
+    private final UserService userService;
     private final JpaUserRoleDomainService jpaUserRoleDomainService;
     private final JpaRoleDomainService jpaRoleDomainService;
     private final JpaRegistrationKeyDomainService jpaRegistrationKeyDomainService;
     private final RedisJwtSessionDomainService redisJwtSessionDomainService;
-    private final PasswordDomainService passwordDomainService;
-    private final JwtDomainService jwtDomainService;
+    private final PasswordService passwordService;
+    private final JwtService jwtService;
     private final JwtProperties jwtProperties;
 
 
     @Transactional
     public JwtResponse registration(RegistrationRequest request) {
 
-        passwordDomainService.ensureMatchConfirmPassword(request.getPassword(), request.getConfirmPassword());
+        passwordService.ensureMatchConfirmPassword(request.getPassword(), request.getConfirmPassword());
 
         RegistrationKey registrationKey = jpaRegistrationKeyDomainService.getByValue(request.getRegistrationKey());
         registrationKey.ensureNotApplied();
 
-        jpaUserDomainService.ensureNotExistsByUsername(request.getUsername());
+        userService.ensureNotExistsByUsername(request.getUsername());
 
-        String encodedPassword = passwordDomainService.encodePassword(request.getPassword());
+        String encodedPassword = passwordService.encodePassword(request.getPassword());
         User user = new User(
                 UUID.randomUUID(),
                 request.getUsername(),
@@ -61,15 +61,15 @@ public class AuthApplicationService {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        jpaUserDomainService.save(user);
+        userService.save(user);
 
         jpaRegistrationKeyDomainService.apply(registrationKey, user.getId());
 
         Role role = jpaRoleDomainService.getByName(RoleEnum.USER);
         jpaUserRoleDomainService.assignRoleToUser(role.getId(), user.getId());
 
-        String accessToken = jwtDomainService.generateAccessToken(user, List.of(role));
-        String refreshToken = jwtDomainService.generateRefreshToken(user);
+        String accessToken = jwtService.generateAccessToken(user, List.of(role));
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         JwtSession jwtSession = new JwtSession(
                 accessToken,
@@ -89,14 +89,14 @@ public class AuthApplicationService {
     @Transactional
     public JwtResponse login(LoginRequest request) {
 
-        User user = jpaUserDomainService.getByUsername(request.getUsername());
+        User user = userService.getByUsername(request.getUsername());
 
-        passwordDomainService.ensureMatchEncodedPassword(request.getPassword(), user.getPassword());
+        passwordService.ensureMatchEncodedPassword(request.getPassword(), user.getPassword());
 
         List<Role> userRoles = jpaUserRoleDomainService.findRolesByUserId(user.getId());
 
-        String accessToken = jwtDomainService.generateAccessToken(user, userRoles);
-        String refreshToken = jwtDomainService.generateRefreshToken(user);
+        String accessToken = jwtService.generateAccessToken(user, userRoles);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         JwtSession jwtSession = new JwtSession(
                 accessToken,
@@ -116,9 +116,9 @@ public class AuthApplicationService {
     @Transactional
     public HttpResponse logout() {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        User user = jpaUserDomainService.getById(
+        User user = userService.getById(
                 UUID.fromString(authInfo.getUserId())
         );
 

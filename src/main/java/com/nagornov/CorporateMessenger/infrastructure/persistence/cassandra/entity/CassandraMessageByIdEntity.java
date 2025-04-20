@@ -23,7 +23,7 @@ public class CassandraMessageByIdEntity implements Serializable {
     private UUID id;
 
     @Column("chat_id")
-    private UUID chatId;
+    private Long chatId;
 
     @Column("sender_id")
     private UUID senderId;

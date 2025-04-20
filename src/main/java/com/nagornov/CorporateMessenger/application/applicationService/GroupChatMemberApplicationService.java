@@ -12,8 +12,8 @@ import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.Ca
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
+import com.nagornov.CorporateMessenger.domain.service.UserService;
+import com.nagornov.CorporateMessenger.domain.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,18 +26,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GroupChatMemberApplicationService {
 
-    private final JwtDomainService jwtDomainService;
+    private final JwtService jwtService;
     private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
     private final CassandraPrivateChatDomainService cassandraPrivateChatDomainService;
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
     private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
-    private final JpaUserDomainService jpaUserDomainService;
+    private final UserService userService;
 
 
     @Transactional(readOnly = true)
     public List<ChatMember> getGroupChatMembers(String chatId) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
                 UUID.fromString(chatId)
@@ -51,7 +51,7 @@ public class GroupChatMemberApplicationService {
     @Transactional(readOnly = true)
     public List<UserResponse> getAvailableUsersToAdding(String chatId) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
         UUID userId = authInfo.getUserIdAsUUID();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
@@ -76,7 +76,7 @@ public class GroupChatMemberApplicationService {
                 .stream().filter(companionId -> !memberIds.contains(companionId))
                 .map(companionId -> {
 
-                    User userToAdd = jpaUserDomainService.getById(companionId);
+                    User userToAdd = userService.getById(companionId);
                     return new UserResponse(userToAdd);
 
                 }).toList();
@@ -86,7 +86,7 @@ public class GroupChatMemberApplicationService {
     @Transactional
     public HttpResponse addMembersToGroupChat(String chatId, UserIdsRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
                 UUID.fromString(chatId)
@@ -95,7 +95,7 @@ public class GroupChatMemberApplicationService {
 
         for (String requestUserId : request.getUserIds()) {
 
-            User user = jpaUserDomainService.getById(
+            User user = userService.getById(
                     UUID.fromString(requestUserId)
             );
 
@@ -118,7 +118,7 @@ public class GroupChatMemberApplicationService {
     @Transactional
     public HttpResponse deleteMembersFromGroupChat(String chatId, UserIdsRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
                 UUID.fromString(chatId)
@@ -145,7 +145,7 @@ public class GroupChatMemberApplicationService {
     @Transactional
     public HttpResponse leaveFromGroupChat(String chatId) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         GroupChat groupChat = cassandraGroupChatDomainService.getById(
                 UUID.fromString(chatId)

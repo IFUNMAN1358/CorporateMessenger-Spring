@@ -30,6 +30,10 @@ public class CassandraPrivateChatRepository {
         );
     }
 
+    public void deleteByUserPairHash(String userPairHash) {
+        springDataCassandraPrivateChatByUserPairHashRepository.deleteByUserPairHash(userPairHash);
+    }
+
     public Optional<PrivateChat> findByUserPairHash(String userPairHash) {
         return springDataCassandraPrivateChatByUserPairHashRepository.findByUserPairHash(userPairHash)
                 .map(cassandraPrivateChatMapper::toDomain);

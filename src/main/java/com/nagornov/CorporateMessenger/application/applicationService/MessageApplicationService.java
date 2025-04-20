@@ -9,11 +9,11 @@ import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
+import com.nagornov.CorporateMessenger.domain.service.UserService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaUnreadMessageProducerDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioMessageFileDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
+import com.nagornov.CorporateMessenger.domain.service.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraChatBusinessService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageFileDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MessageApplicationService {
 
-    private final JwtDomainService jwtDomainService;
-    private final JpaUserDomainService jpaUserDomainService;
+    private final JwtService jwtService;
+    private final UserService userService;
     private final CassandraChatBusinessService cassandraChatBusinessService;
     private final CassandraMessageDomainService cassandraMessageDomainService;
     private final CassandraReadMessageDomainService cassandraReadMessageDomainService;
@@ -49,8 +49,8 @@ public class MessageApplicationService {
     @Transactional
     public MessageResponse createMessage(CreateMessageRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(authInfo.getUserIdAsUUID());
 
         ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
         cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
@@ -106,8 +106,8 @@ public class MessageApplicationService {
     @Transactional(readOnly = true)
     public List<MessageResponse> getAllMessages(String chatId, int page, int size) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(authInfo.getUserIdAsUUID());
 
         UUID uuidChatId = UUID.fromString(chatId);
 
@@ -139,7 +139,7 @@ public class MessageApplicationService {
     @Transactional
     public MessageResponse updateMessageContent(UpdateMessageContentRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Message message = cassandraMessageDomainService.getById(request.getMessageIdAsUUID());
         message.validateUserIdOwnership(authInfo.getUserIdAsUUID());
@@ -161,8 +161,8 @@ public class MessageApplicationService {
     @Transactional
     public MessageResponse deleteMessage(DeleteMessageRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(authInfo.getUserIdAsUUID());
 
         ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
         cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
@@ -201,8 +201,8 @@ public class MessageApplicationService {
     @Transactional
     public MessageResponse readMessage(ReadMessageRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(authInfo.getUserIdAsUUID());
 
         ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(request.getChatIdAsUUID());
         cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
@@ -242,8 +242,8 @@ public class MessageApplicationService {
 
     public MinioFileDto getMessageFile(String chatId, String messageId, String fileId) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(authInfo.getUserIdAsUUID());
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(authInfo.getUserIdAsUUID());
 
         ChatInterface chatInterface = cassandraChatBusinessService.getAvailableById(UUID.fromString(chatId));
         cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);

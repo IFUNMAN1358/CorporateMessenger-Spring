@@ -19,7 +19,7 @@ import java.util.UUID;
 public class CassandraMessageByChatIdKey implements Serializable {
 
     @PrimaryKeyColumn(name = "chat_id", type = PrimaryKeyType.PARTITIONED)
-    private UUID chatId;
+    private Long chatId;
 
     @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.CLUSTERED)
     private UUID id;

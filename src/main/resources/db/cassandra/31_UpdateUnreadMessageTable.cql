@@ -1,0 +1,2 @@
+ALTER TABLE messenger_ks.unread_messages_by_chat_id_and_user_id DROP chat_id;
+ALTER TABLE messenger_ks.unread_messages_by_chat_id_and_user_id ADD chat_id bigint;

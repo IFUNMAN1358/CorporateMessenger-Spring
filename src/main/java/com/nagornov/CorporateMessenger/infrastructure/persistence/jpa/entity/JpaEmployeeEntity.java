@@ -28,25 +28,16 @@ public class JpaEmployeeEntity implements Serializable {
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
-    @Column(name = "first_name", length = 100)
-    private String firstName;
-
-    @Column(name = "last_name", length = 100)
-    private String lastName;
-
-    @Column(name = "patronymic", length = 100)
-    private String patronymic;
-
     @Column(name = "leader_id")
     private UUID leaderId;
 
-    @Column(name = "department", length = 200)
+    @Column(name = "department")
     private String department;
 
-    @Column(name = "position", length = 200)
+    @Column(name = "position")
     private String position;
 
-    @Column(name = "description", length = 500)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "work_schedule")

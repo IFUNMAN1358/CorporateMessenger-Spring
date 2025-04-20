@@ -22,10 +22,10 @@ public class JpaUserEntity implements Serializable {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", length = 32, nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", length = 60, nullable = false)
     private String password;
 
     @Column(name = "phone", length = 20, unique = true)
@@ -33,6 +33,15 @@ public class JpaUserEntity implements Serializable {
 
     @Column(name = "main_email", length = 321, unique = true)
     private String mainEmail;
+
+    @Column(name = "first_name", length = 64, nullable = false, unique = true)
+    private String firstName;
+
+    @Column(name = "last_name", length = 64, unique = true)
+    private String lastName;
+
+    @Column(name = "bio", length = 70, unique = true)
+    private String bio;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -28,14 +28,8 @@ public class CassandraChatPhotoByChatIdEntity implements Serializable {
     @Column("small_file_path")
     private String smallFilePath;
 
-    @Column("small_file_size")
-    private Long smallFileSize;
-
     @Column("big_file_path")
     private String bigFilePath;
-
-    @Column("big_file_size")
-    private Long bigFileSize;
 
     @Column("mime_type")
     private String mimeType;

@@ -31,7 +31,13 @@ public class CassandraUnreadMessageRepository {
         );
     }
 
-    public Optional<UnreadMessage> findByChatIdAndUserId(UUID chatId, UUID userId) {
+    public void deleteByChatIdAndUserId(Long chatId, UUID userId) {
+        springDataCassandraUnreadMessageByChatIdAndUserIdRepository.deleteByChatIdAndUserId(
+                chatId, userId
+        );
+    }
+
+    public Optional<UnreadMessage> findByChatIdAndUserId(Long chatId, UUID userId) {
         return springDataCassandraUnreadMessageByChatIdAndUserIdRepository
                 .findByChatIdAndUserId(chatId, userId)
                 .map(cassandraUnreadMessageMapper::toDomain);

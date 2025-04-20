@@ -34,14 +34,8 @@ public class JpaEmployeePhotoEntity implements Serializable {
     @Column(name = "small_file_path", nullable = false)
     private String smallFilePath;
 
-    @Column(name = "small_file_size", nullable = false)
-    private Long smallFileSize;
-
     @Column(name = "big_file_path", nullable = false)
     private String bigFilePath;
-
-    @Column(name = "big_file_size", nullable = false)
-    private Long bigFileSize;
 
     @Column(name = "mime_type", length = 32, nullable = false)
     private String mimeType;

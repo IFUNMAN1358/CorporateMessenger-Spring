@@ -9,7 +9,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UnreadMessage {
 
-    private UUID chatId;
+    private Long chatId;
     private UUID userId;
     private Integer unreadCount;
 

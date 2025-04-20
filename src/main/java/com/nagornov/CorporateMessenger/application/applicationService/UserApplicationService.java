@@ -8,11 +8,11 @@ import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserDomainService;
+import com.nagornov.CorporateMessenger.domain.service.UserService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.JwtDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.security.PasswordDomainService;
+import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.PasswordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,27 +25,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserApplicationService {
 
-    private final JwtDomainService jwtDomainService;
-    private final JpaUserDomainService jpaUserDomainService;
+    private final JwtService jwtService;
+    private final UserService userService;
     private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
     private final MinioUserPhotoDomainService minioUserPhotoDomainService;
     private final RedisJwtSessionDomainService redisJwtSessionDomainService;
-    private final PasswordDomainService passwordDomainService;
+    private final PasswordService passwordService;
 
 
     @Transactional
     public HttpResponse changeUserPassword(PasswordRequest request) {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(
                 UUID.fromString(authInfo.getUserId())
         );
 
-        passwordDomainService.matchEncodedPassword(request.getCurrentPassword(), postgresUser.getPassword());
+        passwordService.matchEncodedPassword(request.getCurrentPassword(), postgresUser.getPassword());
 
-        String encodedPassword = passwordDomainService.encodePassword(request.getNewPassword());
+        String encodedPassword = passwordService.encodePassword(request.getNewPassword());
         postgresUser.updatePassword(encodedPassword);
-        jpaUserDomainService.save(postgresUser);
+        userService.save(postgresUser);
 
         return new HttpResponse("Password changed", 200);
     }
@@ -54,9 +54,9 @@ public class UserApplicationService {
     @Transactional(readOnly = true)
     public List<UserResponseWithMainPhoto> searchUsersByUsername(String username, int page, int pageSize) {
 
-        jwtDomainService.getAuthInfo();
+        jwtService.getAuthInfo();
 
-        List<User> userList = jpaUserDomainService.searchByUsername(username, page, pageSize);
+        List<User> userList = userService.searchByUsername(username, page, pageSize);
 
         return userList.stream().map(user -> {
             Optional<UserPhoto> currentUserPhoto = jpaUserPhotoDomainService.findMainByUserId(user.getId());
@@ -71,8 +71,8 @@ public class UserApplicationService {
     @Transactional(readOnly = true)
     public UserResponseWithAllPhotos getYourUserData() {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User user = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User user = userService.getById(
                 UUID.fromString(authInfo.getUserId())
         );
 
@@ -87,10 +87,10 @@ public class UserApplicationService {
     @Transactional(readOnly = true)
     public UserResponseWithAllPhotos getUserById(String userId) {
 
-        jwtDomainService.getAuthInfo();
+        jwtService.getAuthInfo();
         UUID uuidUserId = UUID.fromString(userId);
 
-        User user = jpaUserDomainService.getById(uuidUserId);
+        User user = userService.getById(uuidUserId);
         List<UserPhoto> userPhotos = jpaUserPhotoDomainService.getAllByUserId(uuidUserId);
 
         return new UserResponseWithAllPhotos(user, userPhotos);
@@ -100,15 +100,15 @@ public class UserApplicationService {
     @Transactional
     public HttpResponse deleteAccount() {
 
-        JwtAuthentication authInfo = jwtDomainService.getAuthInfo();
-        User postgresUser = jpaUserDomainService.getById(
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User postgresUser = userService.getById(
                 UUID.fromString(authInfo.getUserId())
         );
 
         jpaUserPhotoDomainService.getAllByUserId(postgresUser.getId())
                 .forEach(photo -> minioUserPhotoDomainService.delete(photo.getFilePath()));
 
-        jpaUserDomainService.deleteById(postgresUser.getId());
+        userService.deleteById(postgresUser.getId());
 
         redisJwtSessionDomainService.deleteByKey(postgresUser.getId());
 

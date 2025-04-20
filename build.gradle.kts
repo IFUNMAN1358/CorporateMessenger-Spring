@@ -40,6 +40,8 @@ dependencies {
     implementation("org.cognitor.cassandra:cassandra-migration:2.6.1_v4")
     // minio
     implementation("io.minio:minio:8.5.10")
+    implementation("org.imgscalr:imgscalr-lib:4.2")
+    implementation("software.amazon.awssdk:s3:2.20.0")
     // security
     implementation("org.springframework.security:spring-security-crypto")
     // jwt

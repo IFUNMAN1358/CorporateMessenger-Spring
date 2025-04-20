@@ -5,8 +5,9 @@ import lombok.Getter;
 @Getter
 public enum MinioBucket {
 
-    USER_PROFILE_PHOTOS("user-profile-photos"),
-    GROUP_CHAT_PHOTOS("group-chat-photos"),
+    USER_PHOTOS("user-photos"),
+    EMPLOYEE_PHOTOS("employee-photos"),
+    CHAT_PHOTOS("chat-photos"),
     MESSAGE_FILES("message-files"),;
 
     private final String bucketName;

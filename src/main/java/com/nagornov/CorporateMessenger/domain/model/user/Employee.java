@@ -1,67 +1,141 @@
 package com.nagornov.CorporateMessenger.domain.model.user;
 
-import lombok.AllArgsConstructor;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import lombok.Getter;
-import lombok.NonNull;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Getter
-@AllArgsConstructor
 public class Employee {
 
     private UUID id;
     private UUID userId;
-    private String firstName;
-    private String lastName;
-    private String patronymic;
     private UUID leaderId;
-    private String department;
-    private String position;
-    private String description;
-    private String workSchedule;
+    private String department;      // 0-255
+    private String position;        // 0-255
+    private String description;     // 0-255
+    private String workSchedule;    // 0-255
     private Instant createdAt;
     private Instant updatedAt;
 
-    public void updateFirstName(@NonNull String newFirstName) {
-        this.firstName = newFirstName;
-        this.updatedAt = Instant.now();
+    //
+    //
+    //
+
+    public Employee(
+            UUID id,
+            UUID userId,
+            UUID leaderId,
+            String department,
+            String position,
+            String description,
+            String workSchedule,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
+        // Validation
+        validateDepartment(department);
+        validatePosition(position);
+        validateDescription(description);
+        validateWorkSchedule(workSchedule);
+        // Setting
+        this.id = id;
+        this.userId = userId;
+        this.leaderId = leaderId;
+        this.department = department;
+        this.position = position;
+        this.description = description;
+        this.workSchedule = workSchedule;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
-    public void updateLastName(@NonNull String newLastName) {
-        this.lastName = newLastName;
-        this.updatedAt = Instant.now();
+    //
+    //
+    //
+
+    public String getIdAdString() {
+        return this.id.toString();
     }
 
-    public void updatePatronymic(@NonNull String newPatronymic) {
-        this.patronymic = newPatronymic;
-        this.updatedAt = Instant.now();
+    public String getUserIdAsString() {
+        return this.userId.toString();
     }
 
-    public void updateLeaderId(@NonNull UUID newLeaderId) {
+    public String getLeaderIdAsString() {
+        return this.leaderId.toString();
+    }
+
+    public LocalDateTime getCreatedAtAsLocalDateTimeByZoneIdSystemDefault() {
+        return LocalDateTime.ofInstant(this.createdAt, ZoneId.systemDefault());
+    }
+
+    public LocalDateTime getUpdatedAtAsLocalDateTimeByZoneIdSystemDefault() {
+        return LocalDateTime.ofInstant(this.updatedAt, ZoneId.systemDefault());
+    }
+
+    //
+    //
+    //
+
+    public void updateLeaderId(UUID newLeaderId) {
         this.leaderId = newLeaderId;
         this.updatedAt = Instant.now();
     }
 
-    public void updateDepartment(@NonNull String newDepartment) {
+    public void updateDepartment(String newDepartment) {
+        validateDepartment(newDepartment);
         this.department = newDepartment;
         this.updatedAt = Instant.now();
     }
 
-    public void updatePosition(@NonNull String newPosition) {
+    public void updatePosition(String newPosition) {
+        validatePosition(newPosition);
         this.position = newPosition;
         this.updatedAt = Instant.now();
     }
 
-    public void updateDescription(@NonNull String newDescription) {
+    public void updateDescription(String newDescription) {
+        validateDescription(newDescription);
         this.description = newDescription;
         this.updatedAt = Instant.now();
     }
 
-    public void updateWorkSchedule(@NonNull String newWorkSchedule) {
+    public void updateWorkSchedule(String newWorkSchedule) {
+        validateWorkSchedule(newWorkSchedule);
         this.workSchedule = newWorkSchedule;
         this.updatedAt = Instant.now();
+    }
+
+    //
+    //
+    //
+
+    public void validateDepartment(String department) {
+        if (department != null && department.strip().length() > 255) {
+            throw new ResourceConflictException("Employee[department] should be between 0 and 255");
+        }
+    }
+
+    public void validatePosition(String position) {
+        if (position != null && position.strip().length() > 255) {
+            throw new ResourceConflictException("Employee[position] should be between 0 and 255");
+        }
+    }
+
+    public void validateDescription(String description) {
+        if (description != null && description.strip().length() > 255) {
+            throw new ResourceConflictException("Employee[description] should be between 0 and 255");
+        }
+    }
+
+    public void validateWorkSchedule(String workSchedule) {
+        if (workSchedule != null && workSchedule.strip().length() > 255) {
+            throw new ResourceConflictException("Employee[workSchedule] should be between 0 and 255");
+        }
     }
 
 }

@@ -11,15 +11,11 @@ import java.util.UUID;
 @Data
 public class UserIdRequest {
 
-    @NotNull
-    @NotBlank
-    @Size
-    @ValidUuid
+    @NotNull(message = "Идентификатор пользователя не может быть null")
+    @NotBlank(message = "Идентификатор пользователя не может быть пустым")
+    @Size(message = "Идентификатор пользователя должен содержать от 16 до 36 символов", min = 16, max = 36)
+    @ValidUuid(message = "Идентификатор пользователя должен соответствовать типу UUID")
     private String userId;
-
-    //
-    //
-    //
 
     public UUID getUserIdAsUUID() {
         return UUID.fromString(userId);

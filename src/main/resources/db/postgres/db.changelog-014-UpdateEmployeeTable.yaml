@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-UpdateEmployeeTable
+      author: IFUNMAN
+      changes:
+        - dropColumn:
+            tableName: employees
+            columnName: first_name
+        - dropColumn:
+            tableName: employees
+            columnName: last_name
+        - dropColumn:
+            tableName: employees
+            columnName: patronymic
+        - modifyDataType:
+            tableName: employees
+            columnName: description
+            newDataType: varchar(255)
+        - modifyDataType:
+            tableName: employees
+            columnName: department
+            newDataType: varchar(255)
+        - modifyDataType:
+            tableName: employees
+            columnName: position
+            newDataType: varchar(255)

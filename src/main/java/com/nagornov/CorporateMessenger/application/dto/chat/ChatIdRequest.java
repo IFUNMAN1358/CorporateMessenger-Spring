@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.application.dto.chat;
 
-import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,18 +10,12 @@ import java.util.UUID;
 @Data
 public class ChatIdRequest {
 
-    @NotNull
-    @NotBlank
-    @Size
-    @ValidUuid
+    @NotNull(message = "Идентификатор чата не может быть null")
+    @NotBlank(message = "Идентификатор чата не может быть пустым")
     private String chatId;
 
-    //
-    //
-    //
-
-    public UUID getChatIdAsUUID() {
-        return UUID.fromString(chatId);
+    public Long getChatIdAsLong() {
+        return Long.valueOf(this.chatId);
     }
 
 }
