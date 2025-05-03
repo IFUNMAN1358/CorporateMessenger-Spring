@@ -9,15 +9,15 @@ import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.UserService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaUnreadMessageProducerDomainService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserService;
+import com.nagornov.CorporateMessenger.domain.broker.producer.UnreadMessageProducer;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioMessageFileDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.em.RedisMessageDomainService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.businessService.cassandra.CassandraChatBusinessService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageFileDomainService;
+import com.nagornov.CorporateMessenger.domain.service.message.MessageFileService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraReadMessageDomainService;
+import com.nagornov.CorporateMessenger.domain.service.message.ReadMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
@@ -39,10 +39,10 @@ public class MessageApplicationService {
     private final UserService userService;
     private final CassandraChatBusinessService cassandraChatBusinessService;
     private final CassandraMessageDomainService cassandraMessageDomainService;
-    private final CassandraReadMessageDomainService cassandraReadMessageDomainService;
-    private final CassandraMessageFileDomainService cassandraMessageFileDomainService;
+    private final ReadMessageService readMessageService;
+    private final MessageFileService messageFileService;
     private final MinioMessageFileDomainService minioMessageFileDomainService;
-    private final KafkaUnreadMessageProducerDomainService kafkaUnreadMessageProducerDomainService;
+    private final UnreadMessageProducer unreadMessageProducer;
     private final RedisMessageDomainService redisMessageDomainService;
 
 
@@ -82,7 +82,7 @@ public class MessageApplicationService {
                         file.getContentType(),
                         Instant.now()
                 );
-                cassandraMessageFileDomainService.save(messageFile);
+                messageFileService.save(messageFile);
             }
         }
         cassandraMessageDomainService.save(message);
@@ -90,15 +90,15 @@ public class MessageApplicationService {
         chatInterface.updateLastMessageId(message.getId());
         cassandraChatBusinessService.update(chatInterface);
 
-        kafkaUnreadMessageProducerDomainService
+        unreadMessageProducer
                 .sendToIncrementUnreadMessageCountForOther(postgresUser, chatInterface);
 
         redisMessageDomainService.leftSave(chatInterface.getId(), message, 1, TimeUnit.DAYS);
 
         return new MessageResponse(
                 message,
-                message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-                message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+                message.getIsRead() ? readMessageService.getAllByMessageId(message.getId()) : null,
+                message.getHasFiles() ? messageFileService.getAllByMessageId(message.getId()) : null
         );
     }
 
@@ -126,8 +126,8 @@ public class MessageApplicationService {
             listMessageResponses.add(
                     new MessageResponse(
                             message,
-                            message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-                            message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+                            message.getIsRead() ? readMessageService.getAllByMessageId(message.getId()) : null,
+                            message.getHasFiles() ? messageFileService.getAllByMessageId(message.getId()) : null
                     )
             );
         }
@@ -152,8 +152,8 @@ public class MessageApplicationService {
 
         return new MessageResponse(
             message,
-            message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-            message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+            message.getIsRead() ? readMessageService.getAllByMessageId(message.getId()) : null,
+            message.getHasFiles() ? messageFileService.getAllByMessageId(message.getId()) : null
         );
     }
 
@@ -171,9 +171,9 @@ public class MessageApplicationService {
         message.validateUserIdOwnership(postgresUser.getId());
 
         if (message.getHasFiles()) {
-            List<MessageFile> messageFiles = cassandraMessageFileDomainService.getAllByMessageId(message.getId());
+            List<MessageFile> messageFiles = messageFileService.getAllByMessageId(message.getId());
             for (MessageFile messageFile : messageFiles) {
-                cassandraMessageFileDomainService.delete(messageFile);
+                messageFileService.delete(messageFile);
                 minioMessageFileDomainService.delete(messageFile.getFilePath());
             }
         }
@@ -186,11 +186,11 @@ public class MessageApplicationService {
         );
         cassandraChatBusinessService.update(chatInterface);
 
-        cassandraReadMessageDomainService.getAllByMessageId(message.getId())
-                .forEach(cassandraReadMessageDomainService::delete);
+        readMessageService.getAllByMessageId(message.getId())
+                .forEach(readMessageService::delete);
 
         if (!message.getIsRead()) {
-            kafkaUnreadMessageProducerDomainService
+            unreadMessageProducer
                     .sendToDecrementUnreadMessageCountForOther(postgresUser, chatInterface);
         }
 
@@ -213,7 +213,7 @@ public class MessageApplicationService {
         if (message.getSenderId().equals(postgresUser.getId())) {
             return null;
         }
-        if (cassandraReadMessageDomainService.checkExistsByMessageIdAndUserId(message.getId(), postgresUser.getId())) {
+        if (readMessageService.checkExistsByMessageIdAndUserId(message.getId(), postgresUser.getId())) {
             return null;
         }
 
@@ -227,15 +227,15 @@ public class MessageApplicationService {
                 chatInterface.getId(),
                 message.getId()
         );
-        cassandraReadMessageDomainService.save(readMessage);
+        readMessageService.save(readMessage);
 
-        kafkaUnreadMessageProducerDomainService
+        unreadMessageProducer
                 .sendToDecrementUnreadMessageCountForUser(postgresUser, chatInterface);
 
         return new MessageResponse(
                 message,
-                message.getIsRead() ? cassandraReadMessageDomainService.getAllByMessageId(message.getId()) : null,
-                message.getHasFiles() ? cassandraMessageFileDomainService.getAllByMessageId(message.getId()) : null
+                message.getIsRead() ? readMessageService.getAllByMessageId(message.getId()) : null,
+                message.getHasFiles() ? messageFileService.getAllByMessageId(message.getId()) : null
         );
     }
 
@@ -249,7 +249,7 @@ public class MessageApplicationService {
         cassandraChatBusinessService.validateUserOwnership(chatInterface, postgresUser);
 
         Message message = cassandraMessageDomainService.getById(UUID.fromString(messageId));
-        Optional<MessageFile> messageFile = cassandraMessageFileDomainService.findByIdAndMessageId(
+        Optional<MessageFile> messageFile = messageFileService.findByIdAndMessageId(
                 UUID.fromString(fileId), message.getId()
         );
 

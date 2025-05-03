@@ -8,14 +8,18 @@ import lombok.Data;
 @Data
 public class PasswordRequest {
 
-    @NotNull
-    @NotBlank
-    @Size
+    @NotNull(message = "Текущий пароль не может быть null")
+    @NotBlank(message = "Текущий пароль не может быть пустым")
     private String currentPassword;
 
-    @NotNull
-    @NotBlank
-    @Size
+    @NotNull(message = "Новый пароль не может быть null")
+    @NotBlank(message = "Новый пароль не может быть пустым")
+    @Size(message = "Новый пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
     private String newPassword;
+
+    @NotNull(message = "Повторный пароль не может быть null")
+    @NotBlank(message = "Повторный пароль не может быть пустым")
+    @Size(message = "Повторный пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
+    private String confirmNewPassword;
 
 }

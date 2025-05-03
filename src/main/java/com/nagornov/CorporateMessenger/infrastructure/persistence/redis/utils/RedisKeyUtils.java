@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.redis.utils;
 
-import com.nagornov.CorporateMessenger.domain.enums.RedisPrefix;
+import com.nagornov.CorporateMessenger.domain.enums.redis.RedisPrefix;
 import lombok.experimental.UtilityClass;
 
 import java.util.UUID;

@@ -3,18 +3,16 @@ package com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfe
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaChatEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.entity.KafkaUserEntity;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class KafkaUnreadMessageDTO {
 
-    private KafkaUserEntity user;
     private KafkaChatEntity chat;
+    private KafkaUserEntity user;
     private String operation;
 
 }

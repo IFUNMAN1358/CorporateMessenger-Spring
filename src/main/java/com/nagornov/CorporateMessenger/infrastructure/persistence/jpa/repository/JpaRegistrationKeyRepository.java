@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -28,10 +27,6 @@ public class JpaRegistrationKeyRepository {
         springDataJpaRegistrationKeyRepository.delete(
                 jpaRegistrationKeyMapper.toEntity(registrationKey)
         );
-    }
-
-    public void deleteById(UUID id) {
-        springDataJpaRegistrationKeyRepository.deleteById(id);
     }
 
     public Optional<RegistrationKey> findByValue(String key) {

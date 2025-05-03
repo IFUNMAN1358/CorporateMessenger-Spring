@@ -25,7 +25,7 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/members",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<ChatMember>> getGroupChatMembers(@ValidUuid @PathVariable("chatId") String chatId) {
+    ResponseEntity<List<ChatMember>> getGroupChatMembers(@PathVariable("chatId") Long chatId) {
         List<ChatMember> chatMembers =
                 groupChatMemberApplicationService.getGroupChatMembers(chatId);
         return ResponseEntity.status(200).body(chatMembers);

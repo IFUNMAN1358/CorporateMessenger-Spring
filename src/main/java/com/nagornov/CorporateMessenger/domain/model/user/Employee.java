@@ -81,6 +81,10 @@ public class Employee {
     //
     //
 
+    public void updateUpdatedAsNow() {
+        this.updatedAt = Instant.now();
+    }
+
     public void updateLeaderId(UUID newLeaderId) {
         this.leaderId = newLeaderId;
         this.updatedAt = Instant.now();

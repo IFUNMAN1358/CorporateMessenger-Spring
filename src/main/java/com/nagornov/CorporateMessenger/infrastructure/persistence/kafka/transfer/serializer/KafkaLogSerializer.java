@@ -20,8 +20,7 @@ public class KafkaLogSerializer implements Serializer<Log> {
         try {
             return objectMapper.writeValueAsBytes(data);
         } catch (JsonProcessingException e) {
-            System.out.println(e.getMessage());
-            throw new SerializationException("Error serializing Log object", e);
+            throw new SerializationException("KafkaLogSerializer | Error serializing Log object", e);
         }
     }
 }

@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.logback.appender;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
-import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaLogProducerService;
+import com.nagornov.CorporateMessenger.domain.broker.producer.LogProducer;
 import com.nagornov.CorporateMessenger.infrastructure.logback.factory.LogFactory;
 import com.nagornov.CorporateMessenger.domain.model.log.Log;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ public class CustomKafkaAppender extends AppenderBase<ILoggingEvent> {
     private final List<ILoggingEvent> buffer = new ArrayList<>();
     private boolean initialized = false;
 
-    private KafkaLogProducerService kafkaLogProducerService;
+    private LogProducer logProducer;
     private String serviceName;
 
     @Override
@@ -31,7 +31,7 @@ public class CustomKafkaAppender extends AppenderBase<ILoggingEvent> {
 
         try {
             Log log = LogFactory.createLogObject(eventObject, serviceName);
-            kafkaLogProducerService.sendMessage(log);
+            logProducer.sendMessage(log);
         } catch (Exception e) {
             return;
         }
@@ -41,7 +41,7 @@ public class CustomKafkaAppender extends AppenderBase<ILoggingEvent> {
     public void start() {
         super.start();
         initialized = true;
-        if (!buffer.isEmpty() && kafkaLogProducerService != null) {
+        if (!buffer.isEmpty() && logProducer != null) {
             buffer.forEach(this::append);
             buffer.clear();
         }

@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.model.chat;
 
-import com.nagornov.CorporateMessenger.domain.enums.ChatType;
+import com.nagornov.CorporateMessenger.domain.enums.model.ChatType;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

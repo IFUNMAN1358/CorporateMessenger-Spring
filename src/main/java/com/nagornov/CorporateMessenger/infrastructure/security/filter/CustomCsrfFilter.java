@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisCsrfDomainService;
+import com.nagornov.CorporateMessenger.domain.service.auth.CsrfService;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.HttpMethodUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class CustomCsrfFilter extends OncePerRequestFilter {
 
     private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
-    private final RedisCsrfDomainService redisCsrfDomainService;
+    private final CsrfService csrfService;
 
     @Override
     protected void doFilterInternal(
@@ -36,7 +36,7 @@ public class CustomCsrfFilter extends OncePerRequestFilter {
 
         CsrfToken csrfToken = cookieCsrfTokenRepository.loadToken(request);
 
-        if (csrfToken.getToken() == null || !redisCsrfDomainService.exists(csrfToken.getToken())) {
+        if (csrfToken.getToken() == null || !csrfService.exists(csrfToken.getToken())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
             return;
         }

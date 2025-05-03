@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.model.chat;
 
-import com.nagornov.CorporateMessenger.domain.enums.ChatMemberStatus;
+import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

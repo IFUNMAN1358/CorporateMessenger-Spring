@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-CreateNotificationTable
+      author: IFUNMAN
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_read
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_processed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: varchar(255)
+              - column:
+                  name: payload
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_notifications_user_id
+            baseTableName: notifications
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_category
+            columns:
+              - column:
+                  name: category
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_created_at
+            columns:
+              - column:
+                  name: created_at
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_is_read_false
+            columns:
+              - column:
+                  name: is_read
+            indexQualifier: WHERE is_read = false

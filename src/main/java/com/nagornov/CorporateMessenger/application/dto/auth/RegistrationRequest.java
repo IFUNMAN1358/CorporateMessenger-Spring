@@ -12,8 +12,18 @@ public class RegistrationRequest {
 
     @NotNull(message = "Имя пользователя не может быть null")
     @NotBlank(message = "Имя пользователя не может быть пустым")
-    @Size(message = "Имя пользователя должно содержать от 5 до 20 символов", min = 5, max = 20)
+    @Size(message = "Имя пользователя должно содержать от 5 до 32 символов", min = 5, max = 32)
     private String username;
+
+    @NotNull(message = "Имя не может быть null")
+    @NotBlank(message = "Имя не может быть пустым")
+    @Size(message = "Имя должно содержать от 1 до 64 символов", min = 1, max = 64)
+    private String firstName;
+
+    @NotNull(message = "Фамилия не может быть null")
+    @NotBlank(message = "Фамилия не может быть пустой")
+    @Size(message = "Фамилия должна содержать от 0 до 64 символов", max = 64)
+    private String lastName;
 
     @NotNull(message = "Пароль не может быть null")
     @NotBlank(message = "Пароль не может быть пустым")

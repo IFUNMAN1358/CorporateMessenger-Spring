@@ -1,24 +1,28 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.PasswordRequest;
-import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithAllPhotos;
-import com.nagornov.CorporateMessenger.application.dto.user.UserResponseWithMainPhoto;
+import com.nagornov.CorporateMessenger.application.dto.user.*;
+import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
+import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
+import com.nagornov.CorporateMessenger.domain.dto.UserWithMainUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
+import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.UserService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
-import com.nagornov.CorporateMessenger.domain.service.PasswordService;
+import com.nagornov.CorporateMessenger.domain.service.user.*;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtSessionService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.auth.PasswordService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,73 +31,133 @@ public class UserApplicationService {
 
     private final JwtService jwtService;
     private final UserService userService;
-    private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
-    private final MinioUserPhotoDomainService minioUserPhotoDomainService;
-    private final RedisJwtSessionDomainService redisJwtSessionDomainService;
+    private final UserPhotoService userPhotoService;
+    private final UserBlacklistService userBlacklistService;
+    private final EmployeeService employeeService;
+    private final EmployeePhotoService employeePhotoService;
+    private final ContactService contactService;
+    private final JwtSessionService jwtSessionService;
     private final PasswordService passwordService;
 
 
     @Transactional
-    public HttpResponse changeUserPassword(PasswordRequest request) {
+    public void changeUserUsername(@NonNull UsernameRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User postgresUser = userService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
 
-        passwordService.matchEncodedPassword(request.getCurrentPassword(), postgresUser.getPassword());
+        if (userService.existsByUsername(request.getNewUsername())) {
+            throw new ResourceConflictException(
+                    "This username already taken: %s".formatted(request.getNewUsername()),
+                    new FieldError("newUsername", "Это имя пользователя уже занято")
+            );
+        }
+
+        authUser.updateUsername(request.getNewUsername());
+        userService.update(authUser);
+    }
+
+
+    @Transactional
+    public void changeUserPassword(@NonNull PasswordRequest request) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+
+        passwordService.matchEncodedPassword(request.getCurrentPassword(), authUser.getPassword());
 
         String encodedPassword = passwordService.encodePassword(request.getNewPassword());
-        postgresUser.updatePassword(encodedPassword);
-        userService.save(postgresUser);
-
-        return new HttpResponse("Password changed", 200);
+        authUser.updatePassword(encodedPassword);
+        userService.update(authUser);
     }
 
 
-    @Transactional(readOnly = true)
-    public List<UserResponseWithMainPhoto> searchUsersByUsername(String username, int page, int pageSize) {
-
-        jwtService.getAuthInfo();
-
-        List<User> userList = userService.searchByUsername(username, page, pageSize);
-
-        return userList.stream().map(user -> {
-            Optional<UserPhoto> currentUserPhoto = jpaUserPhotoDomainService.findMainByUserId(user.getId());
-            return new UserResponseWithMainPhoto(
-                    user,
-                    currentUserPhoto.orElse(null)
-            );
-        }).toList();
-    }
-
-
-    @Transactional(readOnly = true)
-    public UserResponseWithAllPhotos getYourUserData() {
+    @Transactional
+    public void changeUserMainEmail() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User user = userService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+    }
 
-        List<UserPhoto> userPhotos = jpaUserPhotoDomainService.getAllByUserId(
-                user.getId()
-        );
 
-        return new UserResponseWithAllPhotos(user, userPhotos);
+    @Transactional
+    public void changeUserPhone() {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
     }
 
 
     @Transactional(readOnly = true)
-    public UserResponseWithAllPhotos getUserById(String userId) {
+    public Page<UserWithMainPhotoResponse> searchUsersByUsername(@NonNull String username, int page, int pageSize) {
 
         jwtService.getAuthInfo();
-        UUID uuidUserId = UUID.fromString(userId);
 
-        User user = userService.getById(uuidUserId);
-        List<UserPhoto> userPhotos = jpaUserPhotoDomainService.getAllByUserId(uuidUserId);
+        Page<UserWithMainUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(username, page, pageSize);
 
-        return new UserResponseWithAllPhotos(user, userPhotos);
+        return usersDto.map(userDto -> {
+            return new UserWithMainPhotoResponse(
+                    userDto.getUser(),
+                    userDto.getMainUserPhoto()
+            );
+        });
+    }
+
+
+    @Transactional(readOnly = true)
+    public UserWithPhotosResponse getYourUserData() {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User user = userService.getById(authInfo.getUserIdAsUUID());
+
+        List<UserPhoto> userPhotos = userPhotoService.getAllByUserId(user.getId());
+
+        return new UserWithPhotosResponse(user, userPhotos);
+    }
+
+
+    @Transactional(readOnly = true)
+    public UserWithPhotosResponse getUserById(@NonNull UUID userId) {
+
+        jwtService.getAuthInfo();
+
+        User targetUser = userService.getById(userId);
+        List<UserPhoto> targetUserPhotos = userPhotoService.getAllByUserId(userId);
+
+        return new UserWithPhotosResponse(targetUser, targetUserPhotos);
+    }
+
+
+    @Transactional
+    public void blockUserByUserId(@NonNull UserIdRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        User authUser = userPairDTO.getUser1();
+        User targetUser = userPairDTO.getUser2();
+
+        if (userBlacklistService.existsByUserIdAndBlockedUserId(authUser.getId(), targetUser.getId())) {
+            throw new ResourceBadRequestException("User already blocked");
+        }
+
+        contactService.deleteContactPairByUserIds(authUser.getId(), targetUser.getId());
+        userBlacklistService.create(authUser.getId(), targetUser.getId());
+    }
+
+
+    @Transactional
+    public void unblockUserByUserId(@NonNull UserIdRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        User authUser = userPairDTO.getUser1();
+        User targetUser = userPairDTO.getUser2();
+
+        if (!userBlacklistService.existsByUserIdAndBlockedUserId(authUser.getId(), targetUser.getId())) {
+            throw new ResourceBadRequestException("User not blocked");
+        }
+
+        userBlacklistService.deleteByUserIdAndBlockedUserId(authUser.getId(), targetUser.getId());
     }
 
 
@@ -101,17 +165,32 @@ public class UserApplicationService {
     public HttpResponse deleteAccount() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User postgresUser = userService.getById(
-                UUID.fromString(authInfo.getUserId())
-        );
 
-        jpaUserPhotoDomainService.getAllByUserId(postgresUser.getId())
-                .forEach(photo -> minioUserPhotoDomainService.delete(photo.getFilePath()));
+        UserWithEmployeeDTO authUserDto = userService.getWithEmployeeById(authInfo.getUserIdAsUUID());
+        User authUser = authUserDto.getUser();
+        Employee authEmployee = authUserDto.getEmployee();
 
-        userService.deleteById(postgresUser.getId());
+        authUser.updateUsername("D_%s".formatted(authUser.getId().toString().substring(0, 30)));
+        authUser.updateFirstName("Пользователь удалён");
+        authUser.updateLastName(null);
+        authUser.updateBio(null);
+        authUser.updateMainEmail(null);
+        authUser.updatePhone(null);
+        authUser.markAsDeleted();
+        userService.update(authUser);
 
-        redisJwtSessionDomainService.deleteByKey(postgresUser.getId());
+        authEmployee.updateLeaderId(null);
+        authEmployee.updateDepartment(null);
+        authEmployee.updatePosition(null);
+        authEmployee.updateDescription(null);
+        authEmployee.updateWorkSchedule(null);
+        employeeService.update(authEmployee);
 
-        return new HttpResponse("User deleted successfully", 200);
+        userPhotoService.deleteAllByUserId(authUser.getId());
+        employeePhotoService.deleteByEmployeeId(authEmployee.getId());
+
+        jwtSessionService.deleteFromRedis(authUser.getId());
+
+        return new HttpResponse("User deleted", 200);
     }
 }

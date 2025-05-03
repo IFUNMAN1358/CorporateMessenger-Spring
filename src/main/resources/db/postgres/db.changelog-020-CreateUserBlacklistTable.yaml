@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-CreateUserBlacklistTable
+      author: IFUNMAN
+      changes:
+        - createTable:
+            tableName: user_blacklist
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: blocked_user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: blocked_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_user_blacklist_user_id
+            baseTableName: user_blacklist
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: fk_user_blacklist_blocked_user_id
+            baseTableName: user_blacklist
+            baseColumnNames: blocked_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE

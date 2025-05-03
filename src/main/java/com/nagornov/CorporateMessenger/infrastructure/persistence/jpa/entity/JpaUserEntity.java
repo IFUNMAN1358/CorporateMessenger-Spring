@@ -34,14 +34,17 @@ public class JpaUserEntity implements Serializable {
     @Column(name = "main_email", length = 321, unique = true)
     private String mainEmail;
 
-    @Column(name = "first_name", length = 64, nullable = false, unique = true)
+    @Column(name = "first_name", length = 64, nullable = false)
     private String firstName;
 
-    @Column(name = "last_name", length = 64, unique = true)
+    @Column(name = "last_name", length = 64)
     private String lastName;
 
-    @Column(name = "bio", length = 70, unique = true)
+    @Column(name = "bio", length = 70)
     private String bio;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

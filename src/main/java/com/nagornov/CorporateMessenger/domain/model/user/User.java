@@ -12,13 +12,14 @@ import java.util.UUID;
 public class User {
 
     private UUID id;
-    private String username;    // 5-32
-    private String password;    // 59-60
-    private String phone;       // 0-20
-    private String mainEmail;   // 0-321
-    private String firstName;   // 1-64
-    private String lastName;    // 0-64
-    private String bio;         // 0-70
+    private String username;
+    private String password;
+    private String phone;
+    private String mainEmail;
+    private String firstName;
+    private String lastName;
+    private String bio;
+    private Boolean isDeleted;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -35,6 +36,7 @@ public class User {
             String firstName,
             String lastName,
             String bio,
+            Boolean isDeleted,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -55,6 +57,7 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
         this.bio = bio;
+        this.isDeleted = isDeleted;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -78,6 +81,14 @@ public class User {
     //
     //
     //
+
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
+
+    public void unmarkAsDeleted() {
+        this.isDeleted = false; // pu-pu-pu-pu-pu-pu
+    }
 
     public void updateUsername(String newUsername) {
         validateUsername(newUsername);
@@ -118,6 +129,10 @@ public class User {
     public void updateBio(String newBio) {
         validateBio(newBio);
         this.bio = newBio;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateUpdatedAtAsNow() {
         this.updatedAt = Instant.now();
     }
 

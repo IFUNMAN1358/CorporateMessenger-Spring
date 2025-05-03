@@ -21,8 +21,7 @@ public class KafkaLogDeserializer implements Deserializer<Log> {
         try {
             return objectMapper.readValue(data, Log.class);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
-            throw new SerializationException("Error deserializing Log object", e);
+            throw new SerializationException("KafkaLogDeserializer | Error deserializing Log object", e);
         }
     }
 

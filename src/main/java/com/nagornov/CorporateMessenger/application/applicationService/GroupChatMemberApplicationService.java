@@ -3,17 +3,17 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
 import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.message.UnreadMessage;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraPrivateChatDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraUnreadMessageDomainService;
-import com.nagornov.CorporateMessenger.domain.service.UserService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatMemberService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatService;
+import com.nagornov.CorporateMessenger.domain.service.message.UnreadMessageService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,24 +27,25 @@ import java.util.UUID;
 public class GroupChatMemberApplicationService {
 
     private final JwtService jwtService;
-    private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
-    private final CassandraPrivateChatDomainService cassandraPrivateChatDomainService;
-    private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
-    private final CassandraUnreadMessageDomainService cassandraUnreadMessageDomainService;
+    private final ChatMemberService chatMemberService;
+    private final ChatService chatService;
+    private final UnreadMessageService unreadMessageService;
     private final UserService userService;
 
 
     @Transactional(readOnly = true)
-    public List<ChatMember> getGroupChatMembers(String chatId) {
+    public List<ChatMember> getChatMembers(Long chatId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(
-                UUID.fromString(chatId)
-        );
-        cassandraGroupChatMemberDomainService.validateUserOwnership(groupChat.getId(), authInfo.getUserIdAsUUID());
+        Chat chat = chatService.getById(chatId);
+        ChatMember chatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
 
-        return cassandraGroupChatMemberDomainService.getAllByChatId(groupChat.getId());
+        if (chat.getHasHiddenMembers() && (!chatMember.isCreator() || !chatMember.isAdministrator())) {
+            throw new ResourceBadRequestException("You dont have permission to get chat members");
+        }
+
+        return chatMemberService.findAllByChatId(chat.getId());
     }
 
 

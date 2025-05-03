@@ -5,7 +5,7 @@ import com.nagornov.CorporateMessenger.application.dto.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.chat.CreateGroupChatRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
-import com.nagornov.CorporateMessenger.domain.enums.ChatMemberStatus;
+import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
@@ -14,10 +14,15 @@ import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.chat.PrivateChat;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.*;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.UserService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserPhotoService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatMemberService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatPhotoService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatService;
+import com.nagornov.CorporateMessenger.domain.service.chat.PrivateChatService;
+import com.nagornov.CorporateMessenger.domain.service.message.MessageService;
+import com.nagornov.CorporateMessenger.domain.service.message.UnreadMessageService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +35,7 @@ public class ChatApplicationService {
 
     private final JwtService jwtService;
     private final UserService userService;
-    private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
+    private final UserPhotoService userPhotoService;
     private final ChatPhotoService chatPhotoService;
     private final ChatMemberService chatMemberService;
     private final UnreadMessageService unreadMessageService;
@@ -70,7 +75,7 @@ public class ChatApplicationService {
         return new ChatDTO().forPrivateChat(
                 chat,
                 partner,
-                jpaUserPhotoDomainService.findMainByUserId(partner.getId()).orElse(null),
+                userPhotoService.findMainByUserId(partner.getId()).orElse(null),
                 messageService.findLastByChatId(chat.getId()).orElse(null),
                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
         );
@@ -120,7 +125,7 @@ public class ChatApplicationService {
             return new ChatDTO().forPrivateChat(
                     chat,
                     partner,
-                    jpaUserPhotoDomainService.findMainByUserId(partner.getId()).orElse(null),
+                    userPhotoService.findMainByUserId(partner.getId()).orElse(null),
                     messageService.findLastByChatId(chat.getId()).orElse(null),
                     unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
             );
@@ -162,7 +167,7 @@ public class ChatApplicationService {
                         new ChatDTO().forPrivateChat(
                                 chat,
                                 partner,
-                                jpaUserPhotoDomainService.findMainByUserId(partner.getId()).orElse(null),
+                                userPhotoService.findMainByUserId(partner.getId()).orElse(null),
                                 messageService.findLastByChatId(chat.getId()).orElse(null),
                                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
                         )

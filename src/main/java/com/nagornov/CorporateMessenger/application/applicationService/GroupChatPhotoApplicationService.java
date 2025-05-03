@@ -9,7 +9,7 @@ import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.Ca
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioChatPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;

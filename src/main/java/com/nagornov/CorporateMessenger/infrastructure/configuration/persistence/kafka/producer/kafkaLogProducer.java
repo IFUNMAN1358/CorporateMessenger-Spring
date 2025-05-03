@@ -32,8 +32,12 @@ public class kafkaLogProducer {
     public ProducerFactory<String, Log> kafkaLogProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);
-        configProps.put(ProducerConfig.RETRIES_CONFIG, 0);
+        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 5000);
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        configProps.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        configProps.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+        configProps.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
 
         return new DefaultKafkaProducerFactory<>(
                 configProps,

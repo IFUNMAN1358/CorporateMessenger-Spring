@@ -1,0 +1,23 @@
+databaseChangeLog:
+    - changeSet:
+        id: 019-UpdateUserSettingsTable
+        author: IFUNMAN
+        changes:
+            - addColumn:
+                  tableName: user_settings
+                  columns:
+                      - column:
+                          name: contacts_visibility
+                          type: varchar(16)
+                          constraints:
+                              nullable: false
+                      - column:
+                          name: profile_visibility
+                          type: varchar(16)
+                          constraints:
+                            nullable: false
+                      - column:
+                          name: is_searchable
+                          type: boolean
+                          constraints:
+                            nullable: false

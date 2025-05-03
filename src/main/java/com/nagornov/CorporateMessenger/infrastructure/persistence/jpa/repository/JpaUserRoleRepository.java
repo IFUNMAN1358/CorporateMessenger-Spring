@@ -1,16 +1,14 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository;
 
-import com.nagornov.CorporateMessenger.domain.model.user.Role;
+import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import com.nagornov.CorporateMessenger.domain.model.user.UserRole;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserRoleEntity;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaRoleMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserRoleMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaUserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,8 +17,6 @@ public class JpaUserRoleRepository {
 
     private final SpringDataJpaUserRoleRepository springDataJpaUserRoleRepository;
     private final JpaUserRoleMapper jpaUserRoleMapper;
-    private final JpaUserMapper jpaUserMapper;
-    private final JpaRoleMapper jpaRoleMapper;
 
     public UserRole save(UserRole userRole) {
         JpaUserRoleEntity entity = springDataJpaUserRoleRepository.save(
@@ -29,10 +25,16 @@ public class JpaUserRoleRepository {
         return jpaUserRoleMapper.toDomain(entity);
     }
 
-    public List<Role> findRolesByUserId(UUID userId) {
+    public void delete(UserRole userRole) {
+        springDataJpaUserRoleRepository.delete(
+                jpaUserRoleMapper.toEntity(userRole)
+        );
+    }
+
+    public Optional<UserRole> findByUserIdAndRoleName(UUID userId, RoleName name) {
         return springDataJpaUserRoleRepository
-                .findRolesByUserId(userId)
-                .stream().map(jpaRoleMapper::toDomain).toList();
+                .findByUserIdAndRoleName(userId, name)
+                .map(jpaUserRoleMapper::toDomain);
     }
 
 }

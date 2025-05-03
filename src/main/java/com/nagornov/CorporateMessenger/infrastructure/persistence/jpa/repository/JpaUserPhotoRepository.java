@@ -35,6 +35,10 @@ public class JpaUserPhotoRepository {
         springDataJpaUserPhotoRepository.deleteById(id);
     }
 
+    public void deleteAllByUserId(UUID userId) {
+        springDataJpaUserPhotoRepository.deleteAllByUserId(userId);
+    }
+
     public Optional<UserPhoto> findById(UUID id) {
         return springDataJpaUserPhotoRepository
                 .findById(id)

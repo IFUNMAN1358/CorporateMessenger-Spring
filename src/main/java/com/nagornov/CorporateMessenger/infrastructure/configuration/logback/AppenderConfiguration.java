@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.logback;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import com.nagornov.CorporateMessenger.domain.service.domainService.kafka.KafkaLogProducerService;
+import com.nagornov.CorporateMessenger.domain.broker.producer.LogProducer;
 import com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomAsyncKafkaAppender;
 import com.nagornov.CorporateMessenger.infrastructure.logback.appender.CustomKafkaAppender;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class AppenderConfiguration implements ApplicationListener<ContextRefresh
     @Value("${spring.application.name}")
     private String serviceName;
 
-    private final KafkaLogProducerService kafkaLogProducerService;
+    private final LogProducer logProducer;
 
     @Override
     public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
@@ -39,7 +39,7 @@ public class AppenderConfiguration implements ApplicationListener<ContextRefresh
         if (asyncKafkaAppender != null) {
             kafkaAppender = (CustomKafkaAppender) asyncKafkaAppender.getAppender("KAFKA_APPENDER");
 
-            kafkaAppender.setKafkaLogProducerService(kafkaLogProducerService);
+            kafkaAppender.setLogProducer(logProducer);
             kafkaAppender.setServiceName(serviceName);
             kafkaAppender.start();
         }

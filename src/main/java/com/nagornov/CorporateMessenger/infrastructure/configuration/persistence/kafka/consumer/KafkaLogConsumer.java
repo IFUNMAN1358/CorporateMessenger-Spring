@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagornov.CorporateMessenger.domain.enums.kafka.KafkaGroup;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.persistence.kafka.errorHandler.KafkaErrorHandler;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.KafkaProperties;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.kafka.transfer.deserializer.KafkaLogDeserializer;
 import com.nagornov.CorporateMessenger.domain.model.log.Log;
@@ -24,12 +25,14 @@ public class KafkaLogConsumer {
 
     private final KafkaProperties kafkaProperties;
     private final ObjectMapper objectMapper;
+    private final KafkaErrorHandler kafkaErrorHandler;
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Log> kafkaLogContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Log> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(kafkaLogConsumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.setCommonErrorHandler(kafkaErrorHandler);
         return factory;
     }
 
@@ -37,9 +40,12 @@ public class KafkaLogConsumer {
     public ConsumerFactory<String, Log> kafkaLogConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaGroup.LOG_GROUP.getName());
-        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaGroup.LOG_GROUP_NAME);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        configProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+        configProps.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1024);
+        configProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 10000);
 
         return new DefaultKafkaConsumerFactory<>(
                 configProps,

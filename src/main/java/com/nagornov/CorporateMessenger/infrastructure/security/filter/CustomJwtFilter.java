@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtSession;
-import com.nagornov.CorporateMessenger.domain.service.domainService.redis.RedisJwtSessionDomainService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtSessionService;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -18,14 +18,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class CustomJwtFilter extends OncePerRequestFilter {
 
     private final JwtRepository jwtRepository;
-    private final RedisJwtSessionDomainService redisJwtSessionDomainService;
+    private final JwtSessionService jwtSessionService;
 
     @Override
     protected void doFilterInternal(
@@ -40,9 +39,7 @@ public class CustomJwtFilter extends OncePerRequestFilter {
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-            Optional<JwtSession> existingSession = redisJwtSessionDomainService.findByKey(
-                UUID.fromString(jwtInfoToken.getUserId())
-            );
+            Optional<JwtSession> existingSession = jwtSessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
 
             if (existingSession.isPresent()) {
 

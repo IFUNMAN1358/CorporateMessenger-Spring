@@ -32,3 +32,11 @@ databaseChangeLog:
       file: db/postgres/db.changelog-014-UpdateEmployeeTable.yaml
   - include:
       file: db/postgres/db.changelog-015-UpdateUserTable.yaml
+  - include:
+      file: db/postgres/db.changelog-016-CreateNotificationTable.yaml
+  - include:
+      file: db/postgres/db.changelog-017-CreateUserSettingsTable.yaml
+  - include:
+      file: db/postgres/db.changelog-018-UpdateContactTable.yaml
+  - include:
+      file: db/postgres/db.changelog-019-UpdateUserSettingsTable.yaml

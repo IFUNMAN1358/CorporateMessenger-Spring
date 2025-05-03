@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-UpdateContactTable
+      author: IFUNMAN
+      changes:
+        - dropUniqueConstraint:
+            tableName: contacts
+            constraintName: unique_contact
+        - dropColumn:
+            tableName: contacts
+            columnName: added_at
+        - addColumn:
+            tableName: contacts
+            columns:
+              - column:
+                  name: role
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_request_sent_at
+                  type: timestamp
+              - column:
+                  name: added_at
+                  type: timestamp

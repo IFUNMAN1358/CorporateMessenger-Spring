@@ -1,0 +1,8 @@
+username 5-32
+password 59-60
+fistName 1-64
+lastName 0-64
+bio 0-70
+
+title 5-128
+description 0-255

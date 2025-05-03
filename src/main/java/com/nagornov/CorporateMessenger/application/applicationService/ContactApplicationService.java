@@ -1,0 +1,219 @@
+package com.nagornov.CorporateMessenger.application.applicationService;
+
+import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
+import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
+import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsDTO;
+import com.nagornov.CorporateMessenger.domain.enums.model.ContactRole;
+import com.nagornov.CorporateMessenger.domain.enums.model.ContactStatus;
+import com.nagornov.CorporateMessenger.domain.enums.model.ContactsVisibility;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
+import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
+import com.nagornov.CorporateMessenger.domain.model.user.*;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.user.ContactService;
+import com.nagornov.CorporateMessenger.domain.service.user.NotificationService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserBlacklistService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserService;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class ContactApplicationService {
+
+    private static final Duration NOTIFICATION_COOLDOWN = Duration.ofHours(24);
+
+    private final UserService userService;
+    private final JwtService jwtService;
+    private final ContactService contactService;
+    private final UserBlacklistService userBlacklistService;
+    private final NotificationService notificationService;
+
+
+    @Transactional
+    public Contact addContactByUserId(@NonNull UserIdRequest request) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        User initiatorUser = userService.getById(authInfo.getUserIdAsUUID());
+
+        UserWithUserSettingsDTO recipientDto = userService.getWithUserSettingsById(request.getUserId());
+        User recipientUser = recipientDto.getUser();
+        UserSettings recipientUserSettings = recipientDto.getUserSettings();
+
+        userBlacklistService.validateAnyBetweenUserIds(initiatorUser.getId(), recipientUser.getId());
+
+        Optional<ContactPairDTO> contactPairDto = contactService.findContactPairByUserIds(initiatorUser.getId(), recipientUser.getId());
+
+        if (contactPairDto.isPresent()) {
+            Contact initiatorContact = contactPairDto.get().getContact1();
+            Contact recipientContact = contactPairDto.get().getContact2();
+
+            if (recipientContact.isConfirmed()) {
+                throw new ResourceBadRequestException("Contact request is not pending or already confirmed");
+            }
+
+            if (!recipientUserSettings.getIsConfirmContactRequests()) {
+                initiatorContact.confirm();
+                recipientContact.confirm();
+                initiatorContact.updateAddedAsNow();
+                recipientContact.updateAddedAsNow();
+                initiatorContact.updateLastRequestSentAtAsNow();
+                contactService.updateAll(List.of(initiatorContact, recipientContact));
+                notificationService.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
+                return initiatorContact;
+            }
+
+            Instant dayInterval = Instant.now().minus(NOTIFICATION_COOLDOWN);
+            if (initiatorContact.getLastRequestSentAt() == null || initiatorContact.getLastRequestSentAt().isBefore(dayInterval)) {
+                initiatorContact.updateLastRequestSentAtAsNow();
+                contactService.update(initiatorContact);
+                notificationService.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
+                return initiatorContact;
+            }
+
+            return initiatorContact;
+        }
+
+        if (!recipientUserSettings.getIsConfirmContactRequests()) {
+            notificationService.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
+            contactService.create(
+                    recipientUser.getId(), initiatorUser.getId(), ContactRole.RECIPIENT, ContactStatus.CONFIRMED, null, Instant.now()
+            );
+            return contactService.create(
+                    initiatorUser.getId(), recipientUser.getId(), ContactRole.INITIATOR, ContactStatus.CONFIRMED, Instant.now(), Instant.now()
+            );
+        }
+
+        notificationService.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
+        contactService.create(
+                recipientUser.getId(), initiatorUser.getId(), ContactRole.RECIPIENT, ContactStatus.PENDING, null, null
+        );
+        return contactService.create(
+                initiatorUser.getId(), recipientUser.getId(), ContactRole.INITIATOR, ContactStatus.PENDING, Instant.now(), null
+        );
+    }
+
+
+    @Transactional(readOnly = true)
+    public Optional<Contact> findContactByUserId(@NonNull UUID userId) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), userId);
+        User authUser = userPairDTO.getUser1();
+        User targetUser = userPairDTO.getUser2();
+
+        if (userBlacklistService.existsByUserIdAndBlockedUserId(userId, authInfo.getUserIdAsUUID())) {
+            return Optional.empty();
+        }
+
+        return contactService.findByUserIdAndContactId(authUser.getId(), targetUser.getId());
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<Contact> getMyContacts() {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+        return contactService.findAllByUserId(authUser.getId());
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<Contact> getContactsByUserId(@NonNull UUID userId) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+
+        UserWithUserSettingsDTO targetUserDTO = userService.getWithUserSettingsById(userId);
+        User targetUser = targetUserDTO.getUser();
+        UserSettings targetUserSettings = targetUserDTO.getUserSettings();
+
+        if (userBlacklistService.existsByUserIdAndBlockedUserId(targetUser.getId(), authUser.getId())) {
+            throw new ResourceBadRequestException("You can't get user's contacts because he blocked you");
+        }
+
+        Optional<Contact> optTargetUserContact = contactService.findByUserIdAndContactId(targetUser.getId(), authUser.getId());
+        boolean contactIsPresentAndConfirmed = optTargetUserContact.isPresent() && optTargetUserContact.get().isConfirmed();
+
+        if (targetUserSettings.isContactsVisibility(ContactsVisibility.EVERYONE)) {
+            return contactService.findAllByUserId(targetUser.getId());
+        }
+        if (targetUserSettings.isContactsVisibility(ContactsVisibility.CONTACTS) && contactIsPresentAndConfirmed) {
+            return contactService.findAllByUserId(targetUser.getId());
+        }
+        if (targetUserSettings.isContactsVisibility(ContactsVisibility.ONLY_ME) && contactIsPresentAndConfirmed) {
+            return List.of(optTargetUserContact.get());
+        }
+        return List.of();
+    }
+
+
+    @Transactional
+    public void confirmContactByUserId(@NonNull UserIdRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        User authUser = userPairDTO.getUser1();
+        User initiatorUser = userPairDTO.getUser2();
+
+        Contact authUserContact = contactService.getByUserIdAndContactId(authUser.getId(), initiatorUser.getId());
+        Contact initiatorUserContact = contactService.getByUserIdAndContactId(initiatorUser.getId(), authUser.getId());
+
+        if (userBlacklistService.existsByUserIdAndBlockedUserId(authUser.getId(), initiatorUser.getId())) {
+            throw new ResourceBadRequestException("You can't confirm a blocked contact");
+        }
+        if (!(authUserContact.isRecipient() && initiatorUserContact.isInitiator())) {
+            throw new ResourceBadRequestException("You have no right to confirm contact");
+        }
+
+        authUserContact.confirm();
+        initiatorUserContact.confirm();
+
+        notificationService.sendToKafkaAsConfirmContactRequest(initiatorUser.getId(), authUser.getId());
+        contactService.updateAll(List.of(authUserContact, initiatorUserContact));
+    }
+
+
+    @Transactional
+    public void rejectContactByUserId(@NonNull UserIdRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        User authUser = userPairDTO.getUser1();
+        User initiatorUser = userPairDTO.getUser2();
+
+        Contact authUserContact = contactService.getByUserIdAndContactId(authUser.getId(), initiatorUser.getId());
+        Contact initiatorUserContact = contactService.getByUserIdAndContactId(initiatorUser.getId(), authUser.getId());
+
+        if (userBlacklistService.existsByUserIdAndBlockedUserId(authUser.getId(), initiatorUser.getId())) {
+            throw new ResourceBadRequestException("You can't reject a blocked contact");
+        }
+        if (!(authUserContact.isRecipient() && initiatorUserContact.isInitiator())) {
+            throw new ResourceBadRequestException("You have no right to reject contact");
+        }
+        notificationService.sendToKafkaAsRejectContactRequest(initiatorUser.getId(), authUser.getId());
+        contactService.deleteAll(List.of(authUserContact, initiatorUserContact));
+    }
+
+
+    @Transactional
+    public void deleteContactByUserId(@NonNull UserIdRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        User authUser = userPairDTO.getUser1();
+        User targetUser = userPairDTO.getUser2();
+
+        contactService.deleteContactPairByUserIds(authUser.getId(), targetUser.getId());
+    }
+}

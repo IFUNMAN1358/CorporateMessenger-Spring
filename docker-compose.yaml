@@ -39,8 +39,10 @@ services:
       - cassandra
       - redis
       - minio
-      - zookeeper
-      - kafka
+      - cm-zookeeper
+      - cm-kafka-1
+      - cm-kafka-2
+      - cm-kafka-3
     networks:
       - postgres-net
       - cassandra-net
@@ -130,8 +132,8 @@ services:
     networks:
       - minio-net
 
-  zookeeper:
-    container_name: zookeeper
+  cm-zookeeper:
+    container_name: cm-zookeeper
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -142,23 +144,63 @@ services:
     networks:
       - kafka-net
 
-  kafka:
-    container_name: kafka
+  cm-kafka-1:
+    container_name: cm-kafka-1
     image: confluentinc/cp-kafka:latest
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: cm-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cm-kafka-1:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
-    hostname: kafka
+    hostname: cm-kafka-1
     ports:
       - "9092:9092"
     depends_on:
-      - zookeeper
+      - cm-zookeeper
+    networks:
+      - kafka-net
+
+  cm-kafka-2:
+    container_name: cm-kafka-2
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: cm-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cm-kafka-2:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    hostname: cm-kafka-2
+    ports:
+      - "9093:9092"
+    depends_on:
+      - cm-zookeeper
+    networks:
+      - kafka-net
+
+  cm-kafka-3:
+    container_name: cm-kafka-3
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: cm-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cm-kafka-3:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    hostname: cm-kafka-3
+    ports:
+      - "9094:9092"
+    depends_on:
+      - cm-zookeeper
     networks:
       - kafka-net
 

@@ -15,10 +15,6 @@ public class UserIdRequest {
     @NotBlank(message = "Идентификатор пользователя не может быть пустым")
     @Size(message = "Идентификатор пользователя должен содержать от 16 до 36 символов", min = 16, max = 36)
     @ValidUuid(message = "Идентификатор пользователя должен соответствовать типу UUID")
-    private String userId;
-
-    public UUID getUserIdAsUUID() {
-        return UUID.fromString(userId);
-    }
+    private UUID userId;
 
 }

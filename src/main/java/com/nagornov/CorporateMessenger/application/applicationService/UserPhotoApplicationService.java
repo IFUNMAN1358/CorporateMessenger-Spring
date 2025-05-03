@@ -6,10 +6,10 @@ import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundExceptio
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
-import com.nagornov.CorporateMessenger.domain.service.domainService.jpa.JpaUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.UserService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserPhotoService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -27,7 +27,7 @@ import java.util.UUID;
 public class UserPhotoApplicationService {
 
     private final UserService userService;
-    private final JpaUserPhotoDomainService jpaUserPhotoDomainService;
+    private final UserPhotoService userPhotoService;
     private final MinioUserPhotoDomainService minioUserPhotoDomainService;
     private final JwtService jwtService;
 
@@ -52,13 +52,13 @@ public class UserPhotoApplicationService {
                 true,
                 LocalDateTime.now()
         );
-        jpaUserPhotoDomainService.save(userPhoto);
+        userPhotoService.save(userPhoto);
 
-        Optional<UserPhoto> currentUserPhoto = jpaUserPhotoDomainService.findMainByUserId(postgresUser.getId());
+        Optional<UserPhoto> currentUserPhoto = userPhotoService.findMainByUserId(postgresUser.getId());
         currentUserPhoto.ifPresent(UserPhoto::unmarkAsMain);
-        currentUserPhoto.ifPresent(jpaUserPhotoDomainService::save);
+        currentUserPhoto.ifPresent(userPhotoService::save);
 
-        return jpaUserPhotoDomainService.getById(userPhoto.getId());
+        return userPhotoService.getById(userPhoto.getId());
     }
 
 
@@ -67,7 +67,7 @@ public class UserPhotoApplicationService {
 
         jwtService.getAuthInfo();
 
-        Optional<UserPhoto> userPhoto = jpaUserPhotoDomainService.findMainByUserId(
+        Optional<UserPhoto> userPhoto = userPhotoService.findMainByUserId(
                 UUID.fromString(userId)
         );
 
@@ -86,7 +86,7 @@ public class UserPhotoApplicationService {
 
         jwtService.getAuthInfo();
 
-        UserPhoto userPhoto = jpaUserPhotoDomainService.getById(
+        UserPhoto userPhoto = userPhotoService.getById(
                 UUID.fromString(photoId)
         );
 
@@ -103,20 +103,20 @@ public class UserPhotoApplicationService {
                 authInfo.getUserIdAsUUID()
         );
 
-        UserPhoto newMainPhoto = jpaUserPhotoDomainService.getByIdAndUserId(
+        UserPhoto newMainPhoto = userPhotoService.getByIdAndUserId(
                 UUID.fromString(photoId),
                 postgresUser.getId()
         );
         newMainPhoto.markAsMain();
 
         Optional<UserPhoto> currentUserPhoto =
-                jpaUserPhotoDomainService.findMainByUserId(postgresUser.getId());
+                userPhotoService.findMainByUserId(postgresUser.getId());
         currentUserPhoto.ifPresent(UserPhoto::unmarkAsMain);
 
-        currentUserPhoto.ifPresent(jpaUserPhotoDomainService::save);
-        jpaUserPhotoDomainService.save(newMainPhoto);
+        currentUserPhoto.ifPresent(userPhotoService::save);
+        userPhotoService.save(newMainPhoto);
 
-        return jpaUserPhotoDomainService.getById(newMainPhoto.getId());
+        return userPhotoService.getById(newMainPhoto.getId());
     }
 
 
@@ -127,25 +127,25 @@ public class UserPhotoApplicationService {
                 authInfo.getUserIdAsUUID()
         );
 
-        UserPhoto photoToDelete = jpaUserPhotoDomainService.getByIdAndUserId(
+        UserPhoto photoToDelete = userPhotoService.getByIdAndUserId(
                 UUID.fromString(photoId),
                 postgresUser.getId()
         );
 
         if (photoToDelete.getIsMain()) {
             List<UserPhoto> userPhotos =
-                    jpaUserPhotoDomainService.getAllByUserId(postgresUser.getId())
+                    userPhotoService.getAllByUserId(postgresUser.getId())
                             .stream().filter(
                                     photo -> !photo.getId().equals(photoToDelete.getId())
                             ).toList();
             if (!userPhotos.isEmpty()) {
                 UserPhoto newMainPhoto = userPhotos.getFirst();
                 newMainPhoto.markAsMain();
-                jpaUserPhotoDomainService.save(newMainPhoto);
+                userPhotoService.save(newMainPhoto);
             }
         }
 
-        jpaUserPhotoDomainService.deleteById(photoToDelete.getId());
+        userPhotoService.deleteById(photoToDelete.getId());
         minioUserPhotoDomainService.delete(photoToDelete.getFilePath());
 
         return new HttpResponse("User photo deleted successfully", 200);

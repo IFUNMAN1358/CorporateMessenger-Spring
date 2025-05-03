@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity;
 
+import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,8 @@ public class JpaRoleEntity implements Serializable {
     private UUID id;
 
     @Column(name = "name", unique = true, nullable = false, updatable = false)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleName name;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -20,8 +20,7 @@ public class KafkaUnreadMessageDTOSerializer implements Serializer<KafkaUnreadMe
         try {
             return objectMapper.writeValueAsBytes(data);
         } catch (JsonProcessingException e) {
-            System.out.println(e.getMessage());
-            throw new SerializationException("Error serializing KafkaUnreadMessageDTO", e);
+            throw new SerializationException("KafkaUnreadMessageDTOSerializer | Error serializing KafkaUnreadMessageDTO", e);
         }
     }
 

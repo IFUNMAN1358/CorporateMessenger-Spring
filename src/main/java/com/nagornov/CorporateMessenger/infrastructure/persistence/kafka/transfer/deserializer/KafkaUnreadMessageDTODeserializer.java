@@ -21,8 +21,7 @@ public class KafkaUnreadMessageDTODeserializer implements Deserializer<KafkaUnre
         try {
             return objectMapper.readValue(data, KafkaUnreadMessageDTO.class);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
-            throw new SerializationException("Error deserializing KafkaUnreadMessageDTO", e);
+            throw new SerializationException("KafkaUnreadMessageDTODeserializer | Error deserializing KafkaUnreadMessageDTO object", e);
         }
     }
 
