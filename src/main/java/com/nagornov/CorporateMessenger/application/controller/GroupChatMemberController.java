@@ -1,20 +1,22 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
-import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdsRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.GroupChatMemberApplicationService;
-import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
+import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class GroupChatMemberController {
@@ -25,9 +27,11 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/members",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<ChatMember>> getGroupChatMembers(@PathVariable("chatId") Long chatId) {
-        List<ChatMember> chatMembers =
-                groupChatMemberApplicationService.getGroupChatMembers(chatId);
+    ResponseEntity<List<ChatMember>> getGroupChatMembers(@NotNull @PathVariable("chatId") Long chatId, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
+        }
+        List<ChatMember> chatMembers = groupChatMemberApplicationService.getChatMembers(chatId);
         return ResponseEntity.status(200).body(chatMembers);
     }
 
@@ -36,9 +40,11 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/members/available",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<UserResponse>> getAvailableUsersToAdding(@ValidUuid @PathVariable("chatId") String chatId) {
-        List<UserResponse> usersToAdd =
-                groupChatMemberApplicationService.getAvailableUsersToAdding(chatId);
+    ResponseEntity<List<UserResponse>> getAvailableUsersToAdding(@NotNull @PathVariable("chatId") Long chatId, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
+        }
+        List<UserResponse> usersToAdd = groupChatMemberApplicationService.getAvailableUsersToAdding(chatId);
         return ResponseEntity.status(200).body(usersToAdd);
     }
 
@@ -49,11 +55,14 @@ public class GroupChatMemberController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> addMembersToGroupChat(
-            @ValidUuid @PathVariable("chatId") String chatId,
-            @Validated @RequestBody UserIdsRequest request
+            @NotNull @PathVariable("chatId") Long chatId,
+            @RequestBody UserIdsRequest request,
+            BindingResult bindingResult
     ) {
-        HttpResponse infoResponse =
-                groupChatMemberApplicationService.addMembersToGroupChat(chatId, request);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) or UserIdsRequest validation error", bindingResult);
+        }
+        HttpResponse infoResponse = groupChatMemberApplicationService.addMembersToGroupChat(chatId, request);
         return ResponseEntity.status(201).body(infoResponse);
     }
 
@@ -64,11 +73,14 @@ public class GroupChatMemberController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<HttpResponse> deleteMembersFromGroupChat(
-            @ValidUuid @PathVariable("chatId") String chatId,
-            @Validated @RequestBody UserIdsRequest request
+            @NotNull @PathVariable("chatId") Long chatId,
+            @RequestBody UserIdsRequest request,
+            BindingResult bindingResult
     ) {
-        HttpResponse infoResponse =
-                groupChatMemberApplicationService.deleteMembersFromGroupChat(chatId, request);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) or UserIdsRequest validation error", bindingResult);
+        }
+        HttpResponse infoResponse = groupChatMemberApplicationService.deleteMembersFromGroupChat(chatId, request);
         return ResponseEntity.status(200).body(infoResponse);
     }
 
@@ -77,9 +89,11 @@ public class GroupChatMemberController {
             value = "/api/chat/group/{chatId}/leave",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> leaveFromGroupChat(@ValidUuid @PathVariable("chatId") String chatId) {
-        HttpResponse infoResponse =
-                groupChatMemberApplicationService.leaveFromGroupChat(chatId);
+    ResponseEntity<HttpResponse> leaveFromGroupChat(@NotNull @PathVariable("chatId") Long chatId, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
+        }
+        HttpResponse infoResponse = groupChatMemberApplicationService.leaveFromGroupChat(chatId);
         return ResponseEntity.status(200).body(infoResponse);
     }
 

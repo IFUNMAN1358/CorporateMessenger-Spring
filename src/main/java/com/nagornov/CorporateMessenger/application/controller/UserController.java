@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.*;
+import com.nagornov.CorporateMessenger.application.dto.model.user.*;
 import com.nagornov.CorporateMessenger.application.applicationService.UserApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -26,7 +27,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserUsername(@RequestBody UsernameRequest request) {
+    ResponseEntity<String> changeUserUsername(@RequestBody UsernameRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("UsernameRequest validation error", bindingResult);
+        }
         userApplicationService.changeUserUsername(request);
         return ResponseEntity.status(204).body("Username updated");
     }
@@ -37,7 +41,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserPassword(@Validated @RequestBody PasswordRequest request) {
+    ResponseEntity<String> changeUserPassword(@RequestBody PasswordRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PasswordRequest validation error", bindingResult);
+        }
         userApplicationService.changeUserPassword(request);
         return ResponseEntity.status(204).body("Password updated");
     }
@@ -69,11 +76,15 @@ public class UserController {
             value = "/api/user/search",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Page<UserWithMainPhotoResponse>> searchUsersByUsername(
+    ResponseEntity<Page<UserWithUserPhotoResponse>> searchUsersByUsername(
             @RequestParam("username") String username,
-            @RequestParam("page") int page
+            @RequestParam("page") int page,
+            BindingResult bindingResult
     ) {
-        Page<UserWithMainPhotoResponse> response = userApplicationService.searchUsersByUsername(username, page, 10);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("RequestParam(username) | RequestParam(page) validation error", bindingResult);
+        }
+        Page<UserWithUserPhotoResponse> response = userApplicationService.searchUsersByUsername(username, page, 10);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -82,8 +93,8 @@ public class UserController {
             value = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserWithPhotosResponse> getYourUserData() {
-        UserWithPhotosResponse response = userApplicationService.getYourUserData();
+    ResponseEntity<UserWithUserPhotosResponse> getYourUserData() {
+        UserWithUserPhotosResponse response = userApplicationService.getYourUserData();
         return ResponseEntity.status(200).body(response);
     }
 
@@ -92,8 +103,11 @@ public class UserController {
             value = "/api/user/{userId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserWithPhotosResponse> getUserById(@PathVariable("userId") UUID userId) {
-        UserWithPhotosResponse response = userApplicationService.getUserById(userId);
+    ResponseEntity<UserWithUserPhotosResponse> getUserById(@NotNull @PathVariable("userId") UUID userId, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
+        }
+        UserWithUserPhotosResponse response = userApplicationService.getUserById(userId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -103,9 +117,9 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> blockUserByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> blockUserByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         userApplicationService.blockUserByUserId(request);
         return ResponseEntity.status(200).body("User blocked");
@@ -117,9 +131,9 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> unblockUserByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> unblockUserByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         userApplicationService.unblockUserByUserId(request);
         return ResponseEntity.status(200).body("User unlocked");
@@ -130,9 +144,8 @@ public class UserController {
             value = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> deleteAccount() {
-        HttpResponse response =
-                userApplicationService.deleteAccount();
-        return ResponseEntity.status(200).body(response);
+    ResponseEntity<String> deleteAccount() {
+        userApplicationService.deleteAccount();
+        return ResponseEntity.status(200).body("Account deleted");
     }
 }

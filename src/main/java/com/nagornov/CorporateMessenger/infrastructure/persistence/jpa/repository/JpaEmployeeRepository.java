@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository;
 
+import com.nagornov.CorporateMessenger.domain.dto.EmployeeWithEmployeePhotoDTO;
 import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaEmployeeMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaEmployeePhotoMapper;
@@ -50,6 +51,14 @@ public class JpaEmployeeRepository {
     public List<Employee> findAllByLeaderId(UUID leaderId) {
         return springDataJpaEmployeeRepository.findAllByLeaderId(leaderId)
                 .stream().map(jpaEmployeeMapper::toDomain).toList();
+    }
+
+    public Optional<EmployeeWithEmployeePhotoDTO> findWithEmployeePhotoByUserId(UUID userId) {
+        return springDataJpaEmployeeRepository.findWithEmployeePhotoByUserId(userId)
+                .map(dtoEntity -> new EmployeeWithEmployeePhotoDTO(
+                        jpaEmployeeMapper.toDomain(dtoEntity.getEmployee()),
+                        dtoEntity.getEmployeePhoto().map(jpaEmployeePhotoMapper::toDomain)
+                ));
     }
 
 }

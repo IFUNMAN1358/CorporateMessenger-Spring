@@ -1,15 +1,8 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository;
 
-import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithMainUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.dto.*;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsDTO;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserEntity;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaEmployeeMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserPhotoMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserSettingsMapper;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.*;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,12 +22,14 @@ public class JpaUserRepository {
     private final JpaUserPhotoMapper jpaUserPhotoMapper;
     private final JpaUserSettingsMapper jpaUserSettingsMapper;
     private final JpaEmployeeMapper jpaEmployeeMapper;
+    private final JpaEmployeePhotoMapper jpaEmployeePhotoMapper;
 
     public User save(User user) {
-        JpaUserEntity entity = springDataJpaUserRepository.save(
-                jpaUserMapper.toEntity(user)
+        return jpaUserMapper.toDomain(
+                springDataJpaUserRepository.save(
+                        jpaUserMapper.toEntity(user)
+                )
         );
-        return jpaUserMapper.toDomain(entity);
     }
 
     public void delete(User user) {
@@ -59,8 +54,8 @@ public class JpaUserRepository {
                 .map(jpaUserMapper::toDomain);
     }
 
-    public Optional<UserPairDTO> findUserPairByUserIds(UUID userId1, UUID userId2) {
-        return springDataJpaUserRepository.findUserPairByUserIds(userId1, userId2)
+    public Optional<UserPairDTO> findUserPairByIds(UUID id1, UUID id2) {
+        return springDataJpaUserRepository.findUserPairByIds(id1, id2)
                 .map(dtoEntity -> {
                     return new UserPairDTO(
                             jpaUserMapper.toDomain(dtoEntity.getUser1()),
@@ -99,5 +94,24 @@ public class JpaUserRepository {
                             jpaUserPhotoMapper.toDomain(dtoEntity.getMainUserPhoto())
                     );
                 });
+    }
+
+    public Optional<UserWithUserSettingsAndEmployeeDTO> findWithUserSettingsAndEmployeeById(UUID id) {
+        return springDataJpaUserRepository.findWithUserSettingsAndEmployeeById(id)
+                .map(dtoEntity -> new UserWithUserSettingsAndEmployeeDTO(
+                        jpaUserMapper.toDomain(dtoEntity.getUser()),
+                        jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
+                        jpaEmployeeMapper.toDomain(dtoEntity.getEmployee())
+                ));
+    }
+
+    public Optional<UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO> findWithUserSettingsAndEmployeeAndEmployeePhotoById(UUID id) {
+        return springDataJpaUserRepository.findWithUserSettingsAndEmployeeAndEmployeePhotoById(id)
+                .map(dtoEntity -> new UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO(
+                        jpaUserMapper.toDomain(dtoEntity.getUser()),
+                        jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
+                        jpaEmployeeMapper.toDomain(dtoEntity.getEmployee()),
+                        dtoEntity.getEmployeePhoto().map(jpaEmployeePhotoMapper::toDomain)
+                ));
     }
 }

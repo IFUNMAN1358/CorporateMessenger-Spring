@@ -1,21 +1,25 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
-import com.nagornov.CorporateMessenger.application.dto.message.*;
 import com.nagornov.CorporateMessenger.application.applicationService.MessageApplicationService;
-import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUuid;
+import com.nagornov.CorporateMessenger.application.dto.model.message.*;
 import com.nagornov.CorporateMessenger.domain.enums.WsMessageResponseType;
+import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
@@ -23,14 +27,17 @@ public class MessageController {
     private final MessageApplicationService messageApplicationService;
     private final SimpMessagingTemplate messagingTemplate;
 
+
     @PostMapping(
             value = "/api/message",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<MessageResponse> createMessage(@Validated @ModelAttribute CreateMessageRequest request) {
-        MessageResponse response =
-                messageApplicationService.createMessage(request);
+    ResponseEntity<MessageResponse> createMessage(@ModelAttribute CreateMessageRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("CreateMessageRequest validation error", bindingResult);
+        }
+        MessageResponse response = messageApplicationService.createMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
                 new WsMessageResponse(WsMessageResponseType.CREATE, response)
@@ -44,11 +51,14 @@ public class MessageController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<MessageResponse>> getAllMessages(
-            @PathVariable("chatId") @ValidUuid String chatId,
-            @PathVariable("page") int page
+            @NotNull @PathVariable Long chatId,
+            @PathVariable int page,
+            BindingResult bindingResult
     ) {
-        List<MessageResponse> response =
-                messageApplicationService.getAllMessages(chatId, page, 20);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) or PathVariable(page) validation error", bindingResult);
+        }
+        List<MessageResponse> response = messageApplicationService.getAllMessages(chatId, page, 20);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -58,9 +68,11 @@ public class MessageController {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<MessageResponse> updateMessageContent(@Validated @RequestBody UpdateMessageContentRequest request) {
-        MessageResponse response =
-                messageApplicationService.updateMessageContent(request);
+    ResponseEntity<MessageResponse> updateMessageContent(@RequestBody UpdateMessageContentRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("UpdateMessageContentRequest validation error", bindingResult);
+        }
+        MessageResponse response = messageApplicationService.updateMessageContent(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
                 new WsMessageResponse(WsMessageResponseType.UPDATE_CONTENT, response)
@@ -74,9 +86,11 @@ public class MessageController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<MessageResponse> deleteMessage(@Validated @RequestBody DeleteMessageRequest request) {
-        MessageResponse response =
-                messageApplicationService.deleteMessage(request);
+    ResponseEntity<MessageResponse> deleteMessage(@RequestBody DeleteMessageRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("DeleteMessageRequest validation error", bindingResult);
+        }
+        MessageResponse response = messageApplicationService.deleteMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
                 new WsMessageResponse(WsMessageResponseType.DELETE, response)
@@ -90,9 +104,11 @@ public class MessageController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<MessageResponse> readMessage(@Validated @RequestBody ReadMessageRequest request) {
-        MessageResponse response =
-                messageApplicationService.readMessage(request);
+    ResponseEntity<MessageResponse> readMessage(@RequestBody ReadMessageRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("ReadMessageRequest validation error", bindingResult);
+        }
+        MessageResponse response = messageApplicationService.readMessage(request);
         messagingTemplate.convertAndSend(
                 "/topic/chat/%s".formatted(request.getChatId()),
                 new WsMessageResponse(WsMessageResponseType.READ, response)
@@ -105,12 +121,15 @@ public class MessageController {
             value = "/api/chat/{chatId}/message/{messageId}/file/{fileId}"
     )
     ResponseEntity<Resource> getMessageFile(
-            @PathVariable("chatId") @ValidUuid String chatId,
-            @PathVariable("messageId") @ValidUuid String messageId,
-            @PathVariable("fileId") @ValidUuid String fileId
+            @NotNull @PathVariable Long chatId,
+            @NotNull @PathVariable UUID messageId,
+            @NotNull @PathVariable UUID fileId,
+            BindingResult bindingResult
     ) {
-        MinioFileDto minioFileDto =
-                messageApplicationService.getMessageFile(chatId, messageId, fileId);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(chatId) or PathVariable(messageId) or PathVariable(fileId) validation error", bindingResult);
+        }
+        MinioFileDto minioFileDto = messageApplicationService.getMessageFile(chatId, messageId, fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(minioFileDto.getStatObject().contentType()))
                 .header(

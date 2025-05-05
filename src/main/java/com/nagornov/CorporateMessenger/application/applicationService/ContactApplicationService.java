@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsDTO;

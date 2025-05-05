@@ -60,4 +60,12 @@ public interface SpringDataJpaContactRepository extends JpaRepository<JpaContact
             "WHERE (c.userId = :userId1 AND c.contactId = :userId2) AND (c.userId = :userId2 AND c.contactId = :userId1)"
     )
     void deleteContactPairByUserIds(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
+
+    @Query(
+            "SELECT CASE WHEN " +
+            "EXISTS (SELECT COUNT(c1) > 0 FROM JpaContactEntity c1 WHERE c1.userId = :userId1 AND c1.contactId = :userId2) AND " +
+            "EXISTS (SELECT COUNT(c2) > 0 FROM JpaContactEntity c2 WHERE c2.userId = :userId2 AND c2.contactId = :userId1) " +
+            "THEN true ELSE false END"
+    )
+    boolean existsContactPairByUserIds(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
 }

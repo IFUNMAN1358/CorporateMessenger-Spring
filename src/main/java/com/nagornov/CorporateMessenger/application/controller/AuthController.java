@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -40,12 +41,9 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> registration(
-            @Validated @RequestBody RegistrationRequest request,
-            BindingResult bindingResult
-    ) {
+    ResponseEntity<JwtResponse> registration(@RequestBody RegistrationRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("Registration form validation error", bindingResult);
+            throw new BindingErrorException("RegistrationRequest validation error", bindingResult);
         }
         JwtResponse response = authApplicationService.registration(request);
         return ResponseEntity.status(201).body(response);
@@ -57,12 +55,9 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> login(
-            @Validated @RequestBody LoginRequest request,
-            BindingResult bindingResult
-    ) {
+    ResponseEntity<JwtResponse> login(@RequestBody LoginRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("Login form validation error", bindingResult);
+            throw new BindingErrorException("LoginRequest validation error", bindingResult);
         }
         JwtResponse response = authApplicationService.login(request);
         return ResponseEntity.status(200).body(response);

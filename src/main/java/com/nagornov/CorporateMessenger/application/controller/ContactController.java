@@ -1,10 +1,9 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.applicationService.ContactApplicationService;
-import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import com.nagornov.CorporateMessenger.domain.model.user.Contact;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class ContactController {
@@ -29,9 +29,9 @@ public class ContactController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Contact> addContactByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<Contact> addContactByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         Contact response = contactApplicationService.addContactByUserId(request);
         return ResponseEntity.status(201).body(response);
@@ -43,9 +43,9 @@ public class ContactController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Optional<Contact>> findContactByUserId(@Validated @PathVariable @NotNull @NotBlank UUID userId, BindingResult bindingResult) {
+    ResponseEntity<Optional<Contact>> findContactByUserId(@NotNull @PathVariable UUID userId, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("userId path variable validation error", bindingResult);
+            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
         }
         Optional<Contact> response = contactApplicationService.findContactByUserId(userId);
         return ResponseEntity.status(200).body(response);
@@ -66,9 +66,9 @@ public class ContactController {
             path = "/api/user/{userId}/contacts",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<Contact>> getContactsByUserId(@Validated @PathVariable @NotNull @NotBlank UUID userId, BindingResult bindingResult) {
+    ResponseEntity<List<Contact>> getContactsByUserId(@NotNull @PathVariable UUID userId, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("userId path variable validation error", bindingResult);
+            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
         }
         List<Contact> response = contactApplicationService.getContactsByUserId(userId);
         return ResponseEntity.status(200).body(response);
@@ -80,9 +80,9 @@ public class ContactController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> confirmContactByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> confirmContactByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         contactApplicationService.confirmContactByUserId(request);
         return ResponseEntity.status(200).body("Contact confirmed");
@@ -94,9 +94,9 @@ public class ContactController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> rejectContactByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> rejectContactByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         contactApplicationService.rejectContactByUserId(request);
         return ResponseEntity.status(200).body("Contact rejected");
@@ -108,9 +108,9 @@ public class ContactController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> deleteContactByUserId(@Validated @RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> deleteContactByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest form validation error", bindingResult);
+            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
         contactApplicationService.deleteContactByUserId(request);
         return ResponseEntity.status(204).body("Contact deleted");

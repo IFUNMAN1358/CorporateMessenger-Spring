@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.UserIdsRequest;
-import com.nagornov.CorporateMessenger.application.dto.user.UserResponse;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdsRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserResponse;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
@@ -14,6 +14,7 @@ import com.nagornov.CorporateMessenger.domain.service.chat.ChatMemberService;
 import com.nagornov.CorporateMessenger.domain.service.chat.ChatService;
 import com.nagornov.CorporateMessenger.domain.service.message.UnreadMessageService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<ChatMember> getChatMembers(Long chatId) {
+    public List<ChatMember> getChatMembers(@NonNull Long chatId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -50,7 +51,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<UserResponse> getAvailableUsersToAdding(String chatId) {
+    public List<UserResponse> getAvailableUsersToAdding(@NonNull Long chatId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         UUID userId = authInfo.getUserIdAsUUID();
@@ -85,7 +86,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse addMembersToGroupChat(String chatId, UserIdsRequest request) {
+    public HttpResponse addMembersToGroupChat(@NonNull Long chatId, @NonNull UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -117,7 +118,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse deleteMembersFromGroupChat(String chatId, UserIdsRequest request) {
+    public HttpResponse deleteMembersFromGroupChat(@NonNull Long chatId, @NonNull UserIdsRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -144,7 +145,7 @@ public class GroupChatMemberApplicationService {
 
 
     @Transactional
-    public HttpResponse leaveFromGroupChat(String chatId) {
+    public HttpResponse leaveFromGroupChat(@NonNull Long chatId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 

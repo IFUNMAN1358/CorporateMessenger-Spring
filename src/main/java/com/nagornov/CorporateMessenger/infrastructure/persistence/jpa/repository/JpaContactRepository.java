@@ -58,6 +58,10 @@ public class JpaContactRepository {
                 .stream().map(jpaContactMapper::toDomain).toList();
     }
 
+    public boolean existsContactPairByUserIds(UUID userId1, UUID userId2) {
+        return springDataJpaContactRepository.existsContactPairByUserIds(userId1, userId2);
+    }
+
     public Optional<ContactPairDTO> findContactPairByUserIds(UUID userId1, UUID userId2) {
         return springDataJpaContactRepository.findContactPairByUserIds(userId1, userId2)
                 .map(dtoEntity -> {

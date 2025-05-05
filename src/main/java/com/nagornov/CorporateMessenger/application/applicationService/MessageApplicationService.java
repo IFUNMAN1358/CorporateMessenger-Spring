@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.nagornov.CorporateMessenger.application.dto.common.MinioFileDto;
-import com.nagornov.CorporateMessenger.application.dto.message.*;
+import com.nagornov.CorporateMessenger.application.dto.model.message.*;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatInterface;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;

@@ -21,3 +21,8 @@ databaseChangeLog:
                           type: boolean
                           constraints:
                             nullable: false
+                      - column:
+                            name: employee_visibility
+                            type: varchar(16)
+                            constraints:
+                                nullable: false

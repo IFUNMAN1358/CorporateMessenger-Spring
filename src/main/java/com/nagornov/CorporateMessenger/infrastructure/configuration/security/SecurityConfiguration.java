@@ -81,6 +81,19 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.PATCH, "/api/user/unblock").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user").hasRole("USER")
 
+                    // UserPhotoController
+                    .requestMatchers(HttpMethod.POST, "/api/user/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/photo/{photoId}").hasRole("USER")
+
+                    // EmployeeController
+                    .requestMatchers(HttpMethod.GET, "/api/user/employee").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/employee").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/employee").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/employee").hasRole("USER")
+
                     // NotificationController
                     .requestMatchers(HttpMethod.GET, "/api/user/notifications").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/notification/process").hasRole("USER")
@@ -88,13 +101,6 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.PATCH, "/api/user/notifications/read-all").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/notification").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/notifications").hasRole("USER")
-
-                    // UserPhotoController
-                    .requestMatchers(HttpMethod.POST, "/api/user/photo").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/user/photo/{photoId}").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/photo/{photoId}").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/user/photo/{photoId}").hasRole("USER")
 
                     // ContactController
                     .requestMatchers(HttpMethod.POST, "/api/user/contact").hasRole("USER")

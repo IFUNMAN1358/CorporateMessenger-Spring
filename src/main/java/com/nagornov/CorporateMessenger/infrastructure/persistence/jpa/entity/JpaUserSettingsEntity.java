@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity;
 
 import com.nagornov.CorporateMessenger.domain.enums.model.ContactsVisibility;
+import com.nagornov.CorporateMessenger.domain.enums.model.EmployeeVisibility;
 import com.nagornov.CorporateMessenger.domain.enums.model.ProfileVisibility;
 import jakarta.persistence.*;
 
@@ -29,6 +30,10 @@ public class JpaUserSettingsEntity implements Serializable {
     @Column(name = "profile_visibility", length = 16, nullable = false)
     @Enumerated(EnumType.STRING)
     private ProfileVisibility profileVisibility;
+
+    @Column(name = "employee_visibility", length = 16, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EmployeeVisibility employeeVisibility;
 
     @Column(name = "is_searchable", nullable = false)
     private Boolean isSearchable;

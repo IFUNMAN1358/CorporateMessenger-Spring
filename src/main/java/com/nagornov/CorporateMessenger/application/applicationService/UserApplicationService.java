@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.*;
+import com.nagornov.CorporateMessenger.application.dto.model.user.*;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithMainUserPhotoDTO;
@@ -89,14 +89,14 @@ public class UserApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Page<UserWithMainPhotoResponse> searchUsersByUsername(@NonNull String username, int page, int pageSize) {
+    public Page<UserWithUserPhotoResponse> searchUsersByUsername(@NonNull String username, int page, int pageSize) {
 
         jwtService.getAuthInfo();
 
         Page<UserWithMainUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(username, page, pageSize);
 
         return usersDto.map(userDto -> {
-            return new UserWithMainPhotoResponse(
+            return new UserWithUserPhotoResponse(
                     userDto.getUser(),
                     userDto.getMainUserPhoto()
             );
@@ -105,26 +105,26 @@ public class UserApplicationService {
 
 
     @Transactional(readOnly = true)
-    public UserWithPhotosResponse getYourUserData() {
+    public UserWithUserPhotosResponse getYourUserData() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
         List<UserPhoto> userPhotos = userPhotoService.getAllByUserId(user.getId());
 
-        return new UserWithPhotosResponse(user, userPhotos);
+        return new UserWithUserPhotosResponse(user, userPhotos);
     }
 
 
     @Transactional(readOnly = true)
-    public UserWithPhotosResponse getUserById(@NonNull UUID userId) {
+    public UserWithUserPhotosResponse getUserById(@NonNull UUID userId) {
 
         jwtService.getAuthInfo();
 
         User targetUser = userService.getById(userId);
         List<UserPhoto> targetUserPhotos = userPhotoService.getAllByUserId(userId);
 
-        return new UserWithPhotosResponse(targetUser, targetUserPhotos);
+        return new UserWithUserPhotosResponse(targetUser, targetUserPhotos);
     }
 
 

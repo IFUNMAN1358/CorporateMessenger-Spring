@@ -1,9 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData;
 
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserPairDTOEntity;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithEmployeeDTOEntity;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithMainUserPhotoDTOEntity;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsDTOEntity;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.*;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,12 +18,15 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
     @Query("select u from JpaUserEntity u where u.username = :username")
     Optional<JpaUserEntity> findByUsername(@Param("username") String username);
 
+    @Query("SELECT COUNT(u) > 0 FROM JpaUserEntity u WHERE u.username = :username")
+    boolean existsByUsername(@Param("username") String username);
+
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserPairDTOEntity(u1, u2) " +
             "FROM JpaUserEntity u1, JpaUserEntity u2 " +
-            "WHERE u1.id = :userId1 AND u2.id = :userId2"
+            "WHERE u1.id = :id1 AND u2.id = :id2"
     )
-    Optional<UserPairDTOEntity> findUserPairByUserIds(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
+    Optional<UserPairDTOEntity> findUserPairByIds(@Param("id1") UUID id1, @Param("id2") UUID id2);
 
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsDTOEntity(u, us) " +
@@ -55,5 +55,22 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
     )
     Page<UserWithMainUserPhotoDTOEntity> searchWithMainUserPhotoByUsername(@Param("username") String username, Pageable pageable);
 
-    boolean existsByUsername(String username);
+    @Query(
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsAndEmployeeDTOEntity(u, us, e) " +
+            "FROM JpaUserEntity u " +
+            "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
+            "JOIN JpaEmployeeEntity e ON u.id = e.userId " +
+            "WHERE u.id = :id"
+    )
+    Optional<UserWithUserSettingsAndEmployeeDTOEntity> findWithUserSettingsAndEmployeeById(@Param("id") UUID id);
+
+    @Query(
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsAndEmployeeAndEmployeePhotoDTOEntity(u, us, e, ep) " +
+            "FROM JpaUserEntity u " +
+            "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
+            "JOIN JpaEmployeeEntity e ON u.id = e.userId " +
+            "LEFT JOIN JpaEmployeePhotoEntity ep ON ep.employeeId = e.id " +
+            "WHERE u.id = :id"
+    )
+    Optional<UserWithUserSettingsAndEmployeeAndEmployeePhotoDTOEntity> findWithUserSettingsAndEmployeeAndEmployeePhotoById(@Param("id") UUID id);
 }

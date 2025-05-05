@@ -1,5 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.service.user;
 
+import com.nagornov.CorporateMessenger.domain.dto.EmployeeWithEmployeePhotoDTO;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaEmployeeRepository;
 import lombok.NonNull;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,6 +54,23 @@ public class EmployeeService {
 
     public List<Employee> findAllByLeaderId(@NonNull UUID leaderId) {
         return jpaEmployeeRepository.findAllByLeaderId(leaderId);
+    }
+
+    public Optional<Employee> findByUserId(@NonNull UUID userId) {
+        return jpaEmployeeRepository.findByUserId(userId);
+    }
+
+    public Employee getByUserId(@NonNull UUID userId) {
+        return jpaEmployeeRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee[userId=%s] not found".formatted(userId)));
+    }
+
+    public EmployeeWithEmployeePhotoDTO getWithEmployeePhotoByUserId(@NonNull UUID userId) {
+        return jpaEmployeeRepository.findWithEmployeePhotoByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "EmployeeWithEmployeePhotoDTO[Employee, Opt(EmployeePhoto)] by Employee[userId=%s] not found"
+                                .formatted(userId)
+                ));
     }
 
 }

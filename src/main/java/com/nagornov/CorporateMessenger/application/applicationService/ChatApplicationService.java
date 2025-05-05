@@ -1,10 +1,10 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.chat.ChatDTO;
-import com.nagornov.CorporateMessenger.application.dto.chat.ChatIdRequest;
-import com.nagornov.CorporateMessenger.application.dto.chat.CreateGroupChatRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatDTO;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.dto.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;

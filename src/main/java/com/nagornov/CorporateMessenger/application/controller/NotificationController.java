@@ -1,7 +1,7 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.application.applicationService.ApplicationNotificationService;
-import com.nagornov.CorporateMessenger.application.dto.user.NotificationIdRequest;
+import com.nagornov.CorporateMessenger.application.applicationService.NotificationApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.model.notification.NotificationIdRequest;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import com.nagornov.CorporateMessenger.domain.model.user.Notification;
 import lombok.RequiredArgsConstructor;
@@ -9,13 +9,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final ApplicationNotificationService applicationNotificationService;
+    private final NotificationApplicationService notificationApplicationService;
+
 
     @GetMapping(
             path = "/api/user/notifications",
@@ -25,9 +28,13 @@ public class NotificationController {
     ResponseEntity<Page<Notification>> getNotifications(
             @RequestParam(name = "category", defaultValue = "all") String category,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "pageSize", defaultValue = "20") int pageSize
+            @RequestParam(name = "pageSize", defaultValue = "20") int pageSize,
+            BindingResult bindingResult
     ) {
-        Page<Notification> response = applicationNotificationService.getNotifications(category, page, pageSize);
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("RequestParam(category) | RequestParam(page) | RequestParam(pageSize) validation error", bindingResult);
+        }
+        Page<Notification> response = notificationApplicationService.getNotifications(category, page, pageSize);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -41,7 +48,7 @@ public class NotificationController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("NotificationIdRequest validation error", bindingResult);
         }
-        Notification response = applicationNotificationService.processNotification(request);
+        Notification response = notificationApplicationService.processNotification(request);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -55,7 +62,7 @@ public class NotificationController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("NotificationIdRequest validation error", bindingResult);
         }
-        Notification response = applicationNotificationService.readNotification(request);
+        Notification response = notificationApplicationService.readNotification(request);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -66,7 +73,7 @@ public class NotificationController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> readAllNotifications() {
-        applicationNotificationService.readAllNotifications();
+        notificationApplicationService.readAllNotifications();
         return ResponseEntity.status(204).body("Notifications success read");
     }
 
@@ -76,8 +83,11 @@ public class NotificationController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> deleteNotification(@RequestBody NotificationIdRequest request) {
-        applicationNotificationService.deleteNotification(request);
+    ResponseEntity<String> deleteNotification(@RequestBody NotificationIdRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("NotificationIdRequest validation error", bindingResult);
+        }
+        notificationApplicationService.deleteNotification(request);
         return ResponseEntity.status(204).body("Notification deleted");
     }
 
@@ -88,7 +98,7 @@ public class NotificationController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteAllNotifications() {
-        applicationNotificationService.deleteAllNotifications();
+        notificationApplicationService.deleteAllNotifications();
         return ResponseEntity.status(204).body("All notifications deleted");
     }
 }

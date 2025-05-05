@@ -1,13 +1,10 @@
 package com.nagornov.CorporateMessenger.domain.service.user;
 
-import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithMainUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.dto.*;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsDTO;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaUserRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -71,8 +68,8 @@ public class UserService {
         return jpaUserRepository.findByUsername(username);
     }
 
-    public Optional<UserPairDTO> findUserPairByUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
-        return jpaUserRepository.findUserPairByUserIds(userId1, userId2);
+    public Optional<UserPairDTO> findUserPairByIds(@NonNull UUID id1, @NonNull UUID id2) {
+        return jpaUserRepository.findUserPairByIds(id1, id2);
     }
 
     public Optional<UserWithUserSettingsDTO> findWithUserSettingsById(@NonNull UUID id) {
@@ -106,10 +103,10 @@ public class UserService {
                 ));
     }
 
-    public UserPairDTO getUserPairByUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
-        return jpaUserRepository.findUserPairByUserIds(userId1, userId2)
+    public UserPairDTO getUserPairByIds(@NonNull UUID id1, @NonNull UUID id2) {
+        return jpaUserRepository.findUserPairByIds(id1, id2)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserPairDTO[User, User] by User[id=%s] or User[id=%s] not found".formatted(userId1, userId2)
+                        "UserPairDTO[User, User] by User[id=%s] or User[id=%s] not found".formatted(id1, id2)
                 ));
     }
 
@@ -144,6 +141,22 @@ public class UserService {
                     new FieldError("username", "Пользователь с таким именем не найден")
             );
         }
+    }
+
+    public UserWithUserSettingsAndEmployeeDTO getWithUserSettingsAndEmployeeById(@NonNull UUID id) {
+        return jpaUserRepository.findWithUserSettingsAndEmployeeById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "UserWithUserSettingsAndEmployeeDTO[User, UserSettings, Employee] by User[id=%s] not found"
+                                .formatted(id)
+                ));
+    }
+
+    public UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO getWithUserSettingsAndEmployeeAndEmployeePhotoById(@NonNull UUID id) {
+        return jpaUserRepository.findWithUserSettingsAndEmployeeAndEmployeePhotoById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO[User, UserSettings, Employee, Opt(EmployeePhoto)] by User[id=%s] not found"
+                                .formatted(id)
+                ));
     }
 
 }

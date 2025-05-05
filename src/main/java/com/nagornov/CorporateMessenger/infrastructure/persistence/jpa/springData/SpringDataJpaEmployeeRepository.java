@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData;
 
+import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.EmployeeWithEmployeePhotoDTOEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaEmployeeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,5 +24,13 @@ public interface SpringDataJpaEmployeeRepository extends JpaRepository<JpaEmploy
 
     @Query("SELECT e FROM JpaEmployeeEntity e WHERE e.leaderId = :leaderId")
     List<JpaEmployeeEntity> findAllByLeaderId(@Param("leaderId") UUID leaderId);
+
+    @Query(
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.EmployeeWithEmployeePhotoDTOEntity(e, ep) " +
+            "FROM JpaEmployeeEntity e " +
+            "LEFT JOIN JpaEmployeePhotoEntity ep ON e.id = ep.employeeId " +
+            "WHERE e.userId = :userId"
+    )
+    Optional<EmployeeWithEmployeePhotoDTOEntity> findWithEmployeePhotoByUserId(@Param("userId") UUID userId);
 
 }

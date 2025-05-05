@@ -91,6 +91,10 @@ public class ContactService {
         return jpaContactRepository.findContactPairByUserIds(userId1, userId2);
     }
 
+    public boolean existsContactPairByUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
+        return jpaContactRepository.existsContactPairByUserIds(userId1, userId2);
+    }
+
     public Contact getByUserIdAndContactId(@NonNull UUID userId, @NonNull UUID contactId) {
         return jpaContactRepository.findByUserIdAndContactId(userId, contactId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contact[userId=%s, contactId=%s] not found".formatted(userId, contactId)));
