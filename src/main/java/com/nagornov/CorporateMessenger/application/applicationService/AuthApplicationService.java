@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
@@ -44,7 +43,7 @@ public class AuthApplicationService {
     private final CsrfService csrfService;
 
 
-    public HttpResponse getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
+    public void getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
 
         CsrfToken currentCsrfToken = csrfService.loadToken(request);
         CsrfToken newCsrfToken = csrfService.generateToken(request);
@@ -71,8 +70,6 @@ public class AuthApplicationService {
             );
 
         }
-
-        return new HttpResponse("Csrf token successfully generated and saved in cookie", 200);
     }
 
 
@@ -131,13 +128,10 @@ public class AuthApplicationService {
 
 
     @Transactional
-    public HttpResponse logout() {
-
+    public void logout() {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
         jwtSessionService.deleteFromRedis(user.getId());
-
-        return new HttpResponse("Successfully logged out", 200);
     }
 }

@@ -1,10 +1,11 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.UserPhotoApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserPhotoResponse;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -27,24 +28,30 @@ public class UserProfilePhotoController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserPhoto> loadUserPhoto(@ModelAttribute FileRequest request, BindingResult bindingResult) {
+    ResponseEntity<UserPhotoResponse> loadMyUserPhoto(
+            @ModelAttribute FileRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("FileRequest validation error", bindingResult);
         }
-        UserPhoto response = userPhotoApplicationService.loadUserPhoto(request);
+        UserPhotoResponse response = userPhotoApplicationService.loadMyUserPhoto(request);
         return ResponseEntity.status(201).body(response);
     }
 
 
     @GetMapping(
-            value = "/api/user/{userId}/photo/main",
+            value = "/api/user/photo/main",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
-    ResponseEntity<Resource> getMainUserPhotoByUserId(@PathVariable UUID userId, BindingResult bindingResult) {
+    ResponseEntity<Resource> downloadMyMainUserPhoto(
+            @NotBlank @RequestParam String size, // big / small
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
+            throw new BindingErrorException("RequestParam(size) validation error", bindingResult);
         }
-        Resource response = userPhotoApplicationService.getMainUserPhotoByUserId(userId);
+        Resource response = userPhotoApplicationService.downloadMyMainUserPhoto(size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -53,11 +60,50 @@ public class UserProfilePhotoController {
             value = "/api/user/photo/{photoId}",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
-    ResponseEntity<Resource> getUserPhotoByPhotoId(@PathVariable UUID photoId, BindingResult bindingResult) {
+    ResponseEntity<Resource> downloadMyUserPhotoByPhotoId(
+            @NotNull @PathVariable UUID photoId,
+            @NotBlank @RequestParam String size, // big / small
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(photoId) validation error", bindingResult);
+            throw new BindingErrorException("PathVariable(photoId) | RequestParam(size) validation error", bindingResult);
         }
-        Resource response = userPhotoApplicationService.getUserPhotoByPhotoId(photoId);
+        Resource response = userPhotoApplicationService.downloadMyUserPhotoByPhotoId(photoId, size);
+        return ResponseEntity.status(200).body(response);
+    }
+
+
+    @GetMapping(
+            value = "/api/user/{userId}/photo/main",
+            produces = MediaType.IMAGE_JPEG_VALUE
+    )
+    ResponseEntity<Resource> downloadMainUserPhotoByUserId(
+            @NotNull @PathVariable UUID userId,
+            @NotBlank @RequestParam String size, // big / small
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(userId) | RequestParam(size) validation error", bindingResult);
+        }
+        Resource response = userPhotoApplicationService.downloadMainUserPhotoByUserId(userId, size);
+        return ResponseEntity.status(200).body(response);
+    }
+
+
+    @GetMapping(
+            value = "/api/user/{userId}/photo/{photoId}",
+            produces = MediaType.IMAGE_JPEG_VALUE
+    )
+    ResponseEntity<Resource> downloadUserPhotoByUserIdAndPhotoId(
+            @NotNull @PathVariable UUID userId,
+            @NotNull @PathVariable UUID photoId,
+            @NotBlank @RequestParam String size, // big / small
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("PathVariable(userId) | PathVariable(photoId) | RequestParam(size) validation error", bindingResult);
+        }
+        Resource response = userPhotoApplicationService.downloadUserPhotoByUserIdAndPhotoId(userId, photoId, size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -66,11 +112,14 @@ public class UserProfilePhotoController {
             value = "/api/user/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserPhoto> setMainUserPhoto(@PathVariable UUID photoId, BindingResult bindingResult) {
+    ResponseEntity<UserPhotoResponse> setMyMainUserPhoto(
+            @NotNull @PathVariable UUID photoId,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(photoId) validation error", bindingResult);
         }
-        UserPhoto response = userPhotoApplicationService.setMainUserPhoto(photoId);
+        UserPhotoResponse response = userPhotoApplicationService.setMyMainUserPhoto(photoId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -79,11 +128,14 @@ public class UserProfilePhotoController {
             value = "/api/user/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> deleteUserPhoto(@PathVariable UUID photoId, BindingResult bindingResult) {
+    ResponseEntity<String> deleteMyUserPhoto(
+            @NotNull @PathVariable UUID photoId,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(photoId) validation error", bindingResult);
         }
-        HttpResponse response = userPhotoApplicationService.deleteUserPhoto(photoId);
-        return ResponseEntity.status(200).body(response);
+        userPhotoApplicationService.deleteMyUserPhoto(photoId);
+        return ResponseEntity.status(200).body("User photo deleted");
     }
 }

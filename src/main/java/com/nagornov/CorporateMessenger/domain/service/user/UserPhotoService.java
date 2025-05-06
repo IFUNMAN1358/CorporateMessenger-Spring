@@ -62,6 +62,16 @@ public class UserPhotoService {
     }
 
     @Transactional
+    public UserPhoto update(@NonNull UserPhoto userPhoto) {
+        return jpaUserPhotoRepository.save(userPhoto);
+    }
+
+    @Transactional
+    public List<UserPhoto> updateAll(@NonNull List<UserPhoto> userPhotos) {
+        return jpaUserPhotoRepository.saveAll(userPhotos);
+    }
+
+    @Transactional
     public void delete(@NonNull UserPhoto userPhoto) {
         jpaUserPhotoRepository.delete(userPhoto);
     }
@@ -82,6 +92,19 @@ public class UserPhotoService {
         );
     }
 
+    public Optional<UserPhoto> findMainByUserId(@NonNull UUID userId) {
+        return jpaUserPhotoRepository.findMainByUserId(userId);
+    }
+
+    public Optional<UserPhoto> findByIdAndUserId(@NonNull UUID id, @NonNull UUID userId) {
+        return jpaUserPhotoRepository.findByIdAndUserId(id, userId);
+    }
+
+    public UserPhoto getMainByUserId(@NonNull UUID userId) {
+        return jpaUserPhotoRepository.findMainByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserPhoto[userId=%s] not found".formatted(userId)));
+    }
+
     public UserPhoto getByIdAndUserId(@NonNull UUID id, @NonNull UUID userId) {
         return jpaUserPhotoRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User profile photo with this id and userId not found"));
@@ -92,11 +115,7 @@ public class UserPhotoService {
                 .orElseThrow(() -> new ResourceNotFoundException("User profile photo with this id not found"));
     }
 
-    public Optional<UserPhoto> findMainByUserId(@NonNull UUID userId) {
-        return jpaUserPhotoRepository.findMainByUserId(userId);
-    }
-
-    public List<UserPhoto> getAllByUserId(@NonNull UUID userId) {
+    public List<UserPhoto> findAllByUserId(@NonNull UUID userId) {
         return jpaUserPhotoRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
     }
 }

@@ -6,10 +6,11 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.Jpa
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserSettingsEntity;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 @Data
-public class UserWithUserSettingsAndEmployeeAndEmployeePhotoDTOEntity {
+public class UserWithUserSettingsAndEmployeeAndEmployeePhotoDTOEntity implements Serializable {
 
     private JpaUserEntity user;
     private JpaUserSettingsEntity userSettings;

@@ -6,9 +6,11 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.Jpa
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @AllArgsConstructor
-public class UserWithUserSettingsAndEmployeeDTOEntity {
+public class UserWithUserSettingsAndEmployeeDTOEntity implements Serializable {
 
     private JpaUserEntity user;
     private JpaUserSettingsEntity userSettings;

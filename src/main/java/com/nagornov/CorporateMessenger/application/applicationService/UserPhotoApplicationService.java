@@ -1,23 +1,21 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserPhotoResponse;
+import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsAndUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
-import com.nagornov.CorporateMessenger.domain.service.user.UserPhotoService;
-import com.nagornov.CorporateMessenger.domain.service.user.UserService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioUserPhotoDomainService;
+import com.nagornov.CorporateMessenger.domain.model.user.UserSettings;
+import com.nagornov.CorporateMessenger.domain.service.user.*;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,128 +24,148 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserPhotoApplicationService {
 
+    private final JwtService jwtService;
     private final UserService userService;
     private final UserPhotoService userPhotoService;
-    private final MinioUserPhotoDomainService minioUserPhotoDomainService;
-    private final JwtService jwtService;
+    private final UserSettingsService userSettingsService;
+    private final ContactService contactService;
+    private final UserBlacklistService userBlacklistService;
 
 
     @Transactional
-    public UserPhoto loadUserPhoto(FileRequest request) {
+    public UserPhotoResponse loadMyUserPhoto(@NonNull FileRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User postgresUser = userService.getById(
-                authInfo.getUserIdAsUUID()
-        );
 
-        MultipartFile file = request.getFile();
-        String filePath = minioUserPhotoDomainService.upload(file);
+        UserPhoto newMainUserPhoto = userPhotoService.upload(authInfo.getUserIdAsUUID(), request.getFile());
 
-        UserPhoto userPhoto = new UserPhoto(
-                UUID.randomUUID(),
-                postgresUser.getId(),
-                file.getOriginalFilename(),
-                filePath,
-                file.getContentType(),
-                true,
-                LocalDateTime.now()
-        );
-        userPhotoService.save(userPhoto);
-
-        Optional<UserPhoto> currentUserPhoto = userPhotoService.findMainByUserId(postgresUser.getId());
+        Optional<UserPhoto> currentUserPhoto = userPhotoService.findMainByUserId(authInfo.getUserIdAsUUID());
         currentUserPhoto.ifPresent(UserPhoto::unmarkAsMain);
-        currentUserPhoto.ifPresent(userPhotoService::save);
+        currentUserPhoto.ifPresent(userPhotoService::update);
 
-        return userPhotoService.getById(userPhoto.getId());
+        return new UserPhotoResponse(newMainUserPhoto);
     }
 
 
     @Transactional(readOnly = true)
-    public Resource getMainUserPhotoByUserId(String userId) {
+    public Resource downloadMyMainUserPhoto(@NonNull String size) {
 
-        jwtService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        Optional<UserPhoto> userPhoto = userPhotoService.findMainByUserId(
-                UUID.fromString(userId)
-        );
+        Optional<UserPhoto> optMainUserPhoto = userPhotoService.findMainByUserId(authInfo.getUserIdAsUUID());
 
-        if (userPhoto.isEmpty()) {
-            throw new ResourceNotFoundException("User's main photo not found");
+        if (optMainUserPhoto.isEmpty()) {
+            return null;
         }
 
-        return new InputStreamResource(
-                minioUserPhotoDomainService.download(userPhoto.get().getFilePath())
-        );
+        if (size.equals("big")) {
+            return userPhotoService.download(optMainUserPhoto.get().getBigFilePath());
+        } else if (size.equals("small")) {
+            return userPhotoService.download(optMainUserPhoto.get().getSmallFilePath());
+        } else {
+            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
+        }
     }
 
 
     @Transactional(readOnly = true)
-    public Resource getUserPhotoByPhotoId(String photoId) {
+    public Resource downloadMyUserPhotoByPhotoId(@NonNull UUID photoId, @NonNull String size) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserPhoto userPhoto = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());
+
+        if (size.equals("big")) {
+            return userPhotoService.download(userPhoto.getBigFilePath());
+        } else if (size.equals("small")) {
+            return userPhotoService.download(userPhoto.getSmallFilePath());
+        } else {
+            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    public Resource downloadMainUserPhotoByUserId(@NonNull UUID userId, @NonNull String size) {
 
         jwtService.getAuthInfo();
 
-        UserPhoto userPhoto = userPhotoService.getById(
-                UUID.fromString(photoId)
-        );
+        Optional<UserPhoto> targetOptMainUserPhoto = userPhotoService.findMainByUserId(userId);
 
-        return new InputStreamResource(
-                minioUserPhotoDomainService.download(userPhoto.getFilePath())
-        );
+        if (targetOptMainUserPhoto.isEmpty()) {
+            return null;
+        }
+
+        if (size.equals("big")) {
+            return userPhotoService.download(targetOptMainUserPhoto.get().getBigFilePath());
+        } else if (size.equals("small")) {
+            return userPhotoService.download(targetOptMainUserPhoto.get().getSmallFilePath());
+        } else {
+            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    public Resource downloadUserPhotoByUserIdAndPhotoId(@NonNull UUID userId, @NonNull UUID photoId, @NonNull String size) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        UserWithUserSettingsAndUserPhotoDTO targetDto =
+                userService.getWithUserSettingsAndUserPhotoByIdAndPhotoId(userId, photoId);
+        User targetUser = targetDto.getUser();
+        UserSettings targetUserSettings = targetDto.getUserSettings();
+        UserPhoto targetUserPhoto = targetDto.getUserPhoto();
+
+        userBlacklistService.ensureUserNotBlocked(targetUser.getId(), authInfo.getUserIdAsUUID());
+
+        boolean existsContactPair = contactService.existsContactPairByUserIds(authInfo.getUserIdAsUUID(), targetUser.getId());
+
+        userSettingsService.ensureUserHasAccessToProfile(targetUserSettings, existsContactPair);
+
+        if (size.equals("big")) {
+            return userPhotoService.download(targetUserPhoto.getBigFilePath());
+        } else if (size.equals("small")) {
+            return userPhotoService.download(targetUserPhoto.getSmallFilePath());
+        } else {
+            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
+        }
     }
 
 
     @Transactional
-    public UserPhoto setMainUserPhoto(String photoId) {
+    public UserPhotoResponse setMyMainUserPhoto(@NonNull UUID photoId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User postgresUser = userService.getById(
-                authInfo.getUserIdAsUUID()
-        );
 
-        UserPhoto newMainPhoto = userPhotoService.getByIdAndUserId(
-                UUID.fromString(photoId),
-                postgresUser.getId()
-        );
-        newMainPhoto.markAsMain();
+        UserPhoto currentMainUserPhoto = userPhotoService.getMainByUserId(authInfo.getUserIdAsUUID());
+        currentMainUserPhoto.unmarkAsMain();
 
-        Optional<UserPhoto> currentUserPhoto =
-                userPhotoService.findMainByUserId(postgresUser.getId());
-        currentUserPhoto.ifPresent(UserPhoto::unmarkAsMain);
+        UserPhoto newMainUserPhoto = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());
+        newMainUserPhoto.markAsMain();
 
-        currentUserPhoto.ifPresent(userPhotoService::save);
-        userPhotoService.save(newMainPhoto);
+        userPhotoService.updateAll(List.of(currentMainUserPhoto, newMainUserPhoto));
 
-        return userPhotoService.getById(newMainPhoto.getId());
+        return new UserPhotoResponse(newMainUserPhoto);
     }
 
 
     @Transactional
-    public HttpResponse deleteUserPhoto(String photoId) {
+    public void deleteMyUserPhoto(@NonNull UUID photoId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User postgresUser = userService.getById(
-                authInfo.getUserIdAsUUID()
-        );
 
-        UserPhoto photoToDelete = userPhotoService.getByIdAndUserId(
-                UUID.fromString(photoId),
-                postgresUser.getId()
-        );
+        UserPhoto userPhotoToDelete = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());
 
-        if (photoToDelete.getIsMain()) {
-            List<UserPhoto> userPhotos =
-                    userPhotoService.getAllByUserId(postgresUser.getId())
-                            .stream().filter(
-                                    photo -> !photo.getId().equals(photoToDelete.getId())
-                            ).toList();
-            if (!userPhotos.isEmpty()) {
-                UserPhoto newMainPhoto = userPhotos.getFirst();
-                newMainPhoto.markAsMain();
-                userPhotoService.save(newMainPhoto);
+        List<UserPhoto> userPhotos = userPhotoService.findAllByUserId(authInfo.getUserIdAsUUID());
+
+        if (userPhotoToDelete.getIsMain()) {
+            for (UserPhoto userPhoto : userPhotos) {
+                if (!userPhoto.getId().equals(userPhotoToDelete.getId())) {
+                    userPhoto.markAsMain();
+                    userPhotoService.update(userPhoto);
+                    break;
+                }
             }
         }
-
-        userPhotoService.deleteById(photoToDelete.getId());
-        minioUserPhotoDomainService.delete(photoToDelete.getFilePath());
-
-        return new HttpResponse("User photo deleted successfully", 200);
+        userPhotoService.delete(userPhotoToDelete);
     }
 }

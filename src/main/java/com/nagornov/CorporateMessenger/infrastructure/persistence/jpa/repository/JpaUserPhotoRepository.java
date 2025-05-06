@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository;
 
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserPhotoEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserPhotoMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaUserPhotoRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +18,18 @@ public class JpaUserPhotoRepository {
     private final JpaUserPhotoMapper jpaUserPhotoMapper;
 
     public UserPhoto save(UserPhoto userPhoto) {
-        JpaUserPhotoEntity entity = springDataJpaUserPhotoRepository.save(
-                jpaUserPhotoMapper.toEntity(userPhoto)
+        return jpaUserPhotoMapper.toDomain(
+                springDataJpaUserPhotoRepository.save(
+                        jpaUserPhotoMapper.toEntity(userPhoto)
+                )
         );
-        return jpaUserPhotoMapper.toDomain(entity);
+    }
+
+    public List<UserPhoto> saveAll(List<UserPhoto> userPhotos) {
+        return springDataJpaUserPhotoRepository.saveAll(
+                userPhotos.stream().map(jpaUserPhotoMapper::toEntity).toList()
+        )
+        .stream().map(jpaUserPhotoMapper::toDomain).toList();
     }
 
     public void delete(UserPhoto userPhoto) {

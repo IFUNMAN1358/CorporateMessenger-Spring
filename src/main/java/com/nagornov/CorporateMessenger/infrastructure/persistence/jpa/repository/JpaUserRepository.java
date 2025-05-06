@@ -84,14 +84,14 @@ public class JpaUserRepository {
                 });
     }
 
-    public Page<UserWithMainUserPhotoDTO> searchWithMainUserPhotoByUsername(String username, int page, int pageSize) {
+    public Page<UserWithUserPhotoDTO> searchWithMainUserPhotoByUsername(String username, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return springDataJpaUserRepository
                 .searchWithMainUserPhotoByUsername(username, pageable)
                 .map(dtoEntity -> {
-                    return new UserWithMainUserPhotoDTO(
+                    return new UserWithUserPhotoDTO(
                             jpaUserMapper.toDomain(dtoEntity.getUser()),
-                            jpaUserPhotoMapper.toDomain(dtoEntity.getMainUserPhoto())
+                            dtoEntity.getUserPhoto().map(jpaUserPhotoMapper::toDomain)
                     );
                 });
     }
@@ -112,6 +112,15 @@ public class JpaUserRepository {
                         jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
                         jpaEmployeeMapper.toDomain(dtoEntity.getEmployee()),
                         dtoEntity.getEmployeePhoto().map(jpaEmployeePhotoMapper::toDomain)
+                ));
+    }
+
+    public Optional<UserWithUserSettingsAndUserPhotoDTO> findWithUserSettingsAndUserPhotoByIdAndPhotoId(UUID id, UUID photoId) {
+        return springDataJpaUserRepository.findWithUserSettingsAndUserPhotoByIdAndPhotoId(id, photoId)
+                .map(dtoEntity -> new UserWithUserSettingsAndUserPhotoDTO(
+                        jpaUserMapper.toDomain(dtoEntity.getUser()),
+                        jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
+                        jpaUserPhotoMapper.toDomain(dtoEntity.getUserPhoto())
                 ));
     }
 }

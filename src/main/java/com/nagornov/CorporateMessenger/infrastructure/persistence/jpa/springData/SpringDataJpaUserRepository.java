@@ -45,7 +45,7 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
     Optional<UserWithEmployeeDTOEntity> findWithEmployeeById(@Param("id") UUID id);
 
     @Query(
-            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithMainUserPhotoDTOEntity(u, up)" +
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserPhotoDTOEntity(u, up)" +
             "FROM JpaUserEntity u " +
             "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
             "LEFT JOIN JpaUserPhotoEntity up ON u.id = up.userId AND up.isMain = true " +
@@ -53,7 +53,7 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
             "AND u.isDeleted = false " +
             "AND us.isSearchable = true"
     )
-    Page<UserWithMainUserPhotoDTOEntity> searchWithMainUserPhotoByUsername(@Param("username") String username, Pageable pageable);
+    Page<UserWithUserPhotoDTOEntity> searchWithMainUserPhotoByUsername(@Param("username") String username, Pageable pageable);
 
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsAndEmployeeDTOEntity(u, us, e) " +
@@ -73,4 +73,13 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
             "WHERE u.id = :id"
     )
     Optional<UserWithUserSettingsAndEmployeeAndEmployeePhotoDTOEntity> findWithUserSettingsAndEmployeeAndEmployeePhotoById(@Param("id") UUID id);
+
+    @Query(
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsAndUserPhotoDTOEntity(u, us, up) " +
+            "FROM JpaUserEntity u " +
+            "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
+            "JOIN JpaUserPhotoEntity up ON u.id = up.userId " +
+            "WHERE u.id = :id AND up.id = :photoId"
+    )
+    Optional<UserWithUserSettingsAndUserPhotoDTOEntity> findWithUserSettingsAndUserPhotoByIdAndPhotoId(@Param("id") UUID id, @Param("photoId") UUID photoId);
 }

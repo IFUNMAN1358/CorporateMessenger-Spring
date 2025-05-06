@@ -7,11 +7,12 @@ import com.nagornov.CorporateMessenger.domain.model.user.UserSettings;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 @Data
 @AllArgsConstructor
-public class UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO {
+public class UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO implements Serializable {
 
     private User user;
     private UserSettings userSettings;

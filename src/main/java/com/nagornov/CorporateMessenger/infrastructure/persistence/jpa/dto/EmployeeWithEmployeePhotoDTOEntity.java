@@ -4,10 +4,11 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.Jpa
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaEmployeePhotoEntity;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 @Data
-public class EmployeeWithEmployeePhotoDTOEntity {
+public class EmployeeWithEmployeePhotoDTOEntity implements Serializable {
 
     private JpaEmployeeEntity employee;
     private Optional<JpaEmployeePhotoEntity> employeePhoto;

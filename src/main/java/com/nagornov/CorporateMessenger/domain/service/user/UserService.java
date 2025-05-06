@@ -84,7 +84,7 @@ public class UserService {
         return jpaUserRepository.existsByUsername(username);
     }
 
-    public Page<UserWithMainUserPhotoDTO> searchWithMainUserPhotoByUsername(@NonNull String username, int page, int pageSize) {
+    public Page<UserWithUserPhotoDTO> searchWithMainUserPhotoByUsername(@NonNull String username, int page, int pageSize) {
         return jpaUserRepository.searchWithMainUserPhotoByUsername(username, page, pageSize);
     }
 
@@ -157,6 +157,15 @@ public class UserService {
                         "UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO[User, UserSettings, Employee, Opt(EmployeePhoto)] by User[id=%s] not found"
                                 .formatted(id)
                 ));
+    }
+
+    public UserWithUserSettingsAndUserPhotoDTO getWithUserSettingsAndUserPhotoByIdAndPhotoId(@NonNull UUID id, @NonNull UUID photoId) {
+        return jpaUserRepository.findWithUserSettingsAndUserPhotoByIdAndPhotoId(id, photoId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "UserWithUserSettingsAndUserPhotoDTO[User, UserSettings, UserPhoto] by User[id=%s] or UserPhoto[id=%s] not found"
+                                .formatted(id, photoId)
+                        )
+                );
     }
 
 }

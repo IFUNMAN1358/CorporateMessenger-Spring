@@ -1,10 +1,9 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.user.*;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithMainUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.dto.UserWithUserPhotoDTO;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
@@ -93,14 +92,12 @@ public class UserApplicationService {
 
         jwtService.getAuthInfo();
 
-        Page<UserWithMainUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(username, page, pageSize);
+        Page<UserWithUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(username, page, pageSize);
 
-        return usersDto.map(userDto -> {
-            return new UserWithUserPhotoResponse(
-                    userDto.getUser(),
-                    userDto.getMainUserPhoto()
-            );
-        });
+        return usersDto.map(userDto -> new UserWithUserPhotoResponse(
+                userDto.getUser(),
+                userDto.getUserPhoto()
+        ));
     }
 
 
@@ -132,7 +129,7 @@ public class UserApplicationService {
     public void blockUserByUserId(@NonNull UserIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 
@@ -149,7 +146,7 @@ public class UserApplicationService {
     public void unblockUserByUserId(@NonNull UserIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 
@@ -162,7 +159,7 @@ public class UserApplicationService {
 
 
     @Transactional
-    public HttpResponse deleteAccount() {
+    public void softDeleteAccount() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -190,7 +187,5 @@ public class UserApplicationService {
         employeePhotoService.deleteByEmployeeId(authEmployee.getId());
 
         jwtSessionService.deleteFromRedis(authUser.getId());
-
-        return new HttpResponse("User deleted", 200);
     }
 }

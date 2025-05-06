@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
+import com.nagornov.CorporateMessenger.domain.broker.producer.NotificationProducer;
 import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsDTO;
@@ -37,6 +38,7 @@ public class ContactApplicationService {
     private final ContactService contactService;
     private final UserBlacklistService userBlacklistService;
     private final NotificationService notificationService;
+    private final NotificationProducer notificationProducer;
 
 
     @Transactional
@@ -69,7 +71,7 @@ public class ContactApplicationService {
                 recipientContact.updateAddedAsNow();
                 initiatorContact.updateLastRequestSentAtAsNow();
                 contactService.updateAll(List.of(initiatorContact, recipientContact));
-                notificationService.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
+                notificationProducer.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
                 return initiatorContact;
             }
 
@@ -77,7 +79,7 @@ public class ContactApplicationService {
             if (initiatorContact.getLastRequestSentAt() == null || initiatorContact.getLastRequestSentAt().isBefore(dayInterval)) {
                 initiatorContact.updateLastRequestSentAtAsNow();
                 contactService.update(initiatorContact);
-                notificationService.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
+                notificationProducer.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
                 return initiatorContact;
             }
 
@@ -85,7 +87,7 @@ public class ContactApplicationService {
         }
 
         if (!recipientUserSettings.getIsConfirmContactRequests()) {
-            notificationService.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
+            notificationProducer.sendToKafkaAsJoinContact(recipientUser.getId(), initiatorUser.getId());
             contactService.create(
                     recipientUser.getId(), initiatorUser.getId(), ContactRole.RECIPIENT, ContactStatus.CONFIRMED, null, Instant.now()
             );
@@ -94,7 +96,7 @@ public class ContactApplicationService {
             );
         }
 
-        notificationService.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
+        notificationProducer.sendToKafkaAsRequestToJoinContact(recipientUser.getId(), initiatorUser.getId());
         contactService.create(
                 recipientUser.getId(), initiatorUser.getId(), ContactRole.RECIPIENT, ContactStatus.PENDING, null, null
         );
@@ -108,7 +110,7 @@ public class ContactApplicationService {
     public Optional<Contact> findContactByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), userId);
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 
@@ -162,7 +164,7 @@ public class ContactApplicationService {
     public void confirmContactByUserId(@NonNull UserIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
         User authUser = userPairDTO.getUser1();
         User initiatorUser = userPairDTO.getUser2();
 
@@ -179,7 +181,7 @@ public class ContactApplicationService {
         authUserContact.confirm();
         initiatorUserContact.confirm();
 
-        notificationService.sendToKafkaAsConfirmContactRequest(initiatorUser.getId(), authUser.getId());
+        notificationProducer.sendToKafkaAsConfirmContactRequest(initiatorUser.getId(), authUser.getId());
         contactService.updateAll(List.of(authUserContact, initiatorUserContact));
     }
 
@@ -188,7 +190,7 @@ public class ContactApplicationService {
     public void rejectContactByUserId(@NonNull UserIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
         User authUser = userPairDTO.getUser1();
         User initiatorUser = userPairDTO.getUser2();
 
@@ -201,7 +203,7 @@ public class ContactApplicationService {
         if (!(authUserContact.isRecipient() && initiatorUserContact.isInitiator())) {
             throw new ResourceBadRequestException("You have no right to reject contact");
         }
-        notificationService.sendToKafkaAsRejectContactRequest(initiatorUser.getId(), authUser.getId());
+        notificationProducer.sendToKafkaAsRejectContactRequest(initiatorUser.getId(), authUser.getId());
         contactService.deleteAll(List.of(authUserContact, initiatorUserContact));
     }
 
@@ -210,7 +212,7 @@ public class ContactApplicationService {
     public void deleteContactByUserId(@NonNull UserIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByUserIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 

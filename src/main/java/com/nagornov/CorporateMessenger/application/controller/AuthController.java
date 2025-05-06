@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.AuthApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,9 +29,9 @@ public class AuthController {
             path = "/api/auth/csrf-token",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
-        HttpResponse res = authApplicationService.getCsrfToken(request, response);
-        return ResponseEntity.status(200).body(res);
+    ResponseEntity<String> getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
+        authApplicationService.getCsrfToken(request, response);
+        return ResponseEntity.status(200).body("Csrf token generated and saved in cookies");
     }
 
 
@@ -68,8 +67,8 @@ public class AuthController {
             value = "/api/auth/logout",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> logout() {
-        HttpResponse response = authApplicationService.logout();
-        return ResponseEntity.status(200).body(response);
+    ResponseEntity<String> logout() {
+        authApplicationService.logout();
+        return ResponseEntity.status(200).body("Logout success");
     }
 }

@@ -64,7 +64,11 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
                     // RegistrationKeyController
-
+                    // From TgBot to CM through kafka topic with authorization
+                    // create key
+                    // get all info about key
+                    // get all keys sorted by created at
+                    // delete key by id
 
                     // AuthController
                     .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
@@ -86,8 +90,10 @@ public class SecurityConfiguration {
 
                     // UserPhotoController
                     .requestMatchers(HttpMethod.POST, "/api/user/photo").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/photo/main").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/main").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/photo/{photoId}").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/photo/{photoId}").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/photo/{photoId}").hasRole("USER")
 

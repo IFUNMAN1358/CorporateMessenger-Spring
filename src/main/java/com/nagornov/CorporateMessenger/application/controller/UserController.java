@@ -144,8 +144,8 @@ public class UserController {
             value = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> deleteAccount() {
-        userApplicationService.deleteAccount();
+    ResponseEntity<String> softDeleteAccount() {
+        userApplicationService.softDeleteAccount();
         return ResponseEntity.status(200).body("Account deleted");
     }
 }
