@@ -4,9 +4,6 @@ import com.nagornov.CorporateMessenger.application.dto.model.employee.EmployeeWi
 import com.nagornov.CorporateMessenger.application.dto.model.employee.UpdateEmployeeRequest;
 import com.nagornov.CorporateMessenger.domain.dto.EmployeeWithEmployeePhotoDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO;
-import com.nagornov.CorporateMessenger.domain.enums.model.EmployeeVisibility;
-import com.nagornov.CorporateMessenger.domain.enums.model.ProfileVisibility;
-import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.domain.model.user.EmployeePhoto;
@@ -28,6 +25,7 @@ public class EmployeeApplicationService {
 
     private final JwtService jwtService;
     private final UserService userService;
+    private final UserSettingsService userSettingsService;
     private final EmployeeService employeeService;
     private final EmployeePhotoService employeePhotoService;
     private final UserBlacklistService userBlacklistService;
@@ -54,25 +52,12 @@ public class EmployeeApplicationService {
         Employee targetEmployee = targetDto.getEmployee();
         Optional<EmployeePhoto> optTargetEmployeePhoto = targetDto.getEmployeePhoto();
 
-        if (userBlacklistService.existsByUserIdAndBlockedUserId(targetUser.getId(), authInfo.getUserIdAsUUID())) {
-            throw new ResourceBadRequestException("User has blocked you");
-        }
+        userBlacklistService.ensureUserNotBlocked(targetUser.getId(), authInfo.getUserIdAsUUID());
 
         boolean existsContactPair = contactService.existsContactPairByUserIds(authInfo.getUserIdAsUUID(), targetUser.getId());
 
-        if (
-                targetUserSettings.isProfileVisibility(ProfileVisibility.ONLY_ME) ||
-                (targetUserSettings.isProfileVisibility(ProfileVisibility.CONTACTS) && !existsContactPair)
-        ) {
-            throw new ResourceBadRequestException("You can't get employee data");
-        }
-
-        if (
-                targetUserSettings.isEmployeeVisibility(EmployeeVisibility.ONLY_ME) ||
-                (targetUserSettings.isEmployeeVisibility(EmployeeVisibility.CONTACTS) && !existsContactPair)
-        ) {
-            throw new ResourceBadRequestException("You can't get employee data");
-        }
+        userSettingsService.ensureUserHasAccessToProfile(targetUserSettings, existsContactPair);
+        userSettingsService.ensureUserHasAccessToEmployee(targetUserSettings, existsContactPair);
 
         return new EmployeeWithEmployeePhotoResponse(targetEmployee, optTargetEmployeePhoto);
     }

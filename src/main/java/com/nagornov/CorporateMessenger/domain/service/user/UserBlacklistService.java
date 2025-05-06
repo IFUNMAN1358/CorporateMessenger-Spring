@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.service.user;
 
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.user.UserBlacklist;
@@ -87,6 +88,12 @@ public class UserBlacklistService {
     public void validateAnyBetweenUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
         if (jpaUserBlacklistRepository.existsAnyBetweenUserIds(userId1, userId2)) {
             throw new ResourceConflictException("This user has blocked you or you have blocked this user");
+        }
+    }
+
+    public void ensureUserNotBlocked(@NonNull UUID userId, @NonNull UUID blockedUserId) {
+        if (jpaUserBlacklistRepository.existsByUserIdAndBlockedUserId(userId, blockedUserId)) {
+            throw new ResourceBadRequestException("User has blocked you");
         }
     }
 

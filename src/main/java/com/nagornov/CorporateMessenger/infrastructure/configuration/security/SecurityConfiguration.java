@@ -63,6 +63,9 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.POST, "/api/test/3").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
+                    // RegistrationKeyController
+
+
                     // AuthController
                     .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
@@ -93,6 +96,12 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}/employee").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/employee").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/employee").hasRole("USER")
+
+                    // EmployeePhotoController
+                    .requestMatchers(HttpMethod.POST, "/api/user/employee/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/employee/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/{userId}/employee/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/employee/photo").hasRole("USER")
 
                     // NotificationController
                     .requestMatchers(HttpMethod.GET, "/api/user/notifications").hasRole("USER")
