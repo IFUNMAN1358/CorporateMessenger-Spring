@@ -1,6 +1,9 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity;
 
+import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.key.CassandraChatMemberByChatIdKey;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +26,8 @@ public class CassandraChatMemberByChatIdEntity implements Serializable {
     private CassandraChatMemberByChatIdKey key;
 
     @Column("status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private ChatMemberStatus status;
 
     @Column("joined_at")
     private Instant joinedAt;

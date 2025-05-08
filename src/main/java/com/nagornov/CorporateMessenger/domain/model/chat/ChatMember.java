@@ -13,32 +13,32 @@ public class ChatMember {
 
     private Long chatId;
     private UUID userId;
-    private String status;
+    private ChatMemberStatus status;
     private Instant joinedAt;
     private Instant updatedAt;
 
     public boolean isCreator() {
-        return status.equals(ChatMemberStatus.CREATOR.getStatus());
+        return status.equals(ChatMemberStatus.CREATOR);
     }
 
     public boolean isAdministrator() {
-        return status.equals(ChatMemberStatus.ADMINISTRATOR.getStatus());
+        return status.equals(ChatMemberStatus.ADMINISTRATOR);
     }
 
     public boolean isMember() {
-        return status.equals(ChatMemberStatus.MEMBER.getStatus());
+        return status.equals(ChatMemberStatus.MEMBER);
     }
 
     public boolean isRestricted() {
-        return status.equals(ChatMemberStatus.RESTRICTED.getStatus());
+        return status.equals(ChatMemberStatus.RESTRICTED);
     }
 
     public boolean isLeft() {
-        return status.equals(ChatMemberStatus.LEFT.getStatus());
+        return status.equals(ChatMemberStatus.LEFT);
     }
 
     public boolean isKicked() {
-        return status.equals(ChatMemberStatus.KICKED.getStatus());
+        return status.equals(ChatMemberStatus.KICKED);
     }
 
 }

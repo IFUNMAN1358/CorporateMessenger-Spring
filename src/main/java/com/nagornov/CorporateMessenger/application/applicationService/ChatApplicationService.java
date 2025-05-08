@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatDTO;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
@@ -49,7 +48,7 @@ public class ChatApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         User user = userService.getById(authInfo.getUserIdAsUUID());
-        User partner = userService.getById(request.getUserIdAsUUID());
+        User partner = userService.getById(request.getUserId());
 
         String userPairHash = PrivateChat.generateUserPairHash(user.getId(), partner.getId());
         Optional<PrivateChat> optPrivateChat = privateChatService.findByUserPairHash(userPairHash);
@@ -198,11 +197,11 @@ public class ChatApplicationService {
     }
 
 
-    public HttpResponse deleteChat(@NonNull ChatIdRequest request) {
+    public void deleteChat(@NonNull ChatIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(request.getChatIdAsLong(), user.getId());
+        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(request.getChatId(), user.getId());
 
         Chat chat = chatService.getById(userChatMember.getChatId());
 
@@ -238,8 +237,6 @@ public class ChatApplicationService {
                 chatPhotoService.delete(chatPhoto);
             }
         }
-
-        return new HttpResponse("Chat was deleted", 204);
     }
 
 }

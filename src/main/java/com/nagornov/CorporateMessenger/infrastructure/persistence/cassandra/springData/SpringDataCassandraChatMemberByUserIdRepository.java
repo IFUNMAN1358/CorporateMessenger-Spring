@@ -17,4 +17,7 @@ public interface SpringDataCassandraChatMemberByUserIdRepository
     @Query("SELECT * FROM chat_members_by_user_id WHERE user_id = :userId")
     List<CassandraChatMemberByUserIdEntity> findAllByUserId(@Param("userId") UUID userId);
 
+    @Query("DELETE FROM chat_members_by_user_id WHERE chat_id = :chatId AND user_id IN :userIds")
+    void deleteAllByChatIdAndUserIds(@Param("chatId") Long chatId, @Param("userIds") List<UUID> userIds);
+
 }

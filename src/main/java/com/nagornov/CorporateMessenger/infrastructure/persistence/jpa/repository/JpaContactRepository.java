@@ -6,6 +6,9 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.Jpa
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaContactMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaContactRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -56,6 +59,11 @@ public class JpaContactRepository {
     public List<Contact> findAllByUserId(UUID userId) {
         return springDataJpaContactRepository.findAllByUserId(userId)
                 .stream().map(jpaContactMapper::toDomain).toList();
+    }
+
+    public Page<Contact> findAllByUserId(UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return springDataJpaContactRepository.findAllByUserId(userId, pageable).map(jpaContactMapper::toDomain);
     }
 
     public boolean existsContactPairByUserIds(UUID userId1, UUID userId2) {

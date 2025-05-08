@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class GroupChatPhotoApplicationService {
+public class ChatPhotoApplicationService {
 
     private final JwtService jwtService;
     private final CassandraGroupChatDomainService cassandraGroupChatDomainService;

@@ -8,6 +8,7 @@ import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaContactRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +22,6 @@ import java.util.UUID;
 public class ContactService {
 
     private final JpaContactRepository jpaContactRepository;
-
-    //
-    // JPA
-    //
 
     @Transactional
     public Contact create(
@@ -81,6 +78,10 @@ public class ContactService {
 
     public List<Contact> findAllByUserId(@NonNull UUID userId) {
         return jpaContactRepository.findAllByUserId(userId);
+    }
+
+    public Page<Contact> findAllByUserId(@NonNull UUID userId, int page, int size) {
+        return jpaContactRepository.findAllByUserId(userId, page, size);
     }
 
     public Optional<Contact> findByUserIdAndContactId(@NonNull UUID userId, @NonNull UUID contactId) {

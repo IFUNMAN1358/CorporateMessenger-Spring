@@ -11,6 +11,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +21,16 @@ public class UnreadMessageService {
 
     private final CassandraUnreadMessageRepository cassandraUnreadMessageRepository;
     private final CassandraChatMemberRepository cassandraChatMemberRepository;
+
+    public List<UnreadMessage> createAll(@NonNull Long chatId, @NonNull List<UUID> userIds) {
+        List<UnreadMessage> unreadMessages = new ArrayList<>();
+        for (UUID userId : userIds) {
+            unreadMessages.add(
+                    new UnreadMessage(chatId, userId, 0)
+            );
+        }
+        return cassandraUnreadMessageRepository.saveAll(unreadMessages);
+    }
 
     public UnreadMessage create(@NonNull Long chatId, @NonNull UUID userId) {
         UnreadMessage unreadMessage = new UnreadMessage(chatId, userId, 0);
@@ -32,6 +43,10 @@ public class UnreadMessageService {
 
     public void delete(@NonNull UnreadMessage unreadMessage) {
         cassandraUnreadMessageRepository.delete(unreadMessage);
+    }
+
+    public void deleteAllByUserIds(@NonNull Long chatId, @NonNull List<UUID> userIds) {
+        cassandraUnreadMessageRepository.deleteAllByChatIdAndUserIds(chatId, userIds);
     }
 
     public void deleteByChatIdAndUserId(@NonNull Long chatId, @NonNull UUID userId) {

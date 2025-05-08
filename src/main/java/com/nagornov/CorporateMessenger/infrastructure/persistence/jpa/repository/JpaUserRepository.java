@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,6 +55,10 @@ public class JpaUserRepository {
                 .map(jpaUserMapper::toDomain);
     }
 
+    public List<UUID> findAllIdsByIds(List<UUID> ids) {
+        return springDataJpaUserRepository.findAllIdsByIds(ids);
+    }
+
     public Optional<UserPairDTO> findUserPairByIds(UUID id1, UUID id2) {
         return springDataJpaUserRepository.findUserPairByIds(id1, id2)
                 .map(dtoEntity -> {
@@ -94,6 +99,14 @@ public class JpaUserRepository {
                             dtoEntity.getUserPhoto().map(jpaUserPhotoMapper::toDomain)
                     );
                 });
+    }
+
+    public List<UserWithUserPhotoDTO> findAllWithMainUserPhotoByIds(List<UUID> ids) {
+        return springDataJpaUserRepository.findAllWithMainUserPhotoByIds(ids)
+                .stream().map(dtoEntity -> new UserWithUserPhotoDTO(
+                        jpaUserMapper.toDomain(dtoEntity.getUser()),
+                        dtoEntity.getUserPhoto().map(jpaUserPhotoMapper::toDomain)
+                )).toList();
     }
 
     public Optional<UserWithUserSettingsAndEmployeeDTO> findWithUserSettingsAndEmployeeById(UUID id) {

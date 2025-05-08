@@ -63,13 +63,6 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.POST, "/api/test/3").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
-                    // RegistrationKeyController
-                    // From TgBot to CM through kafka topic with authorization
-                    // create key
-                    // get all info about key
-                    // get all keys sorted by created at
-                    // delete key by id
-
                     // AuthController
                     .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
@@ -126,29 +119,21 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.PATCH, "/api/user/contact/reject").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/contact").hasRole("USER")
 
-                    // PrivateChatController
+                    // ChatController
                     .requestMatchers(HttpMethod.POST, "/api/chat/private").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/chat/private/all").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/chat/private/{chatId}").hasRole("USER")
-                    .requestMatchers(HttpMethod.POST, "/api/chat/private/unavailable").hasRole("USER")
-
-                    // GroupChatController
                     .requestMatchers(HttpMethod.POST, "/api/chat/group").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/all").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/metadata").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/status").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/owner").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chats").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat").hasRole("USER")
 
-                    // GroupChatMemberController
+                    // ChatMemberController
                     .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members/available").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/members").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/members").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/leave").hasRole("USER")
 
-                    // GroupChatPhotoController
+                    // ChatPhotoController
                     .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/photo").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/photo").hasRole("USER")

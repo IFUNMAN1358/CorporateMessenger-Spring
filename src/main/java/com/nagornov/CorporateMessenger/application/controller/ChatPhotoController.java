@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
-import com.nagornov.CorporateMessenger.application.applicationService.GroupChatPhotoApplicationService;
+import com.nagornov.CorporateMessenger.application.applicationService.ChatPhotoApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @Controller
 @RequiredArgsConstructor
-public class GroupChatPhotoController {
+public class ChatPhotoController {
 
-    private final GroupChatPhotoApplicationService groupChatPhotoApplicationService;
+    private final ChatPhotoApplicationService chatPhotoApplicationService;
 
 
     @GetMapping(
@@ -30,7 +30,7 @@ public class GroupChatPhotoController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
         }
-        Resource response = groupChatPhotoApplicationService.getGroupChatPhoto(chatId);
+        Resource response = chatPhotoApplicationService.getGroupChatPhoto(chatId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -48,7 +48,7 @@ public class GroupChatPhotoController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(chatId) or FileRequest validation error", bindingResult);
         }
-        Resource response = groupChatPhotoApplicationService.uploadOrChangeGroupChatPhoto(chatId, request);
+        Resource response = chatPhotoApplicationService.uploadOrChangeGroupChatPhoto(chatId, request);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -61,7 +61,7 @@ public class GroupChatPhotoController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
         }
-        HttpResponse response = groupChatPhotoApplicationService.deleteGroupChatPhoto(chatId);
+        HttpResponse response = chatPhotoApplicationService.deleteGroupChatPhoto(chatId);
         return ResponseEntity.status(200).body(response);
     }
 }

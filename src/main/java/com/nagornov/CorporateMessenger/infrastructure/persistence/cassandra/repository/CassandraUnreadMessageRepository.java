@@ -7,6 +7,7 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.spri
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +17,13 @@ public class CassandraUnreadMessageRepository {
 
     private final SpringDataCassandraUnreadMessageByChatIdAndUserIdRepository springDataCassandraUnreadMessageByChatIdAndUserIdRepository;
     private final CassandraUnreadMessageMapper cassandraUnreadMessageMapper;
+
+    public List<UnreadMessage> saveAll(List<UnreadMessage> unreadMessages) {
+        return springDataCassandraUnreadMessageByChatIdAndUserIdRepository.saveAll(
+                unreadMessages.stream().map(cassandraUnreadMessageMapper::toUnreadMessageByChatIdAndUserIdEntity).toList()
+        )
+        .stream().map(cassandraUnreadMessageMapper::toDomain).toList();
+    }
 
     public UnreadMessage save(UnreadMessage unreadMessage) {
         CassandraUnreadMessageByChatIdAndUserIdEntity entity =
@@ -35,6 +43,10 @@ public class CassandraUnreadMessageRepository {
         springDataCassandraUnreadMessageByChatIdAndUserIdRepository.deleteByChatIdAndUserId(
                 chatId, userId
         );
+    }
+
+    public void deleteAllByChatIdAndUserIds(Long chatId, List<UUID> userIds) {
+        springDataCassandraUnreadMessageByChatIdAndUserIdRepository.deleteAllByChatIdAndUserIds(chatId, userIds);
     }
 
     public Optional<UnreadMessage> findByChatIdAndUserId(Long chatId, UUID userId) {

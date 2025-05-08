@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -86,6 +86,10 @@ public class UserService {
 
     public Page<UserWithUserPhotoDTO> searchWithMainUserPhotoByUsername(@NonNull String username, int page, int pageSize) {
         return jpaUserRepository.searchWithMainUserPhotoByUsername(username, page, pageSize);
+    }
+
+    public List<UserWithUserPhotoDTO> findAllWithMainUserPhotoByIds(@NonNull List<UUID> ids) {
+        return jpaUserRepository.findAllWithMainUserPhotoByIds(ids);
     }
 
     public User getById(@NonNull UUID id) {
@@ -166,6 +170,17 @@ public class UserService {
                                 .formatted(id, photoId)
                         )
                 );
+    }
+
+    public void ensureExistsAllByIds(@NonNull List<UUID> ids) {
+        if (ids.isEmpty()) {
+            throw new ResourceConflictException("List of user ids is empty");
+        }
+        Set<UUID> existingIds = new HashSet<>(jpaUserRepository.findAllIdsByIds(ids));
+        Set<UUID> missingIds = ids.stream().filter(id -> !existingIds.contains(id)).collect(Collectors.toSet());
+        if (!missingIds.isEmpty()) {
+            throw new ResourceNotFoundException("One of the passed user ids does not exist");
+        }
     }
 
 }

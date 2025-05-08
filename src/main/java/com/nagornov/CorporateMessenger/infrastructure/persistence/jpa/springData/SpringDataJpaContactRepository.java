@@ -2,6 +2,8 @@ package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springDat
 
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.ContactPairDTOEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaContactEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -46,6 +48,9 @@ public interface SpringDataJpaContactRepository extends JpaRepository<JpaContact
 
     @Query("SELECT c FROM JpaContactEntity c WHERE c.userId = :userId")
     List<JpaContactEntity> findAllByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT c FROM JpaContactEntity c WHERE c.userId = :userId")
+    Page<JpaContactEntity> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.ContactPairDTOEntity(c1, c2) " +

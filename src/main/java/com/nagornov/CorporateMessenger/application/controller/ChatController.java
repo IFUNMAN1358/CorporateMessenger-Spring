@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatDTO;
 import com.nagornov.CorporateMessenger.application.applicationService.ChatApplicationService;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.validation.constraints.NotNull;
@@ -80,11 +79,11 @@ public class ChatController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<HttpResponse> deleteChat(@RequestBody ChatIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> deleteChat(@RequestBody ChatIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("ChatIdRequest validation error", bindingResult);
         }
-        HttpResponse response = chatApplicationService.deleteChat(request);
-        return ResponseEntity.status(200).body(response);
+        chatApplicationService.deleteChat(request);
+        return ResponseEntity.status(200).body("Chat deleted");
     }
 }
