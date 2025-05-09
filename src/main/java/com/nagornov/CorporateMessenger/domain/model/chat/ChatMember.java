@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.model.chat;
 
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -39,6 +40,12 @@ public class ChatMember {
 
     public boolean isKicked() {
         return status.equals(ChatMemberStatus.KICKED);
+    }
+
+    public void ensureIsCreator() {
+        if (!isCreator()) {
+            throw new ResourceBadRequestException("You dont have permission because you are not the creator of the group chat");
+        }
     }
 
 }

@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository;
 
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraChatPhotoByChatIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper.CassandraChatPhotoMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraChatPhotoByChatIdRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +18,18 @@ public class CassandraChatPhotoRepository {
     private final CassandraChatPhotoMapper cassandraChatPhotoMapper;
 
     public ChatPhoto save(ChatPhoto chatPhoto) {
-        CassandraChatPhotoByChatIdEntity entity =
+        return cassandraChatPhotoMapper.toDomain(
                 springDataCassandraChatPhotoByChatIdRepository.save(
                         cassandraChatPhotoMapper.toChatPhotoByChatIdEntity(chatPhoto)
-                );
-        return cassandraChatPhotoMapper.toDomain(entity);
+                )
+        );
+    }
+
+    public List<ChatPhoto> saveAll(List<ChatPhoto> chatPhotos) {
+        return springDataCassandraChatPhotoByChatIdRepository.saveAll(
+                chatPhotos.stream().map(cassandraChatPhotoMapper::toChatPhotoByChatIdEntity).toList()
+        )
+        .stream().map(cassandraChatPhotoMapper::toDomain).toList();
     }
 
     public void delete(ChatPhoto chatPhoto) {

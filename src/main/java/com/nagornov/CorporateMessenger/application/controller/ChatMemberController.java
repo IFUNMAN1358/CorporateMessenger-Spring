@@ -22,7 +22,7 @@ public class ChatMemberController {
     private final ChatMemberApplicationService chatMemberApplicationService;
 
     @GetMapping(
-            value = "/api/chat/group/{chatId}/members",
+            path = "/api/chat/group/{chatId}/members",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<UserWithUserPhotoResponse>> getGroupChatMembers(
@@ -34,13 +34,13 @@ public class ChatMemberController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
         }
-        List<UserWithUserPhotoResponse> response = chatMemberApplicationService.getChatMembers(chatId);
+        List<UserWithUserPhotoResponse> response = chatMemberApplicationService.getGroupChatMembers(chatId, page, size);
         return ResponseEntity.status(200).body(response);
     }
 
 
     @GetMapping(
-            value = "/api/chat/group/{chatId}/members/available",
+            path = "/api/chat/group/{chatId}/members/available",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<List<UserWithUserPhotoResponse>> getAvailableUsersToAdding(
@@ -58,7 +58,7 @@ public class ChatMemberController {
 
 
     @PostMapping(
-            value = "/api/chat/group/{chatId}/members",
+            path = "/api/chat/group/{chatId}/members",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -76,7 +76,7 @@ public class ChatMemberController {
 
 
     @DeleteMapping(
-            value = "/api/chat/group/{chatId}/members",
+            path = "/api/chat/group/{chatId}/members",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -94,7 +94,7 @@ public class ChatMemberController {
 
 
     @DeleteMapping(
-            value = "/api/chat/group/{chatId}/leave",
+            path = "/api/chat/group/{chatId}/leave",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> leaveFromGroupChat(@NotNull @PathVariable("chatId") Long chatId, BindingResult bindingResult) {

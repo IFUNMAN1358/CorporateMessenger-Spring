@@ -1,0 +1,1 @@
+DROP TABLE messenger_ks.read_messages_by_id;

@@ -1,5 +1,14 @@
-ALTER TABLE messenger_ks.messages_by_id DROP chat_id;
-ALTER TABLE messenger_ks.messages_by_chat_id DROP chat_id;
+DROP TABLE messenger_ks.messages_by_chat_id;
 
-ALTER TABLE messenger_ks.messages_by_id ADD chat_id bigint;
-ALTER TABLE messenger_ks.messages_by_chat_id ADD chat_id bigint;
+CREATE TABLE messages_by_chat_id (
+    id TIMEUUID,
+    chat_id bigint,
+    sender_id uuid,
+    sender_username text,
+    content text,
+    has_files boolean,
+    is_changed boolean,
+    is_read boolean,
+    created_at timestamp,
+    PRIMARY KEY (chat_id, id)
+) WITH CLUSTERING ORDER BY (id DESC);

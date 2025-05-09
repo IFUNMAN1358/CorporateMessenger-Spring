@@ -41,18 +41,9 @@ public class Message {
         this.isRead = true;
     }
 
-    public void validateUserIdOwnership(@NonNull UUID userId) {
+    public void ensureUserIdIsSenderId(@NonNull UUID userId) {
         if (!userId.equals(this.getSenderId())) {
             throw new RuntimeException("Message does not belong to the user");
-        }
-    }
-
-    public void validateContentBeforeUpdate(String newContent) {
-        boolean isContentEmpty = this.getContent() == null || this.getContent().trim().isEmpty();
-        boolean isNewContentEmpty = newContent == null || newContent.trim().isEmpty();
-
-        if (!this.getHasFiles() && isContentEmpty && isNewContentEmpty) {
-            throw new RuntimeException("Message cannot be without files and without content");
         }
     }
 

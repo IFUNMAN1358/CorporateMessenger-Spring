@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.domain.client;
 
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
 import com.nagornov.CorporateMessenger.application.dto.common.LogRequest;
 import com.nagornov.CorporateMessenger.domain.enums.client.LogClientEndpoint;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.LogServiceProperties;
@@ -12,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.net.http.HttpResponse;
 
 @Service
 @RequiredArgsConstructor

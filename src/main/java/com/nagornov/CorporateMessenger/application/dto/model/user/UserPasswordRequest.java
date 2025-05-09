@@ -8,7 +8,7 @@ import lombok.ToString;
 
 @Data
 @ToString(exclude = {"currentPassword", "newPassword", "confirmNewPassword"})
-public class PasswordRequest {
+public class UserPasswordRequest {
 
     @NotNull(message = "Текущий пароль не может быть null")
     @NotBlank(message = "Текущий пароль не может быть пустым")

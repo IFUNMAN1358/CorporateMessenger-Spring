@@ -15,5 +15,8 @@ public interface SpringDataCassandraReadMessageByMessageIdRepository
         extends CassandraRepository<CassandraReadMessageByMessageIdEntity, CassandraReadMessageByMessageIdKey> {
 
     @Query("select * from read_messages_by_message_id where message_id = :messageId")
-    List<CassandraReadMessageByMessageIdEntity> getAllByMessageId(@Param("messageId") UUID messageId);
+    List<CassandraReadMessageByMessageIdEntity> findAllByMessageId(@Param("messageId") UUID messageId);
+
+    @Query("DELETE FROM read_messages_by_message_id WHERE message_id = :messageId")
+    void deleteAllByMessageId(@Param("messageId") UUID messageId);
 }

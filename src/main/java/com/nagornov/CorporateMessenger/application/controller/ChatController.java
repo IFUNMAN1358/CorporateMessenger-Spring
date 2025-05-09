@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
-import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatDTO;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatWithChatPhotoResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.ChatApplicationService;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
@@ -24,58 +24,58 @@ public class ChatController {
     private final ChatApplicationService chatApplicationService;
 
     @PostMapping(
-            value = "/api/chat/private",
+            path = "/api/chat/private",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<ChatDTO> getOrCreatePrivateChat(@RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<ChatWithChatPhotoResponse> getOrCreatePrivateChat(@RequestBody UserIdRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
-        ChatDTO response = chatApplicationService.getOrCreatePrivateChat(request);
+        ChatWithChatPhotoResponse response = chatApplicationService.getOrCreatePrivateChat(request);
         return ResponseEntity.status(200).body(response);
     }
 
 
     @PostMapping(
-            value = "/api/chat/group",
+            path = "/api/chat/group",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<ChatDTO> createGroupChat(@RequestBody CreateGroupChatRequest request, BindingResult bindingResult) {
+    ResponseEntity<ChatWithChatPhotoResponse> createGroupChat(@RequestBody CreateGroupChatRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("CreateGroupChatRequest validation error", bindingResult);
         }
-        ChatDTO response = chatApplicationService.createGroupChat(request);
+        ChatWithChatPhotoResponse response = chatApplicationService.createGroupChat(request);
         return ResponseEntity.status(201).body(response);
     }
 
 
     @GetMapping(
-            value = "/api/chat/{chatId}",
+            path = "/api/chat/{chatId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<ChatDTO> getChat(@NotNull @PathVariable Long chatId, BindingResult bindingResult) {
+    ResponseEntity<ChatWithChatPhotoResponse> getChat(@NotNull @PathVariable Long chatId, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
         }
-        ChatDTO response = chatApplicationService.getChat(chatId);
+        ChatWithChatPhotoResponse response = chatApplicationService.getChat(chatId);
         return ResponseEntity.status(200).body(response);
     }
 
 
     @GetMapping(
-            value = "/api/chats",
+            path = "/api/chats",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<ChatDTO>> getAllChats() {
-        List<ChatDTO> response = chatApplicationService.getAllChats();
+    ResponseEntity<List<ChatWithChatPhotoResponse>> getAllChats() {
+        List<ChatWithChatPhotoResponse> response = chatApplicationService.getAllChats();
         return ResponseEntity.status(200).body(response);
     }
 
 
     @DeleteMapping(
-            value = "/api/chat",
+            path = "/api/chat",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )

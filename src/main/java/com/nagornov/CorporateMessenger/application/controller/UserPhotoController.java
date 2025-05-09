@@ -19,12 +19,13 @@ import java.util.UUID;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class UserProfilePhotoController {
+public class UserPhotoController {
 
     private final UserPhotoApplicationService userPhotoApplicationService;
 
+
     @PostMapping(
-            value = "/api/user/photo",
+            path = "/api/user/photo",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -41,7 +42,7 @@ public class UserProfilePhotoController {
 
 
     @GetMapping(
-            value = "/api/user/photo/main",
+            path = "/api/user/photo/main",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> downloadMyMainUserPhoto(
@@ -57,7 +58,7 @@ public class UserProfilePhotoController {
 
 
     @GetMapping(
-            value = "/api/user/photo/{photoId}",
+            path = "/api/user/photo/{photoId}",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> downloadMyUserPhotoByPhotoId(
@@ -74,7 +75,7 @@ public class UserProfilePhotoController {
 
 
     @GetMapping(
-            value = "/api/user/{userId}/photo/main",
+            path = "/api/user/{userId}/photo/main",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> downloadMainUserPhotoByUserId(
@@ -91,7 +92,7 @@ public class UserProfilePhotoController {
 
 
     @GetMapping(
-            value = "/api/user/{userId}/photo/{photoId}",
+            path = "/api/user/{userId}/photo/{photoId}",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> downloadUserPhotoByUserIdAndPhotoId(
@@ -109,7 +110,7 @@ public class UserProfilePhotoController {
 
 
     @PatchMapping(
-            value = "/api/user/photo/{photoId}",
+            path = "/api/user/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserPhotoResponse> setMyMainUserPhoto(
@@ -125,7 +126,7 @@ public class UserProfilePhotoController {
 
 
     @DeleteMapping(
-            value = "/api/user/photo/{photoId}",
+            path = "/api/user/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteMyUserPhoto(

@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.domain.service.message;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraMessageRepository;
@@ -8,6 +9,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,11 +22,28 @@ public class MessageService {
     private final CassandraMessageRepository cassandraMessageRepository;
     private final RedisMessageRepository redisMessageRepository;
 
-    //
-    // CASSANDRA
-    //
+    public Message create(
+            @NonNull Long chatId,
+            @NonNull UUID senderId,
+            @NonNull String senderUsername,
+            @NonNull String content,
+            boolean hasFiles
+    ) {
+        Message message = new Message(
+                Uuids.timeBased(),
+                chatId,
+                senderId,
+                senderUsername,
+                content,
+                hasFiles,
+                false,
+                false,
+                Instant.now()
+        );
+        return cassandraMessageRepository.save(message);
+    }
 
-    public Message save(@NonNull Message message) {
+    public Message update(@NonNull Message message) {
         return cassandraMessageRepository.save(message);
     }
 
@@ -45,17 +64,18 @@ public class MessageService {
         return cassandraMessageRepository.findLastByChatId(chatId);
     }
 
-    public List<Message> getAllByChatId(@NonNull Long chatId, int page, int size) {
+    public List<Message> findAllByChatId(@NonNull Long chatId, int page, int size) {
         return cassandraMessageRepository
                 .getAllByChatId(chatId, page, size);
     }
 
-    //
-    // REDIS
-    //
+    public Message getByChatIdAndId(@NonNull Long chatId, @NonNull UUID id) {
+        return cassandraMessageRepository.findByChatIdAndId(chatId, id)
+                .orElseThrow(() -> new ResourceNotFoundException("Message[chatId=%s, id=%s] not found".formatted(chatId, id)));
+    }
 
     public void leftSaveToRedis(
-            @NonNull UUID chatId,
+            @NonNull Long chatId,
             @NonNull Message message,
             long timeout,
             @NonNull TimeUnit unit
@@ -68,7 +88,7 @@ public class MessageService {
     }
 
     public void rightSaveAllToRedis(
-            @NonNull UUID chatId,
+            @NonNull Long chatId,
             @NonNull List<Message> messages,
             long timeout,
             @NonNull TimeUnit unit
@@ -80,7 +100,7 @@ public class MessageService {
         }
     }
 
-    public List<Message> findAllFromRedis(@NonNull UUID chatId, int page, int size) {
+    public List<Message> findAllFromRedis(@NonNull Long chatId, int page, int size) {
         try {
             return redisMessageRepository.findAll(chatId, page, size);
         } catch (Exception e) {
@@ -88,7 +108,7 @@ public class MessageService {
         }
     }
 
-    public void updateToRedis(@NonNull UUID chatId, @NonNull Message message) {
+    public void updateToRedis(@NonNull Long chatId, @NonNull Message message) {
         try {
             redisMessageRepository.update(chatId, message);
         } catch (Exception e) {
@@ -96,7 +116,7 @@ public class MessageService {
         }
     }
 
-    public void deleteFromRedis(@NonNull UUID chatId, @NonNull Message message) {
+    public void deleteFromRedis(@NonNull Long chatId, @NonNull Message message) {
         try {
             redisMessageRepository.delete(chatId, message);
         } catch (Exception e) {

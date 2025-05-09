@@ -4,8 +4,8 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.enti
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.key.CassandraChatMemberByChatIdKey;
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.data.cassandra.repository.Query;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +21,7 @@ public interface SpringDataCassandraChatMemberByChatIdRepository
     List<CassandraChatMemberByChatIdEntity> findAllByChatId(@Param("chatId") Long chatId);
 
     @Query("SELECT * FROM chat_members_by_chat_id WHERE chat_id = :chatId")
-    Page<CassandraChatMemberByChatIdEntity> findAllByChatId(@Param("chatId") Long chatId, Pageable pageable);
+    Slice<CassandraChatMemberByChatIdEntity> findAllByChatId(@Param("chatId") Long chatId, Pageable pageable);
 
     @Query("SELECT * FROM chat_members_by_chat_id WHERE chat_id = :chatId AND user_id = :userId")
     Optional<CassandraChatMemberByChatIdEntity> findByChatIdAndUserId(
@@ -31,4 +31,7 @@ public interface SpringDataCassandraChatMemberByChatIdRepository
 
     @Query("DELETE FROM chat_members_by_chat_id WHERE chat_id = :chatId AND user_id IN :userIds")
     void deleteAllByChatIdAndUserIds(@Param("chatId") Long chatId, @Param("userIds") List<UUID> userIds);
+
+    @Query("SELECT COUNT(*) > 0 FROM chat_members_by_chat_id WHERE chat_id = :chatId AND user_id = :userId")
+    boolean existsByChatIdAndUserId(@Param("chatId") Long chatId, @Param("userId") UUID userId);
 }

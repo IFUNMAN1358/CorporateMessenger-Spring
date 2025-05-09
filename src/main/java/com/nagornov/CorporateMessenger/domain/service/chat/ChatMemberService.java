@@ -4,6 +4,7 @@ import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraChatMemberRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -51,12 +52,22 @@ public class ChatMemberService {
         return cassandraChatMemberRepository.findAllByChatId(chatId);
     }
 
-    public Page<ChatMember> findAllByChatId(@NonNull Long chatId, int page, int size) {
+    public List<ChatMember> findAllByChatId(@NonNull Long chatId, int page, int size) {
         return cassandraChatMemberRepository.findAllByChatId(chatId, page, size);
     }
 
     public List<ChatMember> findAllByUserId(@NonNull UUID userId) {
         return cassandraChatMemberRepository.findAllByUserId(userId);
+    }
+
+    public boolean existsByChatIdAndUserId(@NonNull Long chatId, @NotNull UUID userId) {
+        return cassandraChatMemberRepository.existsByChatIdAndUserId(chatId, userId);
+    }
+
+    public void ensureExistsByChatIdAndUserId(@NonNull Long chatId, @NotNull UUID userId) {
+        if (!cassandraChatMemberRepository.existsByChatIdAndUserId(chatId, userId)) {
+            throw new ResourceNotFoundException("ChatMember[chatId=%s, userId=%s]".formatted(chatId, userId));
+        }
     }
 
     public ChatMember getByChatIdAndUserId(@NonNull Long chatId, @NonNull UUID userId) {

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +87,23 @@ public class UserPhotoService {
         jpaUserPhotoRepository.deleteAllByUserId(userId);
     }
 
-    public Resource download(@NonNull String filePath) {
+    public Resource download(@NonNull UserPhoto userPhoto, @NonNull String size) {
+        try {
+            InputStream inputStream;
+            if (size.equals("big")) {
+                inputStream = minioRepository.download(MinioBucket.USER_PHOTOS, userPhoto.getBigFilePath());
+            } else if (size.equals("small")) {
+                inputStream = minioRepository.download(MinioBucket.USER_PHOTOS, userPhoto.getSmallFilePath());
+            } else {
+                throw new ResourceBadRequestException("Invalid size param for downloading user photo");
+            }
+            return new InputStreamResource(inputStream);
+        } catch (Exception e) {
+            throw new ResourceBadRequestException(e.getMessage());
+        }
+    }
+
+    public Resource downloadByFilePath(@NonNull String filePath) {
         return new InputStreamResource(
                 minioRepository.download(MinioBucket.USER_PHOTOS, filePath)
         );

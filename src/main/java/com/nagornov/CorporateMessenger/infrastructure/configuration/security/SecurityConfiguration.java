@@ -134,17 +134,20 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/leave").hasRole("USER")
 
                     // ChatPhotoController
-                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/chat/group/{chatId}/photo").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/photo").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photos").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo/main").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/group/{chatId}/photo/{photoId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/group/{chatId}/photo/{photoId}").hasRole("USER")
 
                     // MessageController
-                    .requestMatchers(HttpMethod.POST, "/api/message").hasRole("USER")
-                    .requestMatchers(HttpMethod.GET, "/api/message/{chatId}/{page}").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/message/content").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/message").hasRole("USER")
-                    .requestMatchers(HttpMethod.POST, "/api/message/read").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/chat/{chatId}/message").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}/messages").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}/message/{messageId}/file/{fileId}").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/message/{messageId}/read").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/message/{messageId}/content").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/{chatId}/message/{messageId}").hasRole("USER")
 
                     .anyRequest().authenticated()
             );

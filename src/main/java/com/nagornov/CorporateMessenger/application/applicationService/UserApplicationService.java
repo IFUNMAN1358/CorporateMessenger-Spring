@@ -40,7 +40,7 @@ public class UserApplicationService {
 
 
     @Transactional
-    public void changeUserUsername(@NonNull UsernameRequest request) {
+    public void changeUserUsername(@NonNull UserUsernameRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
@@ -58,7 +58,7 @@ public class UserApplicationService {
 
 
     @Transactional
-    public void changeUserPassword(@NonNull PasswordRequest request) {
+    public void changeUserPassword(@NonNull UserPasswordRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
@@ -107,7 +107,7 @@ public class UserApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        List<UserPhoto> userPhotos = userPhotoService.getAllByUserId(user.getId());
+        List<UserPhoto> userPhotos = userPhotoService.findAllByUserId(user.getId());
 
         return new UserWithUserPhotosResponse(user, userPhotos);
     }
@@ -119,7 +119,7 @@ public class UserApplicationService {
         jwtService.getAuthInfo();
 
         User targetUser = userService.getById(userId);
-        List<UserPhoto> targetUserPhotos = userPhotoService.getAllByUserId(userId);
+        List<UserPhoto> targetUserPhotos = userPhotoService.findAllByUserId(userId);
 
         return new UserWithUserPhotosResponse(targetUser, targetUserPhotos);
     }

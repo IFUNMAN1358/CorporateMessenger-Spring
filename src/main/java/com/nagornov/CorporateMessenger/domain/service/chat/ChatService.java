@@ -19,7 +19,7 @@ public class ChatService {
     public Chat createGroup(@NonNull String title) {
         Chat chat = new Chat(
                 Chat.generateId(),
-                ChatType.PRIVATE.getType(),
+                ChatType.PRIVATE,
                 null,
                 title,
                 null,
@@ -35,7 +35,7 @@ public class ChatService {
     public Chat createPrivate() {
         Chat chat = new Chat(
                 Chat.generateId(),
-                ChatType.PRIVATE.getType(),
+                ChatType.PRIVATE,
                 null,
                 null,
                 null,

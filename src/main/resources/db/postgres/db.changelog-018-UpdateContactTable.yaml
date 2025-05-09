@@ -3,9 +3,6 @@ databaseChangeLog:
       id: 018-UpdateContactTable
       author: IFUNMAN
       changes:
-        - dropUniqueConstraint:
-            tableName: contacts
-            constraintName: unique_contact
         - dropColumn:
             tableName: contacts
             columnName: added_at

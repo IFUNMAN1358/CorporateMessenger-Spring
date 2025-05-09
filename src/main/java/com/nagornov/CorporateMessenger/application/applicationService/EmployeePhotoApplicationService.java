@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.employee.EmployeePhotoResponse;
 import com.nagornov.CorporateMessenger.domain.dto.EmployeeWithEmployeePhotoDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsAndEmployeeAndEmployeePhotoDTO;
-import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.domain.model.user.EmployeePhoto;
@@ -63,13 +62,7 @@ public class EmployeePhotoApplicationService {
             return null;
         }
 
-        if (size.equals("big")) {
-            return employeePhotoService.download(optEmployeePhoto.get().getBigFilePath());
-        } else if (size.equals("small")) {
-            return employeePhotoService.download(optEmployeePhoto.get().getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) to downloading employee photo.");
-        }
+        return employeePhotoService.download(optEmployeePhoto.get(), size);
     }
 
 
@@ -95,13 +88,7 @@ public class EmployeePhotoApplicationService {
             return null;
         }
 
-        if (size.equals("big")) {
-            return employeePhotoService.download(targetOptEmployeePhoto.get().getBigFilePath());
-        } else if (size.equals("small")) {
-            return employeePhotoService.download(targetOptEmployeePhoto.get().getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) to downloading employee photo.");
-        }
+        return employeePhotoService.download(targetOptEmployeePhoto.get(), size);
     }
 
 

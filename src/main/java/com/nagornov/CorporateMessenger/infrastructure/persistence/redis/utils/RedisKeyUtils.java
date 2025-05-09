@@ -15,7 +15,7 @@ public class RedisKeyUtils {
         return "%s:%s".formatted(JWT_SESSION, userId);
     }
 
-    public static String messageKey(UUID chatId) {
+    public static String messageKey(Long chatId) {
         return "%s:%s".formatted(MESSAGE, chatId);
     }
 

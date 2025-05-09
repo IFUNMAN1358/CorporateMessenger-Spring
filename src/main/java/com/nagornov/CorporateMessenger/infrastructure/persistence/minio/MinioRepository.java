@@ -23,7 +23,6 @@ public class MinioRepository {
     private final S3Client s3Client;
 
     public void upload(MinioBucket bucket, String objectPath, BufferedImage image, String mimeType) {
-        // converting to mimeType
         try {
             ByteArrayOutputStream imageOutput = new ByteArrayOutputStream();
             ImageIO.write(image, mimeType, imageOutput);
@@ -33,8 +32,23 @@ public class MinioRepository {
                     .key(objectPath)
                     .contentType(mimeType)
                     .build();
-
             s3Client.putObject(request, RequestBody.fromBytes(imageOutput.toByteArray()));
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to upload file to Minio [bucket=%s, mimeType=%s]: %s"
+                            .formatted(bucket.getBucketName(), mimeType, e.getMessage())
+            );
+        }
+    }
+
+    public void upload(MinioBucket bucket, String objectPath, InputStream file, long size, String mimeType) {
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket.getBucketName())
+                    .key(objectPath)
+                    .contentType(mimeType)
+                    .build();
+            s3Client.putObject(request, RequestBody.fromInputStream(file, size));
         } catch (Exception e) {
             throw new RuntimeException(
                     "Failed to upload file to Minio [bucket=%s, mimeType=%s]: %s"

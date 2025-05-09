@@ -20,6 +20,10 @@ public class KafkaUserEntity implements Serializable {
     private String password;
     private String phone;
     private String mainEmail;
+    private String firstName;
+    private String lastName;
+    private String bio;
+    private Boolean isDeleted;
     private Instant createdAt;
     private Instant updatedAt;
 

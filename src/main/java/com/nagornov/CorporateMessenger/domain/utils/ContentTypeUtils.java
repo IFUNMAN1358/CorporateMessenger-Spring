@@ -6,6 +6,13 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ContentTypeUtils {
 
+    public static boolean isImage(String contentType) {
+        if (contentType == null) {
+            throw new ResourceBadRequestException("File contentType is null");
+        }
+        return contentType.startsWith("image/");
+    }
+
     public static void validateAsImageFromContentType(String contentType) {
         if (contentType == null) {
             throw new ResourceBadRequestException("File contentType is null");

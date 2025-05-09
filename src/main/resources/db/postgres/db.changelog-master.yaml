@@ -40,3 +40,5 @@ databaseChangeLog:
       file: db/postgres/db.changelog-018-UpdateContactTable.yaml
   - include:
       file: db/postgres/db.changelog-019-UpdateUserSettingsTable.yaml
+  - include:
+      file: db/postgres/db.changelog-020-CreateUserBlacklistTable.yaml

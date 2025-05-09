@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.domain.model.user;
 
-import com.nagornov.CorporateMessenger.domain.model.interfaces.ChatPhotoInterface;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,7 +8,7 @@ import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class UserPhoto implements ChatPhotoInterface {
+public class UserPhoto {
 
     private UUID id;
     private UUID userId;

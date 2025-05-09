@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.domain.model.chat;
 
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatType;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.util.UUID;
 public class Chat {
 
     private Long id;
-    private String type;
+    private ChatType type;
     private String username;
     private String title;
     private String description;
@@ -49,12 +50,22 @@ public class Chat {
     }
 
     public boolean isPrivateChat() {
-        return this.type.equals(ChatType.PRIVATE.getType());
+        return this.type.equals(ChatType.PRIVATE);
     }
 
     public boolean isGroupChat() {
-        return this.type.equals(ChatType.GROUP.getType());
+        return this.type.equals(ChatType.GROUP);
     }
 
+    public void ensureIsGroupChat() {
+        if (!this.isGroupChat()) {
+            throw new ResourceBadRequestException("This is not a group chat");
+        }
+    }
 
+    public void ensureIsPrivateChat() {
+        if (!this.isPrivateChat()) {
+            throw new ResourceBadRequestException("This is not a private chat");
+        }
+    }
 }

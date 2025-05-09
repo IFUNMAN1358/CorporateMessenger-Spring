@@ -25,7 +25,4 @@ public class CassandraReadMessageByMessageIdEntity implements Serializable {
     @Column("user_id")
     private UUID userId;
 
-    @Column("chat_id")
-    private UUID chatId;
-
 }

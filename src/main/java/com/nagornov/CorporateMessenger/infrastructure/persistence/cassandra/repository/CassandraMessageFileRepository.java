@@ -32,9 +32,13 @@ public class CassandraMessageFileRepository {
         );
     }
 
-    public List<MessageFile> getAllByMessageId(UUID messageId) {
+    public void deleteAllByMessageId(UUID messageId) {
+        springDataCassandraMessageFileByMessageIdRepository.deleteAllByMessageId(messageId);
+    }
+
+    public List<MessageFile> findAllByMessageId(UUID messageId) {
         return springDataCassandraMessageFileByMessageIdRepository
-                .getAllByMessageId(messageId)
+                .findAllByMessageId(messageId)
                 .stream()
                 .map(cassandraMessageFileMapper::toDomain)
                 .toList();

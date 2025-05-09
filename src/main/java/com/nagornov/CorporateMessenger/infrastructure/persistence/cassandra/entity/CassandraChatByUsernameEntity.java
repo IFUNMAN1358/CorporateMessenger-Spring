@@ -1,6 +1,9 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity;
 
+import com.nagornov.CorporateMessenger.domain.enums.model.ChatType;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.key.CassandraChatByUsernameKey;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +26,8 @@ public class CassandraChatByUsernameEntity implements Serializable {
     private CassandraChatByUsernameKey key;
 
     @Column("type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private ChatType type;
 
     @Column("title")
     private String title;

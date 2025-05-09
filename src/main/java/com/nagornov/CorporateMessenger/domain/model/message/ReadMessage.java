@@ -11,7 +11,6 @@ public class ReadMessage {
 
     private UUID id;
     private UUID userId;
-    private UUID chatId;
     private UUID messageId;
 
 }

@@ -37,18 +37,20 @@ public class ChatMemberApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<UserWithUserPhotoResponse> getChatMembers(@NonNull Long chatId) {
+    public List<UserWithUserPhotoResponse> getGroupChatMembers(@NonNull Long chatId, int page, int size) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
         ChatMember chatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
 
         if (chat.getHasHiddenMembers() && (!chatMember.isCreator() || !chatMember.isAdministrator())) {
             throw new ResourceBadRequestException("You dont have permission to get chat members");
         }
 
-        List<ChatMember> chatMembers = chatMemberService.findAllByChatId(chat.getId());
+        List<ChatMember> chatMembers = chatMemberService.findAllByChatId(chat.getId(), page, size);
 
         return userService.findAllWithMainUserPhotoByIds(
                     chatMembers.stream().map(ChatMember::getUserId).toList()
@@ -66,14 +68,13 @@ public class ChatMemberApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
-        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        chat.ensureIsGroupChat();
 
-        if (!authChatMember.isCreator()) {
-            throw new ResourceBadRequestException("You dont have permission to get available users to adding");
-        }
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
 
         Page<Contact> authContacts = contactService.findAllByUserId(authInfo.getUserIdAsUUID(), page, size); // 20
-        Page<ChatMember> chatMembers = chatMemberService.findAllByChatId(chat.getId(), page, size); // 20
+        List<ChatMember> chatMembers = chatMemberService.findAllByChatId(chat.getId(), page, size); // 20
 
         List<UUID> availableContactsUserIdsToAdding = new ArrayList<>();
         for (Contact contact : authContacts) {
@@ -99,11 +100,10 @@ public class ChatMemberApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
-        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        chat.ensureIsGroupChat();
 
-        if (!authChatMember.isCreator()) {
-            throw new ResourceBadRequestException("You dont have permission to get available users to adding");
-        }
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
 
         userService.ensureExistsAllByIds(request.getUserIds());
         try {
@@ -121,11 +121,10 @@ public class ChatMemberApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
-        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        chat.ensureIsGroupChat();
 
-        if (!authChatMember.isCreator()) {
-            throw new ResourceBadRequestException("You dont have permission to get available users to adding");
-        }
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
 
         userService.ensureExistsAllByIds(request.getUserIds());
         try {
@@ -143,14 +142,20 @@ public class ChatMemberApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
         ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
 
         if (authChatMember.isCreator()) {
             throw new RuntimeException("Creator of chat can't leave it");
         }
 
-        chatMemberService.delete(authChatMember);
-        unreadMessageService.deleteByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        try {
+            chatMemberService.delete(authChatMember);
+            unreadMessageService.deleteByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
+        } catch (Exception e) {
+            throw new ResourceBadRequestException("You are not in the chat");
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.application.dto.model.user;
 
+import com.nagornov.CorporateMessenger.domain.model.interfaces.ChatPhotoResponseInterface;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import lombok.Data;
 import lombok.NonNull;
@@ -8,7 +9,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-public class UserPhotoResponse {
+public class UserPhotoResponse implements ChatPhotoResponseInterface {
 
     private UUID id;
     private UUID userId;

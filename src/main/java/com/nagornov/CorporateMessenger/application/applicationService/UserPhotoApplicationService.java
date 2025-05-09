@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.application.applicationService;
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserPhotoResponse;
 import com.nagornov.CorporateMessenger.domain.dto.UserWithUserSettingsAndUserPhotoDTO;
-import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
@@ -58,13 +57,7 @@ public class UserPhotoApplicationService {
             return null;
         }
 
-        if (size.equals("big")) {
-            return userPhotoService.download(optMainUserPhoto.get().getBigFilePath());
-        } else if (size.equals("small")) {
-            return userPhotoService.download(optMainUserPhoto.get().getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
-        }
+        return userPhotoService.download(optMainUserPhoto.get(), size);
     }
 
 
@@ -75,13 +68,7 @@ public class UserPhotoApplicationService {
 
         UserPhoto userPhoto = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());
 
-        if (size.equals("big")) {
-            return userPhotoService.download(userPhoto.getBigFilePath());
-        } else if (size.equals("small")) {
-            return userPhotoService.download(userPhoto.getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
-        }
+        return userPhotoService.download(userPhoto, size);
     }
 
 
@@ -96,13 +83,7 @@ public class UserPhotoApplicationService {
             return null;
         }
 
-        if (size.equals("big")) {
-            return userPhotoService.download(targetOptMainUserPhoto.get().getBigFilePath());
-        } else if (size.equals("small")) {
-            return userPhotoService.download(targetOptMainUserPhoto.get().getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
-        }
+        return userPhotoService.download(targetOptMainUserPhoto.get(), size);
     }
 
 
@@ -123,13 +104,7 @@ public class UserPhotoApplicationService {
 
         userSettingsService.ensureUserHasAccessToProfile(targetUserSettings, existsContactPair);
 
-        if (size.equals("big")) {
-            return userPhotoService.download(targetUserPhoto.getBigFilePath());
-        } else if (size.equals("small")) {
-            return userPhotoService.download(targetUserPhoto.getSmallFilePath());
-        } else {
-            throw new ResourceConflictException("Invalid RequestParam(size) type for downloading main user photo");
-        }
+        return userPhotoService.download(targetUserPhoto, size);
     }
 
 
@@ -155,10 +130,8 @@ public class UserPhotoApplicationService {
 
         UserPhoto userPhotoToDelete = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());
 
-        List<UserPhoto> userPhotos = userPhotoService.findAllByUserId(authInfo.getUserIdAsUUID());
-
         if (userPhotoToDelete.getIsMain()) {
-            for (UserPhoto userPhoto : userPhotos) {
+            for (UserPhoto userPhoto : userPhotoService.findAllByUserId(authInfo.getUserIdAsUUID())) {
                 if (!userPhoto.getId().equals(userPhotoToDelete.getId())) {
                     userPhoto.markAsMain();
                     userPhotoService.update(userPhoto);

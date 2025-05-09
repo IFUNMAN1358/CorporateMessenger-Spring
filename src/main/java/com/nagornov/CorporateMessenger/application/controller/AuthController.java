@@ -36,7 +36,7 @@ public class AuthController {
 
 
     @PostMapping(
-            value = "/api/auth/registration",
+            path = "/api/auth/registration",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -50,7 +50,7 @@ public class AuthController {
 
 
     @PostMapping(
-            value = "/api/auth/login",
+            path = "/api/auth/login",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -64,7 +64,7 @@ public class AuthController {
 
 
     @PostMapping(
-            value = "/api/auth/logout",
+            path = "/api/auth/logout",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> logout() {

@@ -13,7 +13,7 @@ import java.util.UUID;
 public class RedisMessageEntity implements Serializable {
 
     private UUID id;
-    private UUID chatId;
+    private Long chatId;
     private UUID senderId;
     private String senderUsername;
     private String content;

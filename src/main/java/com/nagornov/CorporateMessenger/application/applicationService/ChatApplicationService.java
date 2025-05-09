@@ -1,6 +1,6 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatDTO;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatWithChatPhotoResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
@@ -25,6 +25,7 @@ import com.nagornov.CorporateMessenger.domain.service.message.UnreadMessageServi
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -43,7 +44,8 @@ public class ChatApplicationService {
     private final MessageService messageService;
 
 
-    public ChatDTO getOrCreatePrivateChat(@NonNull UserIdRequest request) {
+    @Transactional
+    public ChatWithChatPhotoResponse getOrCreatePrivateChat(@NonNull UserIdRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -71,17 +73,18 @@ public class ChatApplicationService {
             chatMemberService.create(chat.getId(), partner.getId(), ChatMemberStatus.MEMBER);
         }
 
-        return new ChatDTO().forPrivateChat(
+        return new ChatWithChatPhotoResponse().forPrivateChat(
                 chat,
                 partner,
-                userPhotoService.findMainByUserId(partner.getId()).orElse(null),
-                messageService.findLastByChatId(chat.getId()).orElse(null),
+                userPhotoService.findMainByUserId(partner.getId()),
+                messageService.findLastByChatId(chat.getId()),
                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
         );
     }
 
 
-    public ChatDTO createGroupChat(@NonNull CreateGroupChatRequest request) {
+    @Transactional
+    public ChatWithChatPhotoResponse createGroupChat(@NonNull CreateGroupChatRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
@@ -95,16 +98,18 @@ public class ChatApplicationService {
 
         unreadMessageService.create(chat.getId(), user.getId());
 
-        return new ChatDTO().forGroupChat(
+        return new ChatWithChatPhotoResponse().forGroupChat(
                 chat,
-                chatPhotoService.findMainByChatId(chat.getId()).orElse(null),
-                messageService.findLastByChatId(chat.getId()).orElse(null),
+                chatPhotoService.findMainByChatId(chat.getId()),
+                messageService.findLastByChatId(chat.getId()),
                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
         );
     }
 
 
-    public ChatDTO getChat(@NonNull Long chatId) {
+    // common
+    @Transactional(readOnly = true)
+    public ChatWithChatPhotoResponse getChat(@NonNull Long chatId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
@@ -121,19 +126,19 @@ public class ChatApplicationService {
 
             User partner = userService.getById(partnerChatMember.getUserId());
 
-            return new ChatDTO().forPrivateChat(
+            return new ChatWithChatPhotoResponse().forPrivateChat(
                     chat,
                     partner,
-                    userPhotoService.findMainByUserId(partner.getId()).orElse(null),
-                    messageService.findLastByChatId(chat.getId()).orElse(null),
+                    userPhotoService.findMainByUserId(partner.getId()),
+                    messageService.findLastByChatId(chat.getId()),
                     unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
             );
 
         } else if (chat.isGroupChat()) {
-            return new ChatDTO().forGroupChat(
+            return new ChatWithChatPhotoResponse().forGroupChat(
                     chat,
-                    chatPhotoService.findMainByChatId(chat.getId()).orElse(null),
-                    messageService.findLastByChatId(chat.getId()).orElse(null),
+                    chatPhotoService.findMainByChatId(chat.getId()),
+                    messageService.findLastByChatId(chat.getId()),
                     unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
             );
         } else {
@@ -142,14 +147,15 @@ public class ChatApplicationService {
     }
 
 
-    public List<ChatDTO> getAllChats() {
+    @Transactional(readOnly = true)
+    public List<ChatWithChatPhotoResponse> getAllChats() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
         List<ChatMember> userChatMembers = chatMemberService.findAllByUserId(user.getId());
 
-        List<ChatDTO> response = new ArrayList<>();
+        List<ChatWithChatPhotoResponse> response = new ArrayList<>();
         for (ChatMember userChatMember : userChatMembers) {
 
             Chat chat = chatService.getById(userChatMember.getChatId());
@@ -163,21 +169,21 @@ public class ChatApplicationService {
                 User partner = userService.getById(partnerChatMember.getUserId());
 
                 response.add(
-                        new ChatDTO().forPrivateChat(
+                        new ChatWithChatPhotoResponse().forPrivateChat(
                                 chat,
                                 partner,
-                                userPhotoService.findMainByUserId(partner.getId()).orElse(null),
-                                messageService.findLastByChatId(chat.getId()).orElse(null),
+                                userPhotoService.findMainByUserId(partner.getId()),
+                                messageService.findLastByChatId(chat.getId()),
                                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
                         )
                 );
 
             } else if (chat.isGroupChat()) {
                 response.add(
-                        new ChatDTO().forGroupChat(
+                        new ChatWithChatPhotoResponse().forGroupChat(
                                 chat,
-                                chatPhotoService.findMainByChatId(chat.getId()).orElse(null),
-                                messageService.findLastByChatId(chat.getId()).orElse(null),
+                                chatPhotoService.findMainByChatId(chat.getId()),
+                                messageService.findLastByChatId(chat.getId()),
                                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
                         )
                 );
@@ -188,8 +194,8 @@ public class ChatApplicationService {
         return response.stream().sorted(
                 Comparator.comparing(
                         c -> Objects.requireNonNullElse(
-                                c.getLastMessage() != null ? c.getLastMessage().getCreatedAt() : c.getCreatedAt(),
-                                c.getCreatedAt()
+                                c.getLastMessage() != null ? c.getLastMessage().getCreatedAt() : c.getChat().getCreatedAt(),
+                                c.getChat().getCreatedAt()
                         ),
                         Comparator.reverseOrder()
                 )
@@ -197,6 +203,7 @@ public class ChatApplicationService {
     }
 
 
+    @Transactional
     public void deleteChat(@NonNull ChatIdRequest request) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());

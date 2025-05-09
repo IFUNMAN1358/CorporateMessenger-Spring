@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -58,11 +59,35 @@ public class ChatPhotoService {
         }
     }
 
+    public ChatPhoto update(@NonNull ChatPhoto chatPhoto) {
+        return cassandraChatPhotoRepository.save(chatPhoto);
+    }
+
+    public List<ChatPhoto> updateAll(@NonNull List<ChatPhoto> chatPhotos) {
+        return cassandraChatPhotoRepository.saveAll(chatPhotos);
+    }
+
     public void delete(@NonNull ChatPhoto chatPhoto) {
         cassandraChatPhotoRepository.delete(chatPhoto);
     }
 
-    public Resource download(@NonNull String filePath) {
+    public Resource download(@NonNull ChatPhoto chatPhoto, @NonNull String size) {
+        try {
+            InputStream inputStream;
+            if (size.equals("big")) {
+                inputStream = minioRepository.download(MinioBucket.CHAT_PHOTOS, chatPhoto.getBigFilePath());
+            } else if (size.equals("small")) {
+                inputStream = minioRepository.download(MinioBucket.CHAT_PHOTOS, chatPhoto.getSmallFilePath());
+            } else {
+                throw new ResourceBadRequestException("Invalid size param for downloading chat photo");
+            }
+            return new InputStreamResource(inputStream);
+        } catch (Exception e) {
+            throw new ResourceBadRequestException(e.getMessage());
+        }
+    }
+
+    public Resource downloadByFilePath(@NonNull String filePath) {
         return new InputStreamResource(
                 minioRepository.download(MinioBucket.CHAT_PHOTOS, filePath)
         );
@@ -85,6 +110,16 @@ public class ChatPhotoService {
             }
         }
         return Optional.empty();
+    }
+
+    public ChatPhoto getMainByChatId(@NonNull Long chatId) {
+        List<ChatPhoto> chatPhotos = findAllByChatId(chatId);
+        for (ChatPhoto chatPhoto : chatPhotos) {
+            if (chatPhoto.getIsMain()) {
+                return chatPhoto;
+            }
+        }
+        throw new ResourceNotFoundException("ChatPhoto[chatId=%s, isMain=true] not found".formatted(chatId));
     }
 
 }

@@ -36,7 +36,7 @@ public class CustomCsrfFilter extends OncePerRequestFilter {
 
         CsrfToken csrfToken = cookieCsrfTokenRepository.loadToken(request);
 
-        if (csrfToken.getToken() == null || !csrfService.exists(csrfToken.getToken())) {
+        if (csrfToken.getToken() == null || !csrfService.existsInRedis(csrfToken.getToken())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
             return;
         }

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UsernameRequest {
+public class UserUsernameRequest {
 
     @NotNull(message = "Новое имя пользователя не может быть null")
     @NotBlank(message = "Новое имя пользователя не может быть пустым")

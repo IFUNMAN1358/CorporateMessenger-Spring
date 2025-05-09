@@ -23,11 +23,11 @@ public class UserController {
 
 
     @PatchMapping(
-            value = "/api/user/username",
+            path = "/api/user/username",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserUsername(@RequestBody UsernameRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> changeUserUsername(@RequestBody UserUsernameRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UsernameRequest validation error", bindingResult);
         }
@@ -37,11 +37,11 @@ public class UserController {
 
 
     @PatchMapping(
-            value = "/api/user/password",
+            path = "/api/user/password",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserPassword(@RequestBody PasswordRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> changeUserPassword(@RequestBody UserPasswordRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PasswordRequest validation error", bindingResult);
         }
@@ -51,7 +51,7 @@ public class UserController {
 
 
     @PatchMapping(
-            value = "/api/user/main-email",
+            path = "/api/user/main-email",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -62,7 +62,7 @@ public class UserController {
 
 
     @PatchMapping(
-            value = "/api/user/phone",
+            path = "/api/user/phone",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -73,7 +73,7 @@ public class UserController {
 
 
     @GetMapping(
-            value = "/api/user/search",
+            path = "/api/user/search",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Page<UserWithUserPhotoResponse>> searchUsersByUsername(
@@ -90,7 +90,7 @@ public class UserController {
 
 
     @GetMapping(
-            value = "/api/user",
+            path = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserWithUserPhotosResponse> getYourUserData() {
@@ -100,7 +100,7 @@ public class UserController {
 
 
     @GetMapping(
-            value = "/api/user/{userId}",
+            path = "/api/user/{userId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<UserWithUserPhotosResponse> getUserById(@NotNull @PathVariable("userId") UUID userId, BindingResult bindingResult) {
@@ -141,7 +141,7 @@ public class UserController {
 
 
     @DeleteMapping(
-            value = "/api/user",
+            path = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> softDeleteAccount() {

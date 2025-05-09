@@ -16,11 +16,14 @@ public interface SpringDataCassandraMessageFileByMessageIdRepository
         extends CassandraRepository<CassandraMessageFileByMessageIdEntity, CassandraMessageFileByMessageIdKey> {
 
     @Query("select * from message_files_by_message_id where message_id = :messageId")
-    List<CassandraMessageFileByMessageIdEntity> getAllByMessageId(@Param("messageId") UUID messageId);
+    List<CassandraMessageFileByMessageIdEntity> findAllByMessageId(@Param("messageId") UUID messageId);
 
     @Query("select * from message_files_by_message_id where id = :id and message_id = :messageId")
     Optional<CassandraMessageFileByMessageIdEntity> findByIdAndMessageId(
             @Param("id") UUID id, @Param("messageId") UUID messageId
     );
+
+    @Query("DELETE FROM message_files_by_message_id WHERE message_id = :messageId")
+    void deleteAllByMessageId(@Param("messageId") UUID messageId);
 
 }

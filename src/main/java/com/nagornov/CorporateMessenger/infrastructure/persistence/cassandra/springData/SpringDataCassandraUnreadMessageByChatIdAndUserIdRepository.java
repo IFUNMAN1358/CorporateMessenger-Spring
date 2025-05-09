@@ -16,9 +16,7 @@ public interface SpringDataCassandraUnreadMessageByChatIdAndUserIdRepository
         extends CassandraRepository<CassandraUnreadMessageByChatIdAndUserIdEntity, CassandraUnreadMessageByChatIdAndUserIdKey> {
 
     @Query("SELECT * FROM unread_messages_by_chat_id_and_user_id WHERE chat_id = :chatId AND user_id = :userId")
-    Optional<CassandraUnreadMessageByChatIdAndUserIdEntity> findByChatIdAndUserId(
-            @Param("chatId") Long chatId, @Param("userId") UUID userId
-    );
+    Optional<CassandraUnreadMessageByChatIdAndUserIdEntity> findByChatIdAndUserId(@Param("chatId") Long chatId, @Param("userId") UUID userId);
 
     @Query("DELETE FROM unread_messages_by_chat_id_and_user_id WHERE chat_id = :chatId AND user_id = :userId")
     void deleteByChatIdAndUserId(@Param("chatId") Long chatId, @Param("") UUID userId);

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface SpringDataCassandraMessageByChatIdRepository
@@ -20,5 +21,8 @@ public interface SpringDataCassandraMessageByChatIdRepository
 
     @Query("select * from messages_by_chat_id where chat_id = :chatId limit 1")
     Optional<CassandraMessageByChatIdEntity> findLastMessageByChatId(@Param("chatId") Long chatId);
+
+    @Query("SELECT * FROM messages_by_chat_id WHERE chat_id = :chatId AND id = :id")
+    Optional<CassandraMessageByChatIdEntity> findByChatIdAndId(@Param("chatId") Long chatId, @Param("id") UUID id);
 
 }

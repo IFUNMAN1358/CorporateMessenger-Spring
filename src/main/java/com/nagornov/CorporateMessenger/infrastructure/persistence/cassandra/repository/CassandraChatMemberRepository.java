@@ -6,7 +6,6 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapp
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraChatMemberByChatIdRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraChatMemberByUserIdRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -67,10 +66,10 @@ public class CassandraChatMemberRepository {
                 .stream().map(cassandraChatMemberMapper::toDomain).toList();
     }
 
-    public Page<ChatMember> findAllByChatId(Long chatId, int page, int size) {
+    public List<ChatMember> findAllByChatId(Long chatId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return springDataCassandraChatMemberByChatIdRepository.findAllByChatId(chatId, pageable)
-                .map(cassandraChatMemberMapper::toDomain);
+                .map(cassandraChatMemberMapper::toDomain).toList();
     }
 
     public List<ChatMember> findAllByUserId(UUID userId) {
@@ -81,5 +80,9 @@ public class CassandraChatMemberRepository {
     public Optional<ChatMember> findByChatIdAndUserId(Long chatId, UUID userId) {
         return springDataCassandraChatMemberByChatIdRepository.findByChatIdAndUserId(chatId, userId)
                 .map(cassandraChatMemberMapper::toDomain);
+    }
+
+    public boolean existsByChatIdAndUserId(Long chatId, UUID userId) {
+        return springDataCassandraChatMemberByChatIdRepository.existsByChatIdAndUserId(chatId, userId);
     }
 }

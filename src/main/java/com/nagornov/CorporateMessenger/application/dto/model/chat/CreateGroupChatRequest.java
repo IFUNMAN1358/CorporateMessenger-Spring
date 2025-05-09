@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.application.dto.model.chat;
 
-import com.nagornov.CorporateMessenger.domain.enums.ContentType;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
 import jakarta.annotation.PostConstruct;

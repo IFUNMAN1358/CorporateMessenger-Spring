@@ -1,23 +1,22 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
-import com.nagornov.CorporateMessenger.application.dto.common.HttpResponse;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatPhotoResponse;
+import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
-import com.nagornov.CorporateMessenger.domain.model.chat.GroupChat;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatMemberDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.cassandra.CassandraGroupChatPhotoDomainService;
-import com.nagornov.CorporateMessenger.domain.service.domainService.minio.MinioChatPhotoDomainService;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatMemberService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatPhotoService;
+import com.nagornov.CorporateMessenger.domain.service.chat.ChatService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,86 +25,120 @@ import java.util.UUID;
 public class ChatPhotoApplicationService {
 
     private final JwtService jwtService;
-    private final CassandraGroupChatDomainService cassandraGroupChatDomainService;
-    private final CassandraGroupChatMemberDomainService cassandraGroupChatMemberDomainService;
-    private final CassandraGroupChatPhotoDomainService cassandraGroupChatPhotoDomainService;
-    private final MinioChatPhotoDomainService minioChatPhotoDomainService;
+    private final ChatService chatService;
+    private final ChatMemberService chatMemberService;
+    private final ChatPhotoService chatPhotoService;
+
+
+    @Transactional
+    public ChatPhotoResponse uploadGroupChatPhoto(@NonNull Long chatId, @NonNull FileRequest request) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
+
+        ChatPhoto chatPhoto = chatPhotoService.upload(chatId, request.getFile());
+        return new ChatPhotoResponse(chatPhoto);
+    }
 
 
     @Transactional(readOnly = true)
-    public Resource getGroupChatPhoto(String chatId) {
-
+    public List<ChatPhotoResponse> getAllGroupChatPhotos(@NonNull Long chatId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        cassandraGroupChatMemberDomainService.validateUserOwnership(UUID.fromString(chatId), authInfo.getUserIdAsUUID());
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(UUID.fromString(chatId));
+        chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
 
-        ChatPhoto chatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(groupChat.getId());
-
-        return new InputStreamResource(
-                minioChatPhotoDomainService.download(chatPhoto.getFilePath())
-        );
+        return chatPhotoService.findAllByChatId(chatId).stream().map(ChatPhotoResponse::new).toList();
     }
 
 
-    @Transactional
-    public Resource uploadOrChangeGroupChatPhoto(String chatId, FileRequest request) {
+    @Transactional(readOnly = true)
+    public Resource downloadMainGroupChatPhoto(@NonNull Long chatId, @NonNull String size) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(
-                UUID.fromString(chatId)
-        );
-        groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
 
-        Optional<ChatPhoto> groupChatPhoto = cassandraGroupChatPhotoDomainService.findFirstByChatId(groupChat.getId());
+        chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
 
-        if (groupChatPhoto.isPresent()) {
-            cassandraGroupChatPhotoDomainService.delete(groupChatPhoto.get());
-            minioChatPhotoDomainService.delete(groupChatPhoto.get().getFilePath());
+        Optional<ChatPhoto> optMainChatPhoto = chatPhotoService.findMainByChatId(chat.getId());
+
+        if (optMainChatPhoto.isEmpty()) {
+            return null;
         }
 
-        MultipartFile file = request.getFile();
-        String filePath = minioChatPhotoDomainService.upload(file);
+        return chatPhotoService.download(optMainChatPhoto.get(), size);
+    }
 
-        ChatPhoto newChatPhoto = new ChatPhoto(
-                UUID.randomUUID(),
-                groupChat.getId(),
-                file.getOriginalFilename(),
-                filePath,
-                file.getContentType(),
-                Instant.now()
-        );
-        cassandraGroupChatPhotoDomainService.save(newChatPhoto);
 
-        groupChat.markAsHasPhotos();
-        cassandraGroupChatDomainService.save(groupChat);
+    @Transactional(readOnly = true)
+    public Resource downloadGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId, @NonNull String size) {
 
-        return new InputStreamResource(
-                minioChatPhotoDomainService.download(newChatPhoto.getFilePath())
-        );
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+
+        ChatPhoto chatPhoto = chatPhotoService.getByIdAndChatId(photoId, chatId);
+
+        return chatPhotoService.download(chatPhoto, size);
     }
 
 
     @Transactional
-    public HttpResponse deleteGroupChatPhoto(String chatId) {
+    public ChatPhotoResponse setMainGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UUID chatIdUuid = UUID.fromString(chatId);
-        GroupChat groupChat = cassandraGroupChatDomainService.getById(chatIdUuid);
-        groupChat.validateOwnerIdOwnership(authInfo.getUserIdAsUUID());
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
 
-        ChatPhoto chatPhoto = cassandraGroupChatPhotoDomainService.getFirstByChatId(chatIdUuid);
-        cassandraGroupChatPhotoDomainService.delete(chatPhoto);
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
 
-        minioChatPhotoDomainService.delete(chatPhoto.getFilePath());
+        ChatPhoto targetChatPhoto = chatPhotoService.getByIdAndChatId(photoId, chatId);
+        ChatPhoto currentMainChatPhoto = chatPhotoService.getMainByChatId(chatId);
+        targetChatPhoto.markAsMain();
+        currentMainChatPhoto.unmarkAsMain();
+        chatPhotoService.updateAll(List.of(targetChatPhoto, currentMainChatPhoto));
 
-        groupChat.markAsHasNotPhotos();
-        cassandraGroupChatDomainService.save(groupChat);
+        return new ChatPhotoResponse(targetChatPhoto);
+    }
 
-        return new HttpResponse("Photo has been successfully deleted", 200);
+
+    @Transactional
+    public void deleteGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        authChatMember.ensureIsCreator();
+
+        ChatPhoto targetChatPhoto = chatPhotoService.getByIdAndChatId(photoId, chatId);
+
+        if (targetChatPhoto.getIsMain()) {
+            for (ChatPhoto chatPhoto : chatPhotoService.findAllByChatId(chatId)) {
+                if (!chatPhoto.getId().equals(targetChatPhoto.getId())) {
+                    chatPhoto.markAsMain();
+                    chatPhotoService.update(chatPhoto);
+                    break;
+                }
+            }
+        }
+        chatPhotoService.delete(targetChatPhoto);
     }
 
 }

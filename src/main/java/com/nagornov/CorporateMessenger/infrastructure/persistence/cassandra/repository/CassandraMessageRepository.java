@@ -8,10 +8,8 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.spri
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.cassandra.core.query.CassandraPageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,17 +48,7 @@ public class CassandraMessageRepository {
     }
 
     public List<Message> getAllByChatId(Long chatId, int page, int size) {
-        Pageable pageable = CassandraPageRequest.of(0, size);
-
-        for (int i = 0; i < page; i++) {
-            Slice<CassandraMessageByChatIdEntity> slice = springDataCassandraMessageByChatIdRepository
-                    .getAllMessagesByChatId(chatId, pageable);
-            if (!slice.hasNext()) {
-                return Collections.emptyList();
-            }
-            pageable = slice.nextPageable();
-        }
-
+        Pageable pageable = CassandraPageRequest.of(page, size);
         return springDataCassandraMessageByChatIdRepository
                 .getAllMessagesByChatId(chatId, pageable)
                 .stream()
@@ -71,6 +59,12 @@ public class CassandraMessageRepository {
     public Optional<Message> findById(UUID id) {
         return springDataCassandraMessageByIdRepository
                 .findCassandraMessageEntityById(id)
+                .map(cassandraMessageMapper::toDomain);
+    }
+
+    public Optional<Message> findByChatIdAndId(Long chatId, UUID id) {
+        return springDataCassandraMessageByChatIdRepository
+                .findByChatIdAndId(chatId, id)
                 .map(cassandraMessageMapper::toDomain);
     }
 }

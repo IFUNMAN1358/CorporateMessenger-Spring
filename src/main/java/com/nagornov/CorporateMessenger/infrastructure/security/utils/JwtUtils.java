@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.utils;
 
+import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import io.jsonwebtoken.Claims;
@@ -35,7 +36,7 @@ public class JwtUtils {
     private static Set<Role> getRolesFromClaims(Claims claims) {
         List<String> roles = claims.get("roles", List.class);
         return roles.stream()
-                .map(roleName -> new Role(null, roleName, null))
+                .map(roleName -> new Role(null, RoleName.valueOf(roleName), null))
                 .collect(Collectors.toSet());
     }
 

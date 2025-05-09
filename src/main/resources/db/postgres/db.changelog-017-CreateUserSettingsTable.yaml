@@ -32,8 +32,8 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
-            constraintName: fk_notifications_user_id
-            baseTableName: notifications
+            constraintName: fk_user_settings_user_id
+            baseTableName: user_settings
             baseColumnNames: user_id
             referencedTableName: users
             referencedColumnNames: id
