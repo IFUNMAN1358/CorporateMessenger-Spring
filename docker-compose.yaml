@@ -143,6 +143,12 @@ services:
       - "2181:2181"
     networks:
       - kafka-net
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
 
   cm-kafka-1:
     container_name: cm-kafka-1
@@ -156,6 +162,10 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 30000
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 60000
+      KAFKA_RECONNECT_BACKOFF_MS: 1000
+      KAFKA_RECONNECT_BACKOFF_MAX_MS: 10000
     hostname: cm-kafka-1
     ports:
       - "9092:9092"
@@ -176,6 +186,10 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 30000
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 60000
+      KAFKA_RECONNECT_BACKOFF_MS: 1000
+      KAFKA_RECONNECT_BACKOFF_MAX_MS: 10000
     hostname: cm-kafka-2
     ports:
       - "9093:9093"
@@ -196,6 +210,10 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 30000
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 60000
+      KAFKA_RECONNECT_BACKOFF_MS: 1000
+      KAFKA_RECONNECT_BACKOFF_MAX_MS: 10000
     hostname: cm-kafka-3
     ports:
       - "9094:9094"

@@ -56,7 +56,7 @@ public class SecurityConfiguration {
                     
                     // TestController
                     .requestMatchers(HttpMethod.POST, "/api/test/1").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/test/2").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/test/2").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/test/3").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 

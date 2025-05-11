@@ -51,7 +51,8 @@ public class AuthController {
     ResponseEntity<JwtResponse> login(
             HttpServletRequest servletReq,
             HttpServletResponse servletRes,
-            @RequestBody LoginRequest request, BindingResult bindingResult
+            @RequestBody LoginRequest request,
+            BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("LoginRequest validation error", bindingResult);

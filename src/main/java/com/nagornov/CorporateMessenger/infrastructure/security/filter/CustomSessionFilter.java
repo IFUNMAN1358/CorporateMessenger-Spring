@@ -39,44 +39,39 @@ public class CustomSessionFilter extends OncePerRequestFilter {
 
         String accessToken = JwtUtils.getTokenFromRequest(request);
 
-        if (accessToken == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access token is missing");
-            return;
-        }
+        if (accessToken != null && jwtRepository.validateAccessToken(accessToken)) {
 
-        if (!jwtRepository.validateAccessToken(accessToken)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid access token");
-            return;
-        }
+            Claims claims = jwtRepository.getAccessClaims(accessToken);
+            JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-        Claims claims = jwtRepository.getAccessClaims(accessToken);
-        JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
-        Optional<Session> existingSession = sessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
+            Optional<Session> existingSession = sessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
 
-        if (existingSession.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session not found");
-            return;
-        }
-
-        // Checking CSRF token
-        if (!HttpMethodUtils.isSafeMethod(request.getMethod())) {
-
-            CsrfToken cookieCsrfToken = cookieCsrfTokenRepository.loadToken(request);
-
-            if (cookieCsrfToken == null || !existingSession.get().getCsrfToken().equals(cookieCsrfToken.getToken())) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
+            if (existingSession.isEmpty()) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session not found");
                 return;
             }
+
+            // Checking CSRF token
+            if (!HttpMethodUtils.isSafeMethod(request.getMethod())) {
+
+                CsrfToken cookieCsrfToken = cookieCsrfTokenRepository.loadToken(request);
+
+                if (cookieCsrfToken == null || !existingSession.get().getCsrfToken().equals(cookieCsrfToken.getToken())) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
+                    return;
+                }
+            }
+
+            // Checking JWT token
+            if (!existingSession.get().getAccessToken().equals(accessToken)) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid jwt access token");
+                return;
+            }
+
+            jwtInfoToken.setAuthenticated(true);
+            SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
         }
 
-        // Checking JWT token
-        if (!existingSession.get().getAccessToken().equals(accessToken)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid jwt access token");
-            return;
-        }
-
-        jwtInfoToken.setAuthenticated(true);
-        SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
         filterChain.doFilter(request, response);
     }
 }

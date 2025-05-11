@@ -4,6 +4,10 @@ import com.nagornov.CorporateMessenger.domain.enums.model.ContactsVisibility;
 import com.nagornov.CorporateMessenger.domain.enums.model.EmployeeVisibility;
 import com.nagornov.CorporateMessenger.domain.enums.model.ProfileVisibility;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -11,6 +15,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_settings")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class JpaUserSettingsEntity implements Serializable {
 
     @Id

@@ -21,7 +21,6 @@ public class RegistrationRequest {
     private String firstName;
 
     @NotNull(message = "Фамилия не может быть null")
-    @NotBlank(message = "Фамилия не может быть пустой")
     @Size(message = "Фамилия должна содержать от 0 до 64 символов", max = 64)
     private String lastName;
 
