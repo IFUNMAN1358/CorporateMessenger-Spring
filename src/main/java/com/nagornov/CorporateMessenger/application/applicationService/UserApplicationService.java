@@ -12,7 +12,7 @@ import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import com.nagornov.CorporateMessenger.domain.service.user.*;
-import com.nagornov.CorporateMessenger.domain.service.auth.JwtSessionService;
+import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.auth.PasswordService;
 import lombok.NonNull;
@@ -35,7 +35,7 @@ public class UserApplicationService {
     private final EmployeeService employeeService;
     private final EmployeePhotoService employeePhotoService;
     private final ContactService contactService;
-    private final JwtSessionService jwtSessionService;
+    private final SessionService sessionService;
     private final PasswordService passwordService;
 
 
@@ -186,6 +186,6 @@ public class UserApplicationService {
         userPhotoService.deleteAllByUserId(authUser.getId());
         employeePhotoService.deleteByEmployeeId(authEmployee.getId());
 
-        jwtSessionService.deleteFromRedis(authUser.getId());
+        sessionService.deleteFromRedis(authUser.getId());
     }
 }

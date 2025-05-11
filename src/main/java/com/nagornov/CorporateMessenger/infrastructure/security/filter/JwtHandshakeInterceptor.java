@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
-import com.nagornov.CorporateMessenger.domain.model.auth.JwtSession;
-import com.nagornov.CorporateMessenger.domain.service.auth.JwtSessionService;
+import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtRepository jwtRepository;
-    private final JwtSessionService jwtSessionService;
+    private final SessionService sessionService;
 
     @Override
     public boolean beforeHandshake(
@@ -38,7 +38,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-            Optional<JwtSession> existingSession = jwtSessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
+            Optional<Session> existingSession = sessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
 
             if (existingSession.isPresent()) {
 

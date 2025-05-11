@@ -4,8 +4,7 @@ import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomTrac
 import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAccessDeniedHandler;
 import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAuthenticationEntryPoint;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCorsFilter;
-import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCsrfFilter;
-import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomJwtFilter;
+import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomSessionFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     private final CustomCorsFilter corsFilter;
-    private final CustomCsrfFilter csrfFilter;
-    private final CustomJwtFilter jwtFilter;
+    private final CustomSessionFilter sessionFilter;
     private final CustomTraceFilter traceFilter;
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
@@ -48,8 +46,7 @@ public class SecurityConfiguration {
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
-            .addFilterBefore(csrfFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(sessionFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(traceFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
 
@@ -64,7 +61,6 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
                     // AuthController
-                    .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasRole("USER")

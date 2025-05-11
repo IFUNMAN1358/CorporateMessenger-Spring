@@ -8,10 +8,11 @@ import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
-public class JwtSession {
+public class Session {
 
     private String accessToken;
     private String refreshToken;
+    private String csrfToken;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -22,6 +23,11 @@ public class JwtSession {
 
     public void updateRefreshToken(@NonNull String newRefreshToken) {
         this.refreshToken = newRefreshToken;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateCsrfToken(@NonNull String csrfToken) {
+        this.csrfToken = csrfToken;
         this.updatedAt = Instant.now();
     }
 

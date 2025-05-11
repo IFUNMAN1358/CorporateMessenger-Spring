@@ -2,8 +2,8 @@ package com.nagornov.CorporateMessenger.domain.service.auth;
 
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
-import com.nagornov.CorporateMessenger.domain.model.auth.JwtSession;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository.RedisJwtSessionRepository;
+import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository.RedisSessionRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,26 +15,28 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class JwtSessionService {
+public class SessionService {
 
-    private final RedisJwtSessionRepository redisJwtSessionRepository;
+    private final RedisSessionRepository redisSessionRepository;
 
-    public JwtSession saveToRedis(
+    public Session saveToRedis(
             @NonNull UUID userId,
             @NonNull String accessToken,
             @NonNull String refreshToken,
+            @NonNull String csrfToken,
             long timeout,
             @NonNull TimeUnit timeUnit
     ) {
         try {
-            JwtSession jwtSession = new JwtSession(
+            Session session = new Session(
                     accessToken,
                     refreshToken,
+                    csrfToken,
                     Instant.now(),
                     Instant.now()
             );
-            redisJwtSessionRepository.saveByKeyExpire(userId, jwtSession, timeout, timeUnit);
-            return jwtSession;
+            redisSessionRepository.saveByKeyExpire(userId, session, timeout, timeUnit);
+            return session;
         } catch (Exception e) {
             throw new ResourceConflictException(e.getMessage());
         }
@@ -42,15 +44,15 @@ public class JwtSessionService {
 
     public void deleteFromRedis(@NonNull UUID userId) {
         try {
-            redisJwtSessionRepository.deleteByKey(userId);
+            redisSessionRepository.deleteByKey(userId);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }
     }
 
-    public Optional<JwtSession> findInRedisByUserId(@NonNull UUID userId) {
+    public Optional<Session> findInRedisByUserId(@NonNull UUID userId) {
         try {
-            return redisJwtSessionRepository.findByKey(userId);
+            return redisSessionRepository.findByKey(userId);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }

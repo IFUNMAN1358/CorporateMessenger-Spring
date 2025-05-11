@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,26 +24,21 @@ public class AuthController {
     private final AuthApplicationService authApplicationService;
 
 
-    @GetMapping(
-            path = "/api/auth/csrf-token",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    ResponseEntity<String> getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
-        authApplicationService.getCsrfToken(request, response);
-        return ResponseEntity.status(200).body("Csrf token generated and saved in cookies");
-    }
-
-
     @PostMapping(
             path = "/api/auth/registration",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> registration(@RequestBody RegistrationRequest request, BindingResult bindingResult) {
+    ResponseEntity<JwtResponse> registration(
+            HttpServletRequest servletReq,
+            HttpServletResponse servletRes,
+            @RequestBody RegistrationRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("RegistrationRequest validation error", bindingResult);
         }
-        JwtResponse response = authApplicationService.registration(request);
+        JwtResponse response = authApplicationService.registration(servletReq, servletRes, request);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -54,11 +48,15 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> login(@RequestBody LoginRequest request, BindingResult bindingResult) {
+    ResponseEntity<JwtResponse> login(
+            HttpServletRequest servletReq,
+            HttpServletResponse servletRes,
+            @RequestBody LoginRequest request, BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("LoginRequest validation error", bindingResult);
         }
-        JwtResponse response = authApplicationService.login(request);
+        JwtResponse response = authApplicationService.login(servletReq, servletRes, request);
         return ResponseEntity.status(200).body(response);
     }
 

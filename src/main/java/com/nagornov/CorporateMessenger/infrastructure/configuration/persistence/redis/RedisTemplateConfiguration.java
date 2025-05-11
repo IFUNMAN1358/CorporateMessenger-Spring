@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.persistence
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisJwtSessionEntity;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisSessionEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +42,9 @@ public class RedisTemplateConfiguration {
         return template;
     }
 
-    @Bean(name = "redisJwtSessionTemplate")
-    public RedisTemplate<String, RedisJwtSessionEntity> redisJwtSessionTemplate() {
-        RedisTemplate<String, RedisJwtSessionEntity> template = new RedisTemplate<>();
+    @Bean(name = "redisSessionTemplate")
+    public RedisTemplate<String, RedisSessionEntity> redisSessionTemplate() {
+        RedisTemplate<String, RedisSessionEntity> template = new RedisTemplate<>();
 
         template.setConnectionFactory(redisConnectionFactory);
 
@@ -60,19 +60,6 @@ public class RedisTemplateConfiguration {
         template.setValueSerializer(serializer);
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
-
-        template.afterPropertiesSet();
-        return template;
-    }
-
-    @Bean(name = "redisCsrfTemplate")
-    public RedisTemplate<String, String> redisCsrfTemplate() {
-        RedisTemplate<String, String> template = new RedisTemplate<>();
-
-        template.setConnectionFactory(redisConnectionFactory);
-
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
 
         template.afterPropertiesSet();
         return template;

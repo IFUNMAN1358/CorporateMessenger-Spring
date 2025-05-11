@@ -9,14 +9,14 @@ import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.auth.CsrfService;
-import com.nagornov.CorporateMessenger.domain.service.auth.JwtSessionService;
+import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.auth.PasswordService;
 import com.nagornov.CorporateMessenger.domain.service.user.*;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CsrfProperties;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Service;
@@ -29,52 +29,24 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
-    private final CsrfProperties csrfProperties;
     private final JwtProperties jwtProperties;
-    //
     private final UserService userService;
     private final UserSettingsService userSettingsService;
     private final RoleService roleService;
     private final RegistrationKeyService registrationKeyService;
     private final EmployeeService employeeService;
-    private final JwtSessionService jwtSessionService;
+    private final SessionService sessionService;
     private final PasswordService passwordService;
     private final JwtService jwtService;
     private final CsrfService csrfService;
 
 
-    public void getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
-
-        CsrfToken currentCsrfToken = csrfService.loadToken(request);
-        CsrfToken newCsrfToken = csrfService.generateToken(request);
-
-        // If token not exists
-        if (currentCsrfToken == null || !csrfService.existsInRedis(currentCsrfToken.getToken())) {
-
-            csrfService.saveToken(newCsrfToken, request, response);
-            csrfService.saveToRedis(
-                    newCsrfToken.getToken(),
-                    csrfProperties.getCookie().getMaxAge(),
-                    TimeUnit.SECONDS
-            );
-
-        // If token exists
-        } else {
-
-            csrfService.saveToken(newCsrfToken, request, response);
-            csrfService.deleteFromRedis(currentCsrfToken.getToken());
-            csrfService.saveToRedis(
-                    newCsrfToken.getToken(),
-                    csrfProperties.getCookie().getMaxAge(),
-                    TimeUnit.SECONDS
-            );
-
-        }
-    }
-
-
     @Transactional
-    public JwtResponse registration(RegistrationRequest request) {
+    public JwtResponse registration(
+            @NonNull HttpServletRequest servletReq,
+            @NonNull HttpServletResponse servletRes,
+            @NonNull RegistrationRequest request
+    ) {
 
         passwordService.ensureMatchConfirmPassword(request.getPassword(), request.getConfirmPassword());
 
@@ -98,17 +70,30 @@ public class AuthApplicationService {
         userSettingsService.create(user.getId());
         employeeService.create(user.getId());
 
+        CsrfToken csrfToken = csrfService.generateToken(servletReq);
         String accessToken = jwtService.generateAccessToken(user, List.of(role));
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        jwtSessionService.saveToRedis(user.getId(), accessToken, refreshToken, jwtProperties.getRefreshExpire(), TimeUnit.SECONDS);
+        sessionService.saveToRedis(
+                user.getId(),
+                accessToken,
+                refreshToken,
+                csrfToken.getToken(),
+                jwtProperties.getRefreshExpire(),
+                TimeUnit.SECONDS
+        );
 
-        return new JwtResponse(accessToken, refreshToken);
+        csrfService.saveToken(csrfToken, servletReq, servletRes); // save csrf token in cookie
+        return new JwtResponse(accessToken, refreshToken); // return jwt response
     }
 
 
     @Transactional
-    public JwtResponse login(LoginRequest request) {
+    public JwtResponse login(
+            @NonNull HttpServletRequest servletReq,
+            @NonNull HttpServletResponse servletRes,
+            @NonNull LoginRequest request
+    ) {
 
         User user = userService.getByUsername(request.getUsername());
 
@@ -118,12 +103,21 @@ public class AuthApplicationService {
 
         List<Role> roles = roleService.findAllByUserId(user.getId());
 
+        CsrfToken csrfToken = csrfService.generateToken(servletReq);
         String accessToken = jwtService.generateAccessToken(user, roles);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        jwtSessionService.saveToRedis(user.getId(), accessToken, refreshToken, jwtProperties.getRefreshExpire(), TimeUnit.SECONDS);
+        sessionService.saveToRedis(
+                user.getId(),
+                accessToken,
+                refreshToken,
+                csrfToken.getToken(),
+                jwtProperties.getRefreshExpire(),
+                TimeUnit.SECONDS
+        );
 
-        return new JwtResponse(accessToken, refreshToken);
+        csrfService.saveToken(csrfToken, servletReq, servletRes); // save csrf token in cookie
+        return new JwtResponse(accessToken, refreshToken); // return jwt response
     }
 
 
@@ -132,6 +126,6 @@ public class AuthApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        jwtSessionService.deleteFromRedis(user.getId());
+        sessionService.deleteFromRedis(user.getId());
     }
 }

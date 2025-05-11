@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum RedisPrefix {
 
-    JWT_SESSION("jwt-session"),
+    SESSION("session"),
     MESSAGE("message"),
     CSRF("csrf");
 

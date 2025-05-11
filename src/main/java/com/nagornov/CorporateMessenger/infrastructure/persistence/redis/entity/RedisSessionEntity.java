@@ -13,10 +13,11 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RedisJwtSessionEntity implements Serializable {
+public class RedisSessionEntity implements Serializable {
 
     private String accessToken;
     private String refreshToken;
+    private String csrfToken;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -24,15 +25,17 @@ public class RedisJwtSessionEntity implements Serializable {
         return Map.of(
                 "accessToken", this.accessToken,
                 "refreshToken", this.refreshToken,
+                "csrfToken", this.csrfToken,
                 "createdAt", this.createdAt.toString(),
                 "updatedAt", this.updatedAt.toString()
         );
     }
 
-    public static RedisJwtSessionEntity fromMap(Map<Object, Object> map) {
-        return new RedisJwtSessionEntity(
+    public static RedisSessionEntity fromMap(Map<Object, Object> map) {
+        return new RedisSessionEntity(
                 (String) map.get("accessToken"),
                 (String) map.get("refreshToken"),
+                (String) map.get("csrfToken"),
                 Instant.parse((String) map.get("createdAt")),
                 Instant.parse((String) map.get("updatedAt"))
         );
