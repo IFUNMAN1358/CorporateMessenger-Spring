@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +22,7 @@ public class SessionService {
 
     public Session saveToRedis(
             @NonNull UUID userId,
+            @NonNull String externalServiceName,
             @NonNull String accessToken,
             @NonNull String refreshToken,
             @NonNull String csrfToken,
@@ -35,24 +37,40 @@ public class SessionService {
                     Instant.now(),
                     Instant.now()
             );
-            redisSessionRepository.saveByKeyExpire(userId, session, timeout, timeUnit);
+            redisSessionRepository.saveExpire(userId, externalServiceName, session, timeout, timeUnit);
             return session;
         } catch (Exception e) {
             throw new ResourceConflictException(e.getMessage());
         }
     }
 
-    public void deleteFromRedis(@NonNull UUID userId) {
+    public void deleteFromRedis(@NonNull UUID userId, @NonNull String externalServiceName) {
         try {
-            redisSessionRepository.deleteByKey(userId);
+            redisSessionRepository.delete(userId, externalServiceName);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }
     }
 
-    public Optional<Session> findInRedisByUserId(@NonNull UUID userId) {
+    public void deleteAllFromRedis(@NonNull UUID userId) {
         try {
-            return redisSessionRepository.findByKey(userId);
+            redisSessionRepository.deleteAll(userId);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException(e.getMessage());
+        }
+    }
+
+    public Optional<Session> findInRedis(@NonNull UUID userId, @NonNull String externalServiceName) {
+        try {
+            return redisSessionRepository.find(userId, externalServiceName);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException(e.getMessage());
+        }
+    }
+
+    public Map<String, Session> findAllInRedis(@NonNull UUID userId) {
+        try {
+            return redisSessionRepository.findAll(userId);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }

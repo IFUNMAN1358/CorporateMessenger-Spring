@@ -2,9 +2,10 @@ package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.domain.service.auth.ExternalServiceService;
 import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
-import com.nagornov.CorporateMessenger.infrastructure.security.utils.HttpMethodUtils;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -28,7 +29,10 @@ public class CustomSessionFilter extends OncePerRequestFilter {
 
     private final JwtRepository jwtRepository;
     private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    private final ExternalServiceService externalServiceService;
     private final SessionService sessionService;
+    private final ExternalServiceProperties externalServiceProperties;
+
 
     @Override
     protected void doFilterInternal(
@@ -37,14 +41,26 @@ public class CustomSessionFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String accessToken = JwtUtils.getTokenFromRequest(request);
+        // Required for all requests
+        String serviceName = request.getHeader(externalServiceProperties.getHeaderName().getServiceName());
+
+        if (serviceName == null) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "%s header is missing".formatted(externalServiceProperties.getHeaderName().getServiceName())
+            );
+            return;
+        }
+
+        // Required for authorized requests
+        String accessToken = JwtUtils.getTokenFromAuthorizationHeader(request.getHeader("Authorization"));
 
         if (accessToken != null && jwtRepository.validateAccessToken(accessToken)) {
 
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-            Optional<Session> existingSession = sessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
+            Optional<Session> existingSession = sessionService.findInRedis(jwtInfoToken.getUserIdAsUUID(), serviceName);
 
             if (existingSession.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session not found");
@@ -52,13 +68,22 @@ public class CustomSessionFilter extends OncePerRequestFilter {
             }
 
             // Checking CSRF token
-            if (!HttpMethodUtils.isSafeMethod(request.getMethod())) {
+            if (!isSafeMethod(request.getMethod())) {
 
-                CsrfToken cookieCsrfToken = cookieCsrfTokenRepository.loadToken(request);
+                String serviceApiKey = request.getHeader(externalServiceProperties.getHeaderName().getApiKey());
 
-                if (cookieCsrfToken == null || !existingSession.get().getCsrfToken().equals(cookieCsrfToken.getToken())) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
-                    return;
+                // Skip for external services
+                if (
+                        serviceApiKey == null
+                        ||
+                        !externalServiceService.getByNameAndApiKey(serviceName, serviceApiKey).isRequiresApiKey()
+                ) {
+                    CsrfToken cookieCsrfToken = cookieCsrfTokenRepository.loadToken(request);
+
+                    if (cookieCsrfToken == null || !existingSession.get().getCsrfToken().equals(cookieCsrfToken.getToken())) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "CSRF token missing or incorrect");
+                        return;
+                    }
                 }
             }
 
@@ -73,5 +98,12 @@ public class CustomSessionFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isSafeMethod(String method) {
+        return "GET".equalsIgnoreCase(method) ||
+               "HEAD".equalsIgnoreCase(method) ||
+               "OPTIONS".equalsIgnoreCase(method) ||
+               "TRACE".equalsIgnoreCase(method);
     }
 }

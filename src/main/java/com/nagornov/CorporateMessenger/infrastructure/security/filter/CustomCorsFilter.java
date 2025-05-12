@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ServiceProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +18,7 @@ import java.io.IOException;
 public class CustomCorsFilter extends OncePerRequestFilter {
 
     private final ServiceProperties serviceProperties;
+    private final ExternalServiceProperties externalServiceProperties;
 
     @Override
     protected void doFilterInternal(
@@ -27,7 +29,15 @@ public class CustomCorsFilter extends OncePerRequestFilter {
 
         response.setHeader("Access-Control-Allow-Origin", serviceProperties.getClientUrl());
         response.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,PATCH,OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Trace-Id");
+        response.setHeader(
+                "Access-Control-Allow-Headers",
+                "Content-Type,Authorization,%s,%s,%s"
+                        .formatted(
+                                externalServiceProperties.getHeaderName().getTraceId(),
+                                externalServiceProperties.getHeaderName().getServiceName(),
+                                externalServiceProperties.getHeaderName().getApiKey()
+                        )
+        );
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {

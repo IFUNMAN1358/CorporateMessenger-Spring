@@ -1,7 +1,9 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +26,7 @@ public class TestController {
         return ResponseEntity.status(200).body("2 test success");
     }
 
-    @PostMapping(path = "/api/test/3")
+    @GetMapping(path = "/api/test/3")
     ResponseEntity<?> thirdTest() {
 
         return ResponseEntity.status(200).body("3 test success");

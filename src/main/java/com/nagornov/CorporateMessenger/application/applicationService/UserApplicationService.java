@@ -186,6 +186,6 @@ public class UserApplicationService {
         userPhotoService.deleteAllByUserId(authUser.getId());
         employeePhotoService.deleteByEmployeeId(authEmployee.getId());
 
-        sessionService.deleteFromRedis(authUser.getId());
+        sessionService.deleteAllFromRedis(authUser.getId());
     }
 }

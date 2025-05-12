@@ -66,8 +66,11 @@ public class AuthController {
             path = "/api/auth/logout",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> logout() {
-        authApplicationService.logout();
+    ResponseEntity<String> logout(
+            HttpServletRequest servletReq,
+            HttpServletResponse servletRes
+    ) {
+        authApplicationService.logout(servletReq, servletRes);
         return ResponseEntity.status(200).body("Logout success");
     }
 }

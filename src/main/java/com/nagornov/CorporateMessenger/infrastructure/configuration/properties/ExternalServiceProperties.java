@@ -6,11 +6,21 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "spring.kafka")
+@ConfigurationProperties(prefix = "external-service")
 @Getter
 @Setter
-public class KafkaProperties {
+public class ExternalServiceProperties {
 
-    private String bootstrapServers;
+    private HeaderName headerName;
+
+    @Getter
+    @Setter
+    public static class HeaderName {
+
+        private String traceId;
+        private String serviceName;
+        private String apiKey;
+
+    }
 
 }

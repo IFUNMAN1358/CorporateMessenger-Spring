@@ -4,15 +4,14 @@ import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.auth.CsrfService;
-import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
-import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
-import com.nagornov.CorporateMessenger.domain.service.auth.PasswordService;
+import com.nagornov.CorporateMessenger.domain.service.auth.*;
 import com.nagornov.CorporateMessenger.domain.service.user.*;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
+    private final ExternalServiceProperties externalServiceProperties;
+    private final ExternalServiceService externalServiceService;
     private final JwtProperties jwtProperties;
     private final UserService userService;
     private final UserSettingsService userSettingsService;
@@ -47,6 +48,7 @@ public class AuthApplicationService {
             @NonNull HttpServletResponse servletRes,
             @NonNull RegistrationRequest request
     ) {
+        verifyClientServiceHeader(servletReq);
 
         passwordService.ensureMatchConfirmPassword(request.getPassword(), request.getConfirmPassword());
 
@@ -76,6 +78,7 @@ public class AuthApplicationService {
 
         sessionService.saveToRedis(
                 user.getId(),
+                servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()),
                 accessToken,
                 refreshToken,
                 csrfToken.getToken(),
@@ -94,9 +97,9 @@ public class AuthApplicationService {
             @NonNull HttpServletResponse servletRes,
             @NonNull LoginRequest request
     ) {
+        verifyClientServiceHeader(servletReq);
 
         User user = userService.getByUsername(request.getUsername());
-
         userService.validateUserNotDeleted(user);
 
         passwordService.ensureMatchEncodedPassword(request.getPassword(), user.getPassword());
@@ -109,6 +112,7 @@ public class AuthApplicationService {
 
         sessionService.saveToRedis(
                 user.getId(),
+                servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()),
                 accessToken,
                 refreshToken,
                 csrfToken.getToken(),
@@ -122,10 +126,34 @@ public class AuthApplicationService {
 
 
     @Transactional
-    public void logout() {
+    public void logout(
+            @NonNull HttpServletRequest servletReq,
+            @NonNull HttpServletResponse servletRes
+    ) {
+        verifyClientServiceHeader(servletReq);
+
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        sessionService.deleteFromRedis(user.getId());
+        sessionService.deleteFromRedis(
+                user.getId(),
+                servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName())
+        );
+    }
+
+
+    private void verifyClientServiceHeader(@NonNull HttpServletRequest servletReq) {
+        if (
+                servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()) == null
+                ||
+                externalServiceService.getByName(
+                        servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName())
+                ).isRequiresApiKey()
+        ) {
+            throw new ResourceNotFoundException(
+                    "%s header is null or header value is not valid for normal authorization due to missing key"
+                            .formatted(externalServiceProperties.getHeaderName().getServiceName())
+            );
+        }
     }
 }

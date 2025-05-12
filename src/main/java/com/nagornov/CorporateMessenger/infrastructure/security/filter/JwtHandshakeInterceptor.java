@@ -3,9 +3,11 @@ package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.auth.Session;
 import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.server.ServerHttpRequest;
@@ -22,6 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
+    private final ExternalServiceProperties externalServiceProperties;
     private final JwtRepository jwtRepository;
     private final SessionService sessionService;
 
@@ -31,14 +34,27 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             @NotNull ServerHttpResponse response,
             @NotNull WebSocketHandler wsHandler,
             @NotNull Map<String, Object> attributes
-    ) throws Exception {
-        String accessToken = JwtUtils.getTokenFromRequest(request);
+    ) {
+        HttpServletRequest servletRequest = (HttpServletRequest) request;
+
+        // Required for all requests
+        String serviceName = servletRequest.getHeader(externalServiceProperties.getHeaderName().getServiceName());
+
+        if (serviceName == null) {
+            return false;
+        }
+
+        // Required for authorized requests
+        String accessToken = JwtUtils.getTokenFromAuthorizationHeader(servletRequest.getHeader("Authorization"));
 
         if (accessToken != null && jwtRepository.validateAccessToken(accessToken)) {
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-            Optional<Session> existingSession = sessionService.findInRedisByUserId(jwtInfoToken.getUserIdAsUUID());
+            Optional<Session> existingSession = sessionService.findInRedis(
+                    jwtInfoToken.getUserIdAsUUID(),
+                    serviceName
+            );
 
             if (existingSession.isPresent()) {
 

@@ -1,9 +1,9 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository;
 
+import com.nagornov.CorporateMessenger.domain.enums.redis.RedisPrefix;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.mapper.RedisMessageMapper;
-import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.utils.RedisKeyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -15,33 +15,35 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisMessageRepository {
 
+    private final static String MESSAGE = RedisPrefix.MESSAGE.getPrefix();
+
     private final RedisTemplate<String, RedisMessageEntity> redisMessageTemplate;
     private final RedisMessageMapper redisMessageMapper;
 
     public void leftSave(Long chatId, Message message, long timeout, TimeUnit unit) {
-        String messageKey = RedisKeyUtils.messageKey(chatId);
+        String key = "%s:%s".formatted(MESSAGE, chatId);
 
         redisMessageTemplate.opsForList().leftPush(
-                messageKey,
+                key,
                 redisMessageMapper.toEntity(message)
         );
-        redisMessageTemplate.expire(messageKey, timeout, unit);
+        redisMessageTemplate.expire(key, timeout, unit);
     }
 
     public void rightSaveAll(Long chatId, List<Message> messages, long timeout, TimeUnit unit) {
-        String messageKey = RedisKeyUtils.messageKey(chatId);
+        String key = "%s:%s".formatted(MESSAGE, chatId);
 
         redisMessageTemplate.opsForList().rightPushAll(
-                messageKey,
+                key,
                 messages.stream().map(redisMessageMapper::toEntity).toList()
         );
-        redisMessageTemplate.expire(messageKey, timeout, unit);
+        redisMessageTemplate.expire(key, timeout, unit);
     }
 
     public void update(Long chatId, Message message) {
-        String messageKey = RedisKeyUtils.messageKey(chatId);
+        String key = "%s:%s".formatted(MESSAGE, chatId);
 
-        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(messageKey, 0, -1);
+        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(key, 0, -1);
 
         if (messages == null) {
             throw new RuntimeException("Message in redis not found by (key)chatId=%s for update".formatted(chatId));
@@ -56,29 +58,29 @@ public class RedisMessageRepository {
         }
 
         redisMessageTemplate.opsForList().set(
-                messageKey,
+                key,
                 index,
                 redisMessageMapper.toEntity(message)
         );
     }
 
     public void delete(Long chatId, Message message) {
-        String messageKey = RedisKeyUtils.messageKey(chatId);
+        String key = "%s:%s".formatted(MESSAGE, chatId);
 
         redisMessageTemplate.opsForList().remove(
-                messageKey,
+                key,
                 1,
                 redisMessageMapper.toEntity(message)
         );
     }
 
     public List<Message> findAll(Long chatId, int page, int size) {
-        String messageKey = RedisKeyUtils.messageKey(chatId);
+        String key = "%s:%s".formatted(MESSAGE, chatId);
 
         int start = page * size;
         int end = start + size - 1;
 
-        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(messageKey, start, end);
+        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(key, start, end);
 
         if (messages == null) {
             return List.of();

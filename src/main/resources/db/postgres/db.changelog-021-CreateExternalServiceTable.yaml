@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-CreateExternalServiceTable
+      author: IFUNMAN
+      changes:
+        - createTable:
+            tableName: external_services
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(32)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: api_key
+                  type: varchar(64)
+                  constraints:
+                    unique: true
+              - column:
+                  name: requires_api_key
+                  type: boolean
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: external_services
+            indexName: idx_external_services_name
+            columns:
+              - column:
+                  name: name
+        - createIndex:
+            tableName: external_services
+            indexName: idx_external_services_api_key
+            columns:
+              - column:
+                  name: api_key
