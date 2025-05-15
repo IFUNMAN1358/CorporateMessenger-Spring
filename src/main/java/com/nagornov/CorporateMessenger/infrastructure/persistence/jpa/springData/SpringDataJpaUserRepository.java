@@ -25,6 +25,9 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
     @Query("SELECT COUNT(u) > 0 FROM JpaUserEntity u WHERE u.username = :username AND u.isDeleted = false")
     boolean existsByUsername(@Param("username") String username);
 
+    @Query("SELECT COUNT(u) > 0 FROM JpaUserEntity u WHERE u.id = :id AND u.isDeleted = false")
+    boolean existsById(@Param("id") UUID id);
+
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserPairDTOEntity(u1, u2) " +
             "FROM JpaUserEntity u1, JpaUserEntity u2 " +

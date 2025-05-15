@@ -2,6 +2,7 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.persistence
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisExternalServiceEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisSessionEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.entity.RedisMessageEntity;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,34 @@ public class RedisTemplateConfiguration {
         return template;
     }
 
+
     @Bean(name = "redisSessionTemplate")
     public RedisTemplate<String, RedisSessionEntity> redisSessionTemplate() {
         RedisTemplate<String, RedisSessionEntity> template = new RedisTemplate<>();
+
+        template.setConnectionFactory(redisConnectionFactory);
+
+        ObjectMapper customMapper = objectMapper.copy();
+        customMapper.activateDefaultTyping(
+            customMapper.getPolymorphicTypeValidator(),
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(customMapper);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(serializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+
+    @Bean(name = "redisExternalServiceTemplate")
+    public RedisTemplate<String, RedisExternalServiceEntity> redisExternalServiceTemplate() {
+        RedisTemplate<String, RedisExternalServiceEntity> template = new RedisTemplate<>();
 
         template.setConnectionFactory(redisConnectionFactory);
 

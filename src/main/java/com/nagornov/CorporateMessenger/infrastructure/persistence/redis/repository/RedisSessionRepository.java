@@ -36,7 +36,7 @@ public class RedisSessionRepository {
         redisSessionTemplate.opsForHash().put(
                 key,
                 field,
-                redisSessionMapper.toEntity(session).toMap()
+                redisSessionMapper.toEntity(session)
         );
         redisSessionTemplate.expire(key, timeout, timeUnit);
     }

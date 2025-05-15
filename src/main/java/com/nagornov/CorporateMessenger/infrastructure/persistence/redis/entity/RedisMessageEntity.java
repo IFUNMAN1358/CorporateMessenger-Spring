@@ -6,10 +6,10 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class RedisMessageEntity implements Serializable {
 
     private UUID id;

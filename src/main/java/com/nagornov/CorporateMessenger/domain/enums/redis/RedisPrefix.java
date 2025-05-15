@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum RedisPrefix {
 
     SESSION("session"),
-    MESSAGE("message");
+    MESSAGE("message"),
+    EXTERNAL_SERVICES("external_services");
 
     private final String prefix;
 

@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.concurrent.TimeUnit;
+
 @Configuration
 @ConfigurationProperties(prefix = "external-service")
 @Getter
@@ -12,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class ExternalServiceProperties {
 
     private HeaderName headerName;
+    private Redis redis;
 
     @Getter
     @Setter
@@ -20,6 +23,15 @@ public class ExternalServiceProperties {
         private String traceId;
         private String serviceName;
         private String apiKey;
+
+    }
+
+    @Getter
+    @Setter
+    public static class Redis {
+
+        private Long timeout;
+        private TimeUnit timeUnitSeconds = TimeUnit.SECONDS;
 
     }
 

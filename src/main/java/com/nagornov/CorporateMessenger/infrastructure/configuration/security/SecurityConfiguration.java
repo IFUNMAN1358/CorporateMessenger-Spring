@@ -73,10 +73,17 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasRole("USER")
 
+                    // ExternalServiceController
+                    .requestMatchers(HttpMethod.POST, "/api/external-service").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/external-service/{serviceName}").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/external-services").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PATCH, "/api/external-service/{serviceName}").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/external-service/{serviceName}").hasRole("ADMIN")
+
                     // RegistrationKeyController
-                    .requestMatchers(HttpMethod.POST, "/api/auth/registration-key").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/auth/registration-keys").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/auth/registration-key/{keyId}").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/registration-key").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/registration-keys").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/registration-key/{keyId}").hasRole("ADMIN")
 
                     // UserController
                     .requestMatchers(HttpMethod.PATCH, "/api/user/username").hasRole("USER")

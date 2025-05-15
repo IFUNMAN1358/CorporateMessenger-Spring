@@ -10,12 +10,22 @@ import java.util.UUID;
 public class ExternalService {
 
     private UUID id;
-    private String name; // 32
-    private String apiKey; // 64
+    private String name; // 1-32
+    private String apiKey; // 0-64
     private Boolean requiresApiKey;
 
     public boolean isRequiresApiKey() {
         return this.requiresApiKey;
+    }
+
+    public void updateApiKey(String newApiKey) {
+        if (newApiKey == null) {
+            throw new RuntimeException("argument newApiKey is null");
+        }
+        if (newApiKey.length() != 64) {
+            throw new RuntimeException("argument newApiKey should be 64 characters long");
+        }
+        this.apiKey = newApiKey;
     }
 
 }

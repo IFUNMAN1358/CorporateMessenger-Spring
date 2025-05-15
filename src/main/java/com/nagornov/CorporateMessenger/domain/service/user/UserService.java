@@ -80,6 +80,10 @@ public class UserService {
         return jpaUserRepository.findWithEmployeeById(id);
     }
 
+    public boolean existsById(@NonNull UUID id) {
+        return jpaUserRepository.existsById(id);
+    }
+
     public boolean existsByUsername(@NonNull String username) {
         return jpaUserRepository.existsByUsername(username);
     }
@@ -135,6 +139,12 @@ public class UserService {
                     "User[username=%s] already exists".formatted(username),
                     new FieldError("username", "Имя пользователя уже занято")
             );
+        }
+    }
+
+    public void ensureExistsById(@NonNull UUID id) {
+        if (!jpaUserRepository.existsById(id)) {
+            throw new ResourceConflictException("User[id=%s] not exist".formatted(id));
         }
     }
 

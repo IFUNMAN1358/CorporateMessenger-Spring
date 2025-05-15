@@ -6,6 +6,7 @@ import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +45,11 @@ public class JpaExternalServiceRepository {
 
     public Optional<ExternalService> findByNameAndApiKey(String name, String apiKey) {
         return springDataJpaExternalServiceRepository.findByNameAndApiKey(name, apiKey).map(jpaExternalServiceMapper::toDomain);
+    }
+
+    public List<ExternalService> findAll() {
+        return springDataJpaExternalServiceRepository.findAll()
+                .stream().map(jpaExternalServiceMapper::toDomain).toList();
     }
 
 }

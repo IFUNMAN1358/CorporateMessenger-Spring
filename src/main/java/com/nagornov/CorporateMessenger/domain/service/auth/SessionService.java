@@ -25,7 +25,7 @@ public class SessionService {
             @NonNull String externalServiceName,
             @NonNull String accessToken,
             @NonNull String refreshToken,
-            @NonNull String csrfToken,
+            String csrfToken,
             long timeout,
             @NonNull TimeUnit timeUnit
     ) {

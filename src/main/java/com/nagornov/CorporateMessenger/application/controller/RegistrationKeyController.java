@@ -1,8 +1,8 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.applicationService.RegistrationKeyApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationKeyResponse;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,26 +17,26 @@ import java.util.UUID;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class RegistrationController {
+public class RegistrationKeyController {
 
     private final RegistrationKeyApplicationService registrationKeyApplicationService;
 
 
     @PostMapping(
-            path = "/api/auth/registration-key",
+            path = "/api/registration-key",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<RegistrationKey> createRegistrationKey() {
-        RegistrationKey response = registrationKeyApplicationService.createRegistrationKey();
+    ResponseEntity<RegistrationKeyResponse> create() {
+        RegistrationKeyResponse response = registrationKeyApplicationService.create();
         return ResponseEntity.status(201).body(response);
     }
 
 
     @GetMapping(
-            path = "/api/auth/registration-keys",
+            path = "/api/registration-keys",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<RegistrationKey>> findAllRegistrationKeys(
+    ResponseEntity<List<RegistrationKeyResponse>> findAll(
             @RequestParam int page,
             @RequestParam int size,
             BindingResult bindingResult
@@ -44,23 +44,23 @@ public class RegistrationController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("RequestParam(page) | RequestParam(size) validation error", bindingResult);
         }
-        List<RegistrationKey> response = registrationKeyApplicationService.findAllRegistrationKeys(page, size);
+        List<RegistrationKeyResponse> response = registrationKeyApplicationService.findAll(page, size);
         return ResponseEntity.status(201).body(response);
     }
 
 
     @DeleteMapping(
-            path = "/api/auth/registration-key/{keyId}",
+            path = "/api/registration-key/{keyId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> deleteRegistrationKeyById(
+    ResponseEntity<String> deleteByKeyId(
             @NotNull @PathVariable UUID keyId,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PathVariable(keyId) validation error", bindingResult);
         }
-        registrationKeyApplicationService.deleteRegistrationKeyById(keyId);
+        registrationKeyApplicationService.deleteByKeyId(keyId);
         return ResponseEntity.status(204).body("Registration key deleted");
     }
 }

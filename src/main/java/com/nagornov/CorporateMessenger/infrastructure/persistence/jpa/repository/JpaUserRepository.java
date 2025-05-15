@@ -39,6 +39,10 @@ public class JpaUserRepository {
         );
     }
 
+    public boolean existsById(UUID id) {
+        return springDataJpaUserRepository.existsById(id);
+    }
+
     public boolean existsByUsername(String username) {
         return springDataJpaUserRepository.existsByUsername(username);
     }

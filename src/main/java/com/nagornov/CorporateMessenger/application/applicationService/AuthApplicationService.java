@@ -4,6 +4,7 @@ import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
@@ -143,17 +144,18 @@ public class AuthApplicationService {
 
 
     private void verifyClientServiceHeader(@NonNull HttpServletRequest servletReq) {
+        if (servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()) == null) {
+            throw new ResourceBadRequestException(
+                    "%s header is null".formatted(externalServiceProperties.getHeaderName().getServiceName())
+            );
+        }
+
         if (
-                servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()) == null
-                ||
                 externalServiceService.getByName(
                         servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName())
                 ).isRequiresApiKey()
         ) {
-            throw new ResourceNotFoundException(
-                    "%s header is null or header value is not valid for normal authorization due to missing key"
-                            .formatted(externalServiceProperties.getHeaderName().getServiceName())
-            );
+            throw new ResourceNotFoundException("Header value is not valid for normal authorization");
         }
     }
 }
