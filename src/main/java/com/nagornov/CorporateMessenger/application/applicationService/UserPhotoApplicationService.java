@@ -109,7 +109,7 @@ public class UserPhotoApplicationService {
 
 
     @Transactional
-    public UserPhotoResponse setMyMainUserPhoto(@NonNull UUID photoId) {
+    public UserPhotoResponse setMyMainUserPhotoByPhotoId(@NonNull UUID photoId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         UserPhoto currentMainUserPhoto = userPhotoService.getMainByUserId(authInfo.getUserIdAsUUID());
@@ -125,7 +125,7 @@ public class UserPhotoApplicationService {
 
 
     @Transactional
-    public void deleteMyUserPhoto(@NonNull UUID photoId) {
+    public void deleteMyUserPhotoByPhotoId(@NonNull UUID photoId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         UserPhoto userPhotoToDelete = userPhotoService.getByIdAndUserId(photoId, authInfo.getUserIdAsUUID());

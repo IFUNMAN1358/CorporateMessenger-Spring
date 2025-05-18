@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.applicationService.ExternalSe
 import com.nagornov.CorporateMessenger.application.dto.auth.ExternalServiceRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.ExternalServiceResponse;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ public class ExternalServiceController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<ExternalServiceResponse> create(
-            @NotNull @RequestBody ExternalServiceRequest request,
+            @RequestBody ExternalServiceRequest request,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
@@ -44,12 +43,8 @@ public class ExternalServiceController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<ExternalServiceResponse> getByServiceName(
-            @NotNull @PathVariable String serviceName,
-            BindingResult bindingResult
+            @PathVariable String serviceName
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(serviceName) validation error", bindingResult);
-        }
         ExternalServiceResponse response = externalServiceApplicationService.getByServiceName(serviceName);
         return ResponseEntity.status(200).body(response);
     }
@@ -70,14 +65,9 @@ public class ExternalServiceController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<ExternalServiceResponse> generateNewApiKeyByServiceName(
-            @NotNull @PathVariable String serviceName,
-            BindingResult bindingResult
+            @PathVariable String serviceName
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(serviceName) validation error", bindingResult);
-        }
-        ExternalServiceResponse response =
-                externalServiceApplicationService.generateNewApiKeyByServiceName(serviceName);
+        ExternalServiceResponse response = externalServiceApplicationService.generateNewApiKeyByServiceName(serviceName);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -87,13 +77,10 @@ public class ExternalServiceController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteByServiceName(
-            @NotNull @PathVariable String serviceName,
-            BindingResult bindingResult
+            @PathVariable String serviceName
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(serviceName) validation error", bindingResult);
-        }
         externalServiceApplicationService.deleteByServiceName(serviceName);
         return ResponseEntity.status(204).body("ExternalService deleted");
     }
+
 }

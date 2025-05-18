@@ -2,27 +2,26 @@
   <div class="profile-container">
     <header class="profile-header">
       <button class="back-button" @click="goBack">←</button>
-      <h1>{{ profile.username }}</h1>
+      <h1>{{ profile.username || 'Профиль' }}</h1>
     </header>
 
     <div v-if="photos.length" class="photo-slider">
       <div class="photo-wrapper">
         <img
-          :src="photos[currentPhotoIndex]"
+          :src="photos[currentPhotoIndex] || UserDefaultAvatar"
           alt="User Photo"
           class="user-photo"
         />
         <button
+          v-if="isOwnProfile"
           class="menu-button"
           @click="toggleMenu"
-          ref="menuButton">⋮</button>
-        <div v-if="menuVisible" class="menu-dropdown" ref="menuDropdown">
+          ref="menuButton"
+        >⋮</button>
+        <div v-if="menuVisible && isOwnProfile" class="menu-dropdown" ref="menuDropdown">
           <button @click="openUploadModal">Загрузить фото</button>
-          <button
-            v-if="!isCurrentPhotoMain"
-            @click="setMainPhoto">Сделать основным
-          </button>
-          <button v-if="photos.length" @click="deletePhoto">Удалить фото</button>
+          <button v-if="!isCurrentPhotoMain" @click="setMainPhoto">Сделать основным</button>
+          <button @click="deletePhoto">Удалить фото</button>
         </div>
         <div class="photo-navigation">
           <button v-if="photos.length > 1" @click="prevPhoto" class="slider-button">‹</button>
@@ -36,25 +35,35 @@
 
     <div v-else class="photo-wrapper">
       <img
-        src="@/assets/user/DefaultAvatar.png"
+        :src="UserDefaultAvatar"
         alt="Default Photo"
         class="user-photo"
       />
-      <button class="menu-button" @click="toggleMenu" ref="menuButton">⋮</button>
-      <div v-if="menuVisible" class="menu-dropdown" ref="menuDropdown">
+      <button
+        v-if="isOwnProfile"
+        class="menu-button"
+        @click="toggleMenu"
+        ref="menuButton"
+      >⋮</button>
+      <div v-if="menuVisible && isOwnProfile" class="menu-dropdown" ref="menuDropdown">
         <button @click="openUploadModal">Загрузить фото</button>
       </div>
       <p class="photo-counter">Фотографий нет</p>
     </div>
 
     <div class="profile-details">
-      <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
-      <button class="profile-button" @click="openPasswordModal">Пароль</button>
-      <button class="profile-button" @click="openDeleteModal">Удалить</button>
+      <h2>{{ profile.firstName || '' }} {{ profile.lastName || '' }}</h2>
+      <div v-if="isOwnProfile" class="profile-actions">
+        <button class="profile-button" @click="openPasswordModal">Сменить пароль</button>
+        <button class="profile-button danger" @click="openDeleteModal">Удалить аккаунт</button>
+      </div>
+      <div v-else class="profile-actions">
+        <button class="profile-button message-button" @click="startChat">Написать</button>
+      </div>
     </div>
 
-    <div v-if="isUploadModalOpen" class="upload-modal">
-      <div class="modal-content">
+    <div v-if="isUploadModalOpen && isOwnProfile" class="modal-overlay" @click="closeUploadModal">
+      <div class="modal-content" @click.stop>
         <h3>Загрузить фото</h3>
         <input type="file" @change="handleFileChange" accept="image/jpeg" />
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
@@ -65,8 +74,8 @@
       </div>
     </div>
 
-     <div v-if="isPasswordModalOpen" class="upload-modal">
-      <div class="modal-content">
+    <div v-if="isPasswordModalOpen && isOwnProfile" class="modal-overlay" @click="closePasswordModal">
+      <div class="modal-content" @click.stop>
         <h3>Сменить пароль</h3>
         <input
           type="password"
@@ -86,8 +95,8 @@
       </div>
     </div>
 
-    <div v-if="isDeleteModalOpen" class="upload-modal">
-      <div class="modal-content">
+    <div v-if="isDeleteModalOpen && isOwnProfile" class="modal-overlay" @click="closeDeleteModal">
+      <div class="modal-content" @click.stop>
         <h3>Удалить аккаунт</h3>
         <p>Вы уверены, что хотите удалить аккаунт? Это действие необратимо.</p>
         <div class="modal-actions">
@@ -100,14 +109,22 @@
 </template>
 
 <script>
+import UserDefaultAvatar from '@/assets/images/UserDefaultAvatar.png';
+import {jwtDecode} from "jwt-decode";
+import authStore from "@/store/authStore";
 import {
-  getUserPhoto,
-  uploadPhoto as uploadPhotoApi,
-  deletePhotoById,
-  setMainPhotoById,
-} from "@/js/service/userPhotoController";
-import {deleteAccount, getProfile, updatePassword} from "@/js/service/userDataController";
-import router from "@/js/config/router";
+  fetchChangeUserPassword,
+  fetchGetMyUserData,
+  fetchGetUserByUserId,
+  fetchSoftDeleteAccount
+} from "@/api/resources/user";
+import {
+  fetchDeleteMyUserPhotoByPhotoId,
+  fetchDownloadMyMainUserPhoto,
+  fetchSetMyMainUserPhotoByPhotoId, fetchUploadMyUserPhoto
+} from "@/api/resources/userPhoto";
+import router from "@/router/router";
+import {fetchGetOrCreatePrivateChatByUserId} from "@/api/resources/chat";
 
 export default {
   name: "ProfileComponent",
@@ -125,7 +142,10 @@ export default {
         currentPassword: "",
         newPassword: "",
       },
-      errorMessage: ""
+      errorMessage: "",
+      isOwnProfile: false,
+      userId: null,
+      UserDefaultAvatar,
     };
   },
   computed: {
@@ -134,101 +154,154 @@ export default {
       return currentPhoto ? currentPhoto.isMain : false;
     },
   },
+  async created() {
+    this.userId = this.$route.params.id || jwtDecode(authStore.state.accessToken).sub;
+    this.isOwnProfile = this.userId === jwtDecode(authStore.state.accessToken).sub;
+    await this.fetchProfile();
+    document.addEventListener("click", this.closeMenuOnClickOutside);
+  },
+  unmounted() {
+    document.removeEventListener("click", this.closeMenuOnClickOutside);
+  },
   methods: {
     async fetchProfile() {
       try {
-        const profileData = await getProfile();
-        this.profile = profileData;
+        if (this.isOwnProfile) {
+          this.profile = await fetchGetMyUserData();
+        } else {
+          this.profile = await fetchGetUserByUserId(this.userId);
+        }
 
-        if (profileData.userProfilePhotos?.length) {
+        if (this.profile.userProfilePhotos?.length) {
           this.photos = await Promise.all(
-            profileData.userProfilePhotos.map((photo) =>
-              getUserPhoto(photo.id)
-            )
+              this.profile.userProfilePhotos.map(async (photo) => {
+                try {
+                  return await fetchDownloadMyMainUserPhoto("big");
+                } catch (error) {
+                  console.error(`Ошибка загрузки фото ${photo.id}:`, error);
+                  return this.UserDefaultAvatar;
+                }
+              })
           );
+        } else {
+          this.photos = [];
         }
       } catch (error) {
         console.error("Ошибка загрузки профиля:", error);
+        this.errorMessage = "Не удалось загрузить профиль";
+        router.push({name: "Dialogs"});
       }
     },
     toggleMenu() {
       this.menuVisible = !this.menuVisible;
     },
-    openPasswordModal() {
-      this.isPasswordModalOpen = true;
-      this.errorMessage = "";
-      this.passwordData = {
-        currentPassword: "",
-        newPassword: "",
-      };
-    },
-    closePasswordModal() {
-      this.isPasswordModalOpen = false;
-    },
     openUploadModal() {
+      if (!this.isOwnProfile) return;
       this.isUploadModalOpen = true;
+      this.errorMessage = "";
+      this.selectedFile = null;
+      this.menuVisible = false;
     },
     closeUploadModal() {
       this.isUploadModalOpen = false;
       this.selectedFile = null;
+      this.errorMessage = "";
     },
     handleFileChange(event) {
       const file = event.target.files[0];
-      if (file && file.type === "image/jpeg") {
-        this.selectedFile = file;
-        this.errorMessage = "";
-      } else {
-        this.errorMessage = "Пожалуйста, выберите файл в формате JPEG.";
+      if (!file) {
+        this.errorMessage = "Файл не выбран";
         this.selectedFile = null;
+        return;
       }
+      if (file.type !== "image/jpeg") {
+        this.errorMessage = "Пожалуйста, выберите файл в формате JPEG";
+        this.selectedFile = null;
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage = "Файл слишком большой (максимум 5 МБ)";
+        this.selectedFile = null;
+        return;
+      }
+      this.selectedFile = file;
+      this.errorMessage = "";
     },
     async uploadPhoto() {
       if (!this.selectedFile) {
-        this.errorMessage = "Файл не выбран или имеет неверный формат.";
+        this.errorMessage = "Файл не выбран или имеет неверный формат";
         return;
       }
-
-      const formData = new FormData();
-      formData.append("file", this.selectedFile);
-
       try {
-        await uploadPhotoApi(formData);
-        router.go(0);
+        const formData = new FormData();
+        formData.append("file", this.selectedFile);
+        await fetchUploadMyUserPhoto(formData);
+        this.closeUploadModal();
+        await this.fetchProfile();
       } catch (error) {
         console.error("Ошибка загрузки фотографии:", error);
+        this.errorMessage = "Не удалось загрузить фото";
       }
     },
     async deletePhoto() {
       try {
         const photoId = this.profile.userProfilePhotos[this.currentPhotoIndex]?.id;
         if (photoId) {
-          await deletePhotoById(photoId);
-          router.go(0);
+          await fetchDeleteMyUserPhotoByPhotoId(photoId);
+          this.menuVisible = false;
+          await this.fetchProfile();
+          if (this.currentPhotoIndex >= this.photos.length) {
+            this.currentPhotoIndex = Math.max(0, this.photos.length - 1);
+          }
         }
       } catch (error) {
         console.error("Ошибка удаления фотографии:", error);
+        this.errorMessage = "Не удалось удалить фото";
       }
     },
+    async setMainPhoto() {
+      try {
+        const photoId = this.profile.userProfilePhotos[this.currentPhotoIndex]?.id;
+        if (photoId) {
+          await fetchSetMyMainUserPhotoByPhotoId(photoId);
+          this.menuVisible = false;
+          await this.fetchProfile();
+        }
+      } catch (error) {
+        console.error("Ошибка установки основной фотографии:", error);
+        this.errorMessage = "Не удалось установить основное фото";
+      }
+    },
+    openPasswordModal() {
+      if (!this.isOwnProfile) return;
+      this.isPasswordModalOpen = true;
+      this.errorMessage = "";
+      this.passwordData = {currentPassword: "", newPassword: ""};
+    },
+    closePasswordModal() {
+      this.isPasswordModalOpen = false;
+      this.errorMessage = "";
+    },
     async updatePassword() {
-      const { currentPassword, newPassword } = this.passwordData;
-
-      if (!currentPassword || !newPassword || newPassword.length < 6) {
-        this.errorMessage = "Пароль должен быть не менее 6 символов.";
+      const {currentPassword, newPassword} = this.passwordData;
+      if (!currentPassword || !newPassword) {
+        this.errorMessage = "Заполните все поля";
         return;
       }
-
+      if (newPassword.length < 6) {
+        this.errorMessage = "Новый пароль должен быть не менее 6 символов";
+        return;
+      }
       try {
-        await updatePassword({
-          currentPassword,
-          newPassword,
-        });
+        await fetchChangeUserPassword({currentPassword, newPassword});
         this.closePasswordModal();
       } catch (error) {
-        this.errorMessage = "Не удалось сменить пароль. Проверьте данные.";
         console.error("Ошибка смены пароля:", error);
+        this.errorMessage = "Не удалось сменить пароль. Проверьте текущий пароль";
       }
     },
     openDeleteModal() {
+      if (!this.isOwnProfile) return;
       this.isDeleteModalOpen = true;
     },
     closeDeleteModal() {
@@ -236,20 +309,21 @@ export default {
     },
     async deleteAccount() {
       try {
-        await deleteAccount();
+        await fetchSoftDeleteAccount();
+        this.closeDeleteModal();
+        router.push({name: "Login"});
       } catch (error) {
         console.error("Ошибка удаления аккаунта:", error);
+        this.errorMessage = "Не удалось удалить аккаунт";
       }
     },
-    async setMainPhoto() {
+    async startChat() {
       try {
-        const photoId = this.profile.userProfilePhotos[this.currentPhotoIndex]?.id;
-        if (photoId) {
-          await setMainPhotoById(photoId);
-          router.go(0);
-        }
+        const response = await fetchGetOrCreatePrivateChatByUserId(this.userId);
+        router.push({name: "Chat", params: {id: response.chatId}});
       } catch (error) {
-        console.error("Ошибка установки основной фотографии:", error);
+        console.error("Ошибка создания чата:", error);
+        this.errorMessage = "Не удалось начать чат";
       }
     },
     goBack() {
@@ -265,19 +339,12 @@ export default {
       const menu = this.$refs.menuDropdown;
       const button = this.$refs.menuButton;
       if (
-        menu && !menu.contains(event.target) &&
-        button && !button.contains(event.target)
+          menu && !menu.contains(event.target) &&
+          button && !button.contains(event.target)
       ) {
         this.menuVisible = false;
       }
     },
-  },
-  created() {
-    this.fetchProfile();
-    document.addEventListener("click", this.closeMenuOnClickOutside);
-  },
-  unmounted() {
-    document.removeEventListener("click", this.closeMenuOnClickOutside);
   },
 };
 </script>
@@ -285,11 +352,11 @@ export default {
 <style scoped>
 .profile-container {
   padding: 20px;
-  background-color: #2C2C2C;
-  color: #F9F8F8;
+  background-color: #2c2c2c;
+  color: #f9f8f8;
   border-radius: 10px;
   max-width: 600px;
-  margin: auto;
+  margin: 20px auto;
   position: relative;
 }
 
@@ -304,7 +371,7 @@ export default {
   font-size: 24px;
   background: none;
   border: none;
-  color: #F9F8F8;
+  color: #f9f8f8;
   cursor: pointer;
 }
 
@@ -313,13 +380,21 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  margin-top: 20px;
 }
 
 .profile-details h2 {
   font-size: 24px;
   font-weight: bold;
   margin: 0;
-  color: #F9F8F8;
+  color: #f9f8f8;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  gap: 10px;
 }
 
 .photo-slider {
@@ -350,18 +425,20 @@ export default {
   top: 10px;
   right: 10px;
   font-size: 25px;
-  background: none;
+  background: rgba(0, 0, 0, 0.5);
   border: none;
-  color: black;
+  color: #f9f8f8;
   cursor: pointer;
   z-index: 10;
+  padding: 5px;
+  border-radius: 50%;
 }
 
 .menu-dropdown {
   position: absolute;
-  top: 30px;
-  right: 0;
-  background-color: #3C3C3C;
+  top: 40px;
+  right: 10px;
+  background-color: #3c3c3c;
   border-radius: 5px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   padding: 10px;
@@ -373,7 +450,7 @@ export default {
 .menu-dropdown button {
   background: none;
   border: none;
-  color: #F9F8F8;
+  color: #f9f8f8;
   cursor: pointer;
   padding: 10px;
   text-align: left;
@@ -385,8 +462,8 @@ export default {
 
 .photo-counter {
   font-size: 14px;
-  color: #F9F8F8;
-  margin: 10px 10px;
+  color: #f9f8f8;
+  margin: 10px;
 }
 
 .photo-navigation {
@@ -400,12 +477,12 @@ export default {
   font-size: 24px;
   background: none;
   border: none;
-  color: #F9F8F8;
+  color: #f9f8f8;
   cursor: pointer;
   padding: 10px;
 }
 
-.upload-modal {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -425,6 +502,27 @@ export default {
   color: #f9f8f8;
   text-align: center;
   width: 300px;
+}
+
+.modal-content input[type="file"],
+.modal-content input[type="password"] {
+  width: 90%;
+  padding: 8px 10px;
+  margin: 10px 0;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  background-color: #f4f4f4;
+  color: #343434;
+  font-size: 14px;
+}
+
+.modal-content input[type="password"]::placeholder {
+  color: #b3b3b3;
+}
+
+.modal-content input[type="password"]:focus {
+  outline: none;
+  border-color: #888888;
 }
 
 .modal-actions {
@@ -461,18 +559,36 @@ export default {
   background-color: #611313;
 }
 
+.danger {
+  background-color: #d32f2f;
+  color: #fff;
+}
+
+.danger:hover {
+  background-color: #b71c1c;
+}
+
+.message-button {
+  background-color: #1976d2;
+  color: #fff;
+}
+
+.message-button:hover {
+  background-color: #1565c0;
+}
+
 .error-message {
   color: #e53935;
-  margin-top: 10px;
+  margin: 10px 0;
   font-size: 14px;
 }
 
 .profile-button {
-  width: 80%;
+  width: 100%;
   padding: 10px;
   font-size: 16px;
   background-color: #444;
-  color: #F9F8F8;
+  color: #f9f8f8;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -483,25 +599,11 @@ export default {
   background-color: #555;
 }
 
-input[type="password"] {
-  width: 90%;
-  padding: 8px 10px;
-  margin: 10px 0;
-  border: 1px solid #CCCCCC;
-  border-radius: 4px;
-  background-color: #F4F4F4;
-  color: #343434;
-  font-size: 14px;
-  transition: border-color 0.2s ease-in-out;
+.profile-button.danger {
+  background-color: #d32f2f;
 }
 
-input[type="password"]::placeholder {
-  color: #B3B3B3;
-  font-style: normal;
-}
-
-input[type="password"]:focus {
-  outline: none;
-  border-color: #888888;
+.profile-button.danger:hover {
+  background-color: #b71c1c;
 }
 </style>

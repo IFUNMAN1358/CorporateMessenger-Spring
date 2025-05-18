@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.applicationService.ChatPhotoApplicationService;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatPhotoResponse;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -30,7 +29,7 @@ public class ChatPhotoController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<ChatPhotoResponse> uploadGroupChatPhoto(
-            @NotNull @PathVariable Long chatId,
+            @PathVariable Long chatId,
             @ModelAttribute FileRequest request,
             BindingResult bindingResult
     ) {
@@ -46,11 +45,10 @@ public class ChatPhotoController {
             path = "/api/chat/group/{chatId}/photos",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<ChatPhotoResponse>> getAllGroupChatPhotos(@NotNull @PathVariable Long chatId, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(chatId) validation error", bindingResult);
-        }
-        List<ChatPhotoResponse> response = chatPhotoApplicationService.getAllGroupChatPhotos(chatId);
+    ResponseEntity<List<ChatPhotoResponse>> getAllGroupChatPhotosByChatId(
+            @PathVariable Long chatId
+    ) {
+        List<ChatPhotoResponse> response = chatPhotoApplicationService.getAllGroupChatPhotosByChatId(chatId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -59,15 +57,11 @@ public class ChatPhotoController {
             path = "/api/chat/group/{chatId}/photo/main",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
-    ResponseEntity<Resource> downloadMainGroupChatPhoto(
-            @NotNull @PathVariable Long chatId,
-            @NotNull @RequestParam String size, // big | small
-            BindingResult bindingResult
+    ResponseEntity<Resource> downloadMainGroupChatPhotoByChatId(
+            @PathVariable Long chatId,
+            @RequestParam String size // big | small
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(chatId) | RequestParam(size) validation error", bindingResult);
-        }
-        Resource response = chatPhotoApplicationService.downloadMainGroupChatPhoto(chatId, size);
+        Resource response = chatPhotoApplicationService.downloadMainGroupChatPhotoByChatId(chatId, size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -76,16 +70,12 @@ public class ChatPhotoController {
             path = "/api/chat/group/{chatId}/photo/{photoId}",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
-    ResponseEntity<Resource> downloadGroupChatPhotoByPhotoId(
-            @NotNull @PathVariable Long chatId,
-            @NotNull @PathVariable UUID photoId,
-            @NotNull @RequestParam String size, // big | small
-            BindingResult bindingResult
+    ResponseEntity<Resource> downloadGroupChatPhotoByChatIdAndPhotoId(
+            @PathVariable Long chatId,
+            @PathVariable UUID photoId,
+            @RequestParam String size // big | small
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(chatId) | PathVariable(photoId) | RequestParam(size) validation error", bindingResult);
-        }
-        Resource response = chatPhotoApplicationService.downloadGroupChatPhoto(chatId, photoId, size);
+        Resource response = chatPhotoApplicationService.downloadGroupChatPhotoByChatIdAndPhotoId(chatId, photoId, size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -94,15 +84,11 @@ public class ChatPhotoController {
             path = "/api/chat/group/{chatId}/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<ChatPhotoResponse> setMainGroupChatPhoto(
-            @NotNull @PathVariable Long chatId,
-            @NotNull @PathVariable UUID photoId,
-            BindingResult bindingResult
+    ResponseEntity<ChatPhotoResponse> setMainGroupChatPhotoByChatIdAndPhotoId(
+            @PathVariable Long chatId,
+            @PathVariable UUID photoId
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(chatId) | PathVariable(photoId) validation error", bindingResult);
-        }
-        ChatPhotoResponse response = chatPhotoApplicationService.setMainGroupChatPhoto(chatId, photoId);
+        ChatPhotoResponse response = chatPhotoApplicationService.setMainGroupChatPhotoByChatIdAndPhotoId(chatId, photoId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -110,15 +96,11 @@ public class ChatPhotoController {
             path = "/api/chat/group/{chatId}/photo/{photoId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> deleteChatPhoto(
-            @NotNull @PathVariable Long chatId,
-            @NotNull @PathVariable UUID photoId,
-            BindingResult bindingResult
+    ResponseEntity<String> deleteChatPhotoByChatIdAndPhotoId(
+            @PathVariable Long chatId,
+            @PathVariable UUID photoId
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(chatId) | PathVariable(photoId) validation error", bindingResult);
-        }
-        chatPhotoApplicationService.deleteGroupChatPhoto(chatId, photoId);
+        chatPhotoApplicationService.deleteGroupChatPhotoByChatIdAndPhotoId(chatId, photoId);
         return ResponseEntity.status(204).body("Photo of group chat deleted");
     }
 }

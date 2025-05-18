@@ -24,7 +24,8 @@
 </template>
 
 <script>
-import {fetchLogin} from "@/api/auth";
+
+import {fetchLogin} from "@/api/resources/auth";
 
 export default {
   name: "LoginComponent",
@@ -69,7 +70,7 @@ export default {
           console.log(apiError.message);
         }
       } else {
-        console.log(error.response || error.response.data);
+        console.log(error.response);
       }
     }
   }

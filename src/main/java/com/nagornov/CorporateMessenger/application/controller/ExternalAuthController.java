@@ -2,7 +2,6 @@ package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.applicationService.ExternalAuthApplicationService;
 import com.nagornov.CorporateMessenger.application.dto.auth.ExternalAuthResponse;
-import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.servlet.http.HttpServletRequest;

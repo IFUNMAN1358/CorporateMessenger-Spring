@@ -102,7 +102,7 @@ public class UserApplicationService {
 
 
     @Transactional(readOnly = true)
-    public UserWithUserPhotosResponse getYourUserData() {
+    public UserWithUserPhotosResponse getMyUserData() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
@@ -114,7 +114,7 @@ public class UserApplicationService {
 
 
     @Transactional(readOnly = true)
-    public UserWithUserPhotosResponse getUserById(@NonNull UUID userId) {
+    public UserWithUserPhotosResponse getUserByUserId(@NonNull UUID userId) {
 
         jwtService.getAuthInfo();
 

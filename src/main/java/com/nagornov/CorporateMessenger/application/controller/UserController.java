@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.model.user.*;
 import com.nagornov.CorporateMessenger.application.applicationService.UserApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -27,7 +26,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserUsername(@RequestBody UserUsernameRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> changeUserUsername(
+            @RequestBody UserUsernameRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UsernameRequest validation error", bindingResult);
         }
@@ -41,7 +43,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> changeUserPassword(@RequestBody UserPasswordRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> changeUserPassword(
+            @RequestBody UserPasswordRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("PasswordRequest validation error", bindingResult);
         }
@@ -79,12 +84,9 @@ public class UserController {
     ResponseEntity<Page<UserWithUserPhotoResponse>> searchUsersByUsername(
             @RequestParam("username") String username,
             @RequestParam("page") int page,
-            BindingResult bindingResult
+            @RequestParam("size") int size
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("RequestParam(username) | RequestParam(page) validation error", bindingResult);
-        }
-        Page<UserWithUserPhotoResponse> response = userApplicationService.searchUsersByUsername(username, page, 10);
+        Page<UserWithUserPhotoResponse> response = userApplicationService.searchUsersByUsername(username, page, size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -93,8 +95,8 @@ public class UserController {
             path = "/api/user",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserWithUserPhotosResponse> getYourUserData() {
-        UserWithUserPhotosResponse response = userApplicationService.getYourUserData();
+    ResponseEntity<UserWithUserPhotosResponse> getMyUserData() {
+        UserWithUserPhotosResponse response = userApplicationService.getMyUserData();
         return ResponseEntity.status(200).body(response);
     }
 
@@ -103,11 +105,10 @@ public class UserController {
             path = "/api/user/{userId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<UserWithUserPhotosResponse> getUserById(@NotNull @PathVariable("userId") UUID userId, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
-        }
-        UserWithUserPhotosResponse response = userApplicationService.getUserById(userId);
+    ResponseEntity<UserWithUserPhotosResponse> getUserByUserId(
+            @PathVariable("userId") UUID userId
+    ) {
+        UserWithUserPhotosResponse response = userApplicationService.getUserByUserId(userId);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -117,7 +118,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> blockUserByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> blockUserByUserId(
+            @RequestBody UserIdRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }
@@ -131,7 +135,10 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<String> unblockUserByUserId(@RequestBody UserIdRequest request, BindingResult bindingResult) {
+    ResponseEntity<String> unblockUserByUserId(
+            @RequestBody UserIdRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UserIdRequest validation error", bindingResult);
         }

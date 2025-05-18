@@ -1,41 +1,10 @@
 import axios from "@/api/axios";
-import authStore from "@/store/auth/authStore";
+import authStore from "@/store/authStore";
 
-export async function fetchGetUserPhoto(photoId) {
-  try {
-    const response = await axios.get(
-        `/api/user/photo/${photoId}`,
-        {
-            headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
-            },
-            responseType: 'blob'
-        }
-    );
-    return URL.createObjectURL(response.data);
-  } catch (error) {
-    console.error('Get user photo failed:', error);
-  }
-}
-
-export async function fetchGetMainUserPhotoByUserId(userId) {
-  try {
-    const response = await axios.get(
-        `/api/user/${userId}/photo/main`,
-        {
-            headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
-            },
-            responseType: 'blob'
-        }
-    );
-    return URL.createObjectURL(response.data);
-  } catch (error) {
-    return null;
-  }
-}
-
-export async function fetchUploadPhoto(formData) {
+// @NotNull
+// private MultipartFile file;
+//
+export async function fetchUploadMyUserPhoto(formData) {
   try {
     const response = await axios.post(
         `/api/user/photo`,
@@ -49,27 +18,108 @@ export async function fetchUploadPhoto(formData) {
     );
     return response.data;
   } catch (error) {
-    console.error('Upload user photo failed:', error);
+    console.error('Upload my user photo failed:', error);
+    throw error;
   }
 }
 
-export async function fetchDeletePhotoById(photoId) {
+export async function fetchDownloadMyMainUserPhoto(size) {
   try {
-    const response = await axios.delete(
+    const response = await axios.get(
+        `/api/user/photo/main`,
+        {
+            headers: {
+                'Authorization': `Bearer ${authStore.state.accessToken}`
+            },
+            params: {
+                size
+            },
+            responseType: 'blob'
+        }
+    );
+    if (response.data && response.data.size > 0) {
+      return URL.createObjectURL(response.data);
+    }
+    return null;
+  } catch (error) {
+    console.error('Download my main user photo failed:', error);
+    throw error;
+  }
+}
+
+export async function fetchDownloadMyUserPhotoByPhotoId(photoId, size) {
+  try {
+    const response = await axios.get(
         `/api/user/photo/${photoId}`,
         {
             headers: {
                 'Authorization': `Bearer ${authStore.state.accessToken}`
-            }
+            },
+            params: {
+                size
+            },
+            responseType: 'blob'
         }
     );
-    console.info(response.data.message);
+    if (response.data && response.data.size > 0) {
+      return URL.createObjectURL(response.data);
+    }
+    return null;
   } catch (error) {
-    console.error('Delete user photo failed:', error);
+    console.error('Download my user photo by photoId failed:', error);
+    throw error;
   }
 }
 
-export async function fetchSetMainPhotoById(photoId) {
+export async function fetchDownloadMainUserPhotoByUserId(userId, size) {
+  try {
+    const response = await axios.get(
+      `/api/user/${userId}/photo/main`,
+      {
+        headers: {
+          'Authorization': `Bearer ${authStore.state.accessToken}`
+        },
+        params: {
+          size
+        },
+        responseType: 'blob'
+      }
+    );
+    if (response.data && response.data.size > 0) {
+      return URL.createObjectURL(response.data);
+    }
+    return null;
+  } catch (error) {
+    console.error('Download main user photo by userId failed:', error);
+    return null;
+  }
+}
+
+export async function fetchDownloadUserPhotoByUserIdAndPhotoId(userId, photoId, size) {
+  try {
+    const response = await axios.get(
+        `/api/user/${userId}/photo/${photoId}`,
+        {
+            headers: {
+                'Authorization': `Bearer ${authStore.state.accessToken}`
+            },
+            params: {
+                size
+            },
+            responseType: 'blob'
+        }
+    );
+    if (response.data && response.data.size > 0) {
+      return URL.createObjectURL(response.data);
+    }
+    return null;
+  } catch (error) {
+    console.error('Download user photo by userId and photoId failed:', error);
+    throw error;
+  }
+}
+
+export async function fetchSetMyMainUserPhotoByPhotoId(photoId) {
   try {
     const response = await axios.patch(
         `/api/user/photo/${photoId}`,
@@ -82,6 +132,24 @@ export async function fetchSetMainPhotoById(photoId) {
     );
     return response.data;
   } catch (error) {
-    console.error('Update user photo failed:', error);
+    console.error('Set my main user photo by photoId failed:', error);
+    throw error;
+  }
+}
+
+export async function fetchDeleteMyUserPhotoByPhotoId(photoId) {
+  try {
+    const response = await axios.delete(
+        `/api/user/photo/${photoId}`,
+        {
+            headers: {
+                'Authorization': `Bearer ${authStore.state.accessToken}`
+            }
+        }
+    );
+    console.info(response.data.message);
+  } catch (error) {
+    console.error('Delete my user photo by photoId failed:', error);
+    throw error;
   }
 }

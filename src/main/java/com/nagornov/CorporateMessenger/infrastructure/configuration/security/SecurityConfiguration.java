@@ -55,18 +55,13 @@ public class SecurityConfiguration {
                     .requestMatchers("/notifications").hasRole("USER") // for connect
                     
                     // TestController
-                    .requestMatchers(HttpMethod.POST, "/api/test/1").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/test/1").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/test/2").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/test/3").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/test/3").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/test/4").permitAll()
 
                     // ExternalAuthController
                     .requestMatchers(HttpMethod.POST, "/api/external/v1/auth/login").permitAll()
-
-                    // AuthController
-                    .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").hasRole("USER")
 
                     // AuthController
                     .requestMatchers(HttpMethod.POST, "/api/auth/registration").permitAll()
@@ -82,14 +77,14 @@ public class SecurityConfiguration {
 
                     // RegistrationKeyController
                     .requestMatchers(HttpMethod.POST, "/api/registration-key").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/registration-keys").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/registration-key/{keyId}").hasRole("ADMIN")
+                    //.requestMatchers(HttpMethod.GET, "/api/registration-keys").hasRole("ADMIN") not used
+                    //.requestMatchers(HttpMethod.DELETE, "/api/registration-key/{keyId}").hasRole("ADMIN") not used
 
                     // UserController
                     .requestMatchers(HttpMethod.PATCH, "/api/user/username").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/password").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/main-email").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/phone").hasRole("USER")
+                    //.requestMatchers(HttpMethod.PATCH, "/api/user/main-email").hasRole("USER") not used
+                    //.requestMatchers(HttpMethod.PATCH, "/api/user/phone").hasRole("USER") not used
                     .requestMatchers(HttpMethod.GET, "/api/user/search").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}").hasRole("USER")
@@ -120,27 +115,27 @@ public class SecurityConfiguration {
 
                     // NotificationController
                     .requestMatchers(HttpMethod.GET, "/api/user/notifications").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/notification/process").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/notification/read").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/notification/{notificationId}/process").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/notification/{notificationId}/read").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/notifications/read-all").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/user/notification").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/notification/{notificationId}").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user/notifications").hasRole("USER")
 
                     // ContactController
-                    .requestMatchers(HttpMethod.POST, "/api/user/contact").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/user/{userId}/contact").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}/contact").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/contacts").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}/contacts").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/contact/confirm").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/contact/reject").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/user/contact").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/{userId}/contact/confirm").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/{userId}/contact/reject").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/user/{userId}/contact").hasRole("USER")
 
                     // ChatController
-                    .requestMatchers(HttpMethod.POST, "/api/chat/private").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/user/{userId}/chat/private").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/chat/group").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chats").hasRole("USER")
-                    .requestMatchers(HttpMethod.DELETE, "/api/chat").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/chat/{chatId}").hasRole("USER")
 
                     // ChatMemberController
                     .requestMatchers(HttpMethod.GET, "/api/chat/group/{chatId}/members").hasRole("USER")

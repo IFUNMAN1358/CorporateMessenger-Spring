@@ -1,9 +1,7 @@
 package com.nagornov.CorporateMessenger.application.dto.auth;
 
-import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -16,11 +14,9 @@ public class ExternalAuthResponse {
 
     private String accessToken;
     private String refreshToken;
-
     private String username;
     private String firstName;
     private String lastName;
-
     private Set<String> userRoles;
 
     public ExternalAuthResponse(

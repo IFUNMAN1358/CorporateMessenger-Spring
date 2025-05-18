@@ -61,8 +61,8 @@ public class NotificationService {
         return jpaNotificationRepository.findAllByUserId(userId, page, pageSize);
     }
 
-    public Page<Notification> findAllByUserIdAndCategory(@NonNull UUID userId, @NonNull NotificationCategory category, int page, int pageSize) {
-        return jpaNotificationRepository.findAllByUserIdAndCategory(userId, category, page, pageSize);
+    public Page<Notification> findAllByUserIdAndCategory(@NonNull UUID userId, @NonNull NotificationCategory category, int page, int size) {
+        return jpaNotificationRepository.findAllByUserIdAndCategory(userId, category, page, size);
     }
 
     public Notification getByIdAndUserId(@NonNull UUID id, @NonNull UUID userId) {

@@ -53,8 +53,9 @@
 </template>
 
 <script>
-import {createGroupChat} from "@/js/service/groupChatController";
-import router from "@/js/config/router";
+
+import router from "@/router/router";
+import {fetchCreateGroupChat} from "@/api/resources/chat";
 
 export default {
   name: "CreateGroupChatComponent",
@@ -92,15 +93,13 @@ export default {
       }
 
       const formData = new FormData();
-      formData.append("name", this.formData.name);
-      formData.append("description", this.formData.description || "");
-      formData.append("isPublic", this.formData.isPublic);
+      formData.append("title", this.formData.name);
       if (this.formData.file) {
         formData.append("file", this.formData.file);
       }
 
       try {
-        await createGroupChat(formData);
+        await fetchCreateGroupChat(formData);
         router.push({ name: "Dialogs" }).catch(() => {});
       } catch (error) {
         console.error("Ошибка создания группового чата:", error);

@@ -1,9 +1,7 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatWithChatPhotoResponse;
-import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatIdRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
-import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
@@ -45,12 +43,12 @@ public class ChatApplicationService {
 
 
     @Transactional
-    public ChatWithChatPhotoResponse getOrCreatePrivateChat(@NonNull UserIdRequest request) {
+    public ChatWithChatPhotoResponse getOrCreatePrivateChatByUserId(@NonNull UUID userId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         User user = userService.getById(authInfo.getUserIdAsUUID());
-        User partner = userService.getById(request.getUserId());
+        User partner = userService.getById(userId);
 
         String userPairHash = PrivateChat.generateUserPairHash(user.getId(), partner.getId());
         Optional<PrivateChat> optPrivateChat = privateChatService.findByUserPairHash(userPairHash);
@@ -204,11 +202,11 @@ public class ChatApplicationService {
 
 
     @Transactional
-    public void deleteChat(@NonNull ChatIdRequest request) {
+    public void deleteChatByChatId(@NonNull Long chatId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(request.getChatId(), user.getId());
+        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(chatId, user.getId());
 
         Chat chat = chatService.getById(userChatMember.getChatId());
 

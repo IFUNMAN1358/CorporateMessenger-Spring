@@ -1,6 +1,5 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.model.user.UserIdRequest;
 import com.nagornov.CorporateMessenger.domain.broker.producer.NotificationProducer;
 import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
@@ -13,7 +12,6 @@ import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.*;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.user.ContactService;
-import com.nagornov.CorporateMessenger.domain.service.user.NotificationService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserBlacklistService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import lombok.NonNull;
@@ -37,18 +35,17 @@ public class ContactApplicationService {
     private final JwtService jwtService;
     private final ContactService contactService;
     private final UserBlacklistService userBlacklistService;
-    private final NotificationService notificationService;
     private final NotificationProducer notificationProducer;
 
 
     @Transactional
-    public Contact addContactByUserId(@NonNull UserIdRequest request) {
+    public Contact addContactByUserId(@NonNull UUID userId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         User initiatorUser = userService.getById(authInfo.getUserIdAsUUID());
 
-        UserWithUserSettingsDTO recipientDto = userService.getWithUserSettingsById(request.getUserId());
+        UserWithUserSettingsDTO recipientDto = userService.getWithUserSettingsById(userId);
         User recipientUser = recipientDto.getUser();
         UserSettings recipientUserSettings = recipientDto.getUserSettings();
 
@@ -161,10 +158,10 @@ public class ContactApplicationService {
 
 
     @Transactional
-    public void confirmContactByUserId(@NonNull UserIdRequest request) {
+    public void confirmContactByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User initiatorUser = userPairDTO.getUser2();
 
@@ -187,10 +184,10 @@ public class ContactApplicationService {
 
 
     @Transactional
-    public void rejectContactByUserId(@NonNull UserIdRequest request) {
+    public void rejectContactByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User initiatorUser = userPairDTO.getUser2();
 
@@ -209,10 +206,10 @@ public class ContactApplicationService {
 
 
     @Transactional
-    public void deleteContactByUserId(@NonNull UserIdRequest request) {
+    public void deleteContactByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 

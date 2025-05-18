@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.applicationService.EmployeeAp
 import com.nagornov.CorporateMessenger.application.dto.model.employee.EmployeeWithEmployeePhotoResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.employee.UpdateEmployeeRequest;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,10 +35,9 @@ public class EmployeeController {
             path = "/api/user/{userId}/employee",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<EmployeeWithEmployeePhotoResponse> getEmployeeByUserId(@NotNull @PathVariable("userId") UUID userId, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(userId) validation error", bindingResult);
-        }
+    ResponseEntity<EmployeeWithEmployeePhotoResponse> getEmployeeByUserId(
+            @PathVariable("userId") UUID userId
+    ) {
         EmployeeWithEmployeePhotoResponse response = employeeApplicationService.getEmployeeByUserId(userId);
         return ResponseEntity.status(200).body(response);
     }
@@ -50,7 +48,10 @@ public class EmployeeController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<EmployeeWithEmployeePhotoResponse> updateMyEmployee(@RequestBody UpdateEmployeeRequest request, BindingResult bindingResult) {
+    ResponseEntity<EmployeeWithEmployeePhotoResponse> updateMyEmployee(
+            @RequestBody UpdateEmployeeRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("UpdateEmployeeRequest validation error", bindingResult);
         }

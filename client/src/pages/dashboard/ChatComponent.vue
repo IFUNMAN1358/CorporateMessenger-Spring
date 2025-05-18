@@ -1,16 +1,16 @@
 <template>
-  <div class="chatInterface-container">
-    <header v-if="groupChat" class="chatInterface-header">
+  <div class="chat-container">
+    <header v-if="chatData" class="chat-header">
       <button class="back-button" @click="goBackToDialogs">← Назад</button>
-      <div class="user-info">
+      <div class="chat-info">
         <img
-          :src="groupChatPhoto || groupChatDefaultAvatar"
-          alt="Group Chat Photo"
-          class="group-chatInterface-avatar"
-          @click="goToMainGroupChat()"
+          :src="chatPhoto"
+          alt="Chat Photo"
+          class="chat-avatar"
+          @click="goToChatDetails"
         />
-        <div @click="goToMainGroupChat()" class="group-chatInterface-name">
-          {{ groupChat.name }}
+        <div @click="goToChatDetails" class="chat-name">
+          {{ chatData.chat.type === 'PRIVATE' ? chatData.partner?.username : chatData.chat.title }}
         </div>
       </div>
     </header>
@@ -23,14 +23,18 @@
         :data-message-id="message.id"
       >
         <div class="message-body">
-          <p v-if="message.senderId !== userId" @click="goToUserProfile(message.senderId)" class="user-username">
+          <p
+            v-if="chatData.chat.type === 'GROUP' && message.senderId !== userId"
+            @click="goToUserProfile(message.senderId)"
+            class="user-username"
+          >
             {{ message.senderUsername }}
           </p>
           <div v-if="message.files?.length" class="message-files">
             <div v-for="file in message.files" :key="file.id" class="file-item">
               <template v-if="isImage(file.fileName)">
                 <img
-                  :src="file.previewUrl || placeholder"
+                  :src="file.previewUrl || PhotoDefaultPlaceholder"
                   alt="Изображение"
                   class="file-image"
                   @click="openImageModal(file, message.id)"
@@ -38,7 +42,7 @@
               </template>
               <template v-else>
                 <div class="file-placeholder">
-                  <a :href="file.url || placeholder" download :title="file.fileName">
+                  <a :href="file.url || PhotoDefaultPlaceholder" download :title="file.fileName">
                     {{ file.fileName }}
                   </a>
                 </div>
@@ -51,14 +55,14 @@
           </div>
 
           <div v-if="message.senderId === userId" class="message-options">
-          <button @click="toggleMessageMenu(message.id)" class="menu-toggle">
-            ⋮
-          </button>
-          <div v-if="messageMenuId === message.id" class="message-dropdown">
-            <button @click="editMessage(message.id)">Изменить</button>
-            <button @click="deleteMessage(message.id)">Удалить</button>
+            <button @click="toggleMessageMenu(message.id)" class="menu-toggle">
+              ⋮
+            </button>
+            <div v-if="messageMenuId === message.id" class="message-dropdown">
+              <button @click="editMessage(message.id)">Изменить</button>
+              <button @click="deleteMessage(message.id)">Удалить</button>
+            </div>
           </div>
-        </div>
 
           <div class="message-meta">
             <span class="message-time">{{ formatTime(message.createdAt) }}</span>
@@ -66,12 +70,12 @@
           </div>
 
           <div v-if="modalImage" class="modal-image" @click.self="closeImageModal">
-          <div class="modal-image-content">
-            <img :src="modalImage" alt="Увеличенное изображение" />
-            <button class="modal-image-close" @click="closeImageModal">Закрыть</button>
-            <a :href="modalImage" download class="modal-image-download">Скачать</a>
+            <div class="modal-image-content">
+              <img :src="modalImage" alt="Увеличенное изображение" />
+              <button class="modal-image-close" @click="closeImageModal">Закрыть</button>
+              <a :href="modalImage" download class="modal-image-download">Скачать</a>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
@@ -140,137 +144,248 @@
 </template>
 
 <script>
-import groupChatDefaultAvatar from "@/assets/chatInterface/GroupChatDefaultAvatar.png";
-import defaultAvatar from "@/assets/user/UserDefaultAvatar.png";
-import PhotoPlaceholder from "@/assets/user/PhotoDefaultPlaceholder.png";
-import {
-  createMessage,
-  deleteMessage,
-  getAllMessages,
-  getMessageFile,
-  readMessage,
-  updateMessageContent
-} from "@/js/service/messageService";
-import router from "@/js/config/router";
-import {Stomp} from "@stomp/stompjs";
-import SockJS from 'sockjs-client';
-import authStore from "@/js/store/stores/authStore";
-import {getGroupChat} from "@/js/service/groupChatController";
-import authState from "@/js/store/states/authState";
+import GroupChatDefaultAvatar from '@/assets/images/GroupChatDefaultAvatar.png';
+import UserDefaultAvatar from '@/assets/images/UserDefaultAvatar.png';
+import PhotoDefaultPlaceholder from '@/assets/images/PhotoDefaultPlaceholder.png';
 import {jwtDecode} from "jwt-decode";
-import {getGroupChatPhoto} from "@/js/service/groupChatPhotoController";
+import authStore from "@/store/authStore";
+import {fetchGetAllChats} from "@/api/resources/chat";
+import {fetchDownloadMyMainUserPhoto} from "@/api/resources/userPhoto";
+import {fetchDownloadMainGroupChatPhotoByChatId} from "@/api/resources/chatPhoto";
+import router from "@/router/router";
+import {
+  fetchCreateMessage,
+  fetchDeleteMessage, fetchDownloadMessageFile, fetchGetAllMessages,
+  fetchReadMessage,
+  fetchUpdateMessageContent
+} from "@/api/resources/message";
+import {Stomp} from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 export default {
-  name: "GroupChatComponent",
+  name: "ChatComponent",
   data() {
     return {
       chatId: this.$route.params.id,
+      chatData: null,
+      chatPhoto: null,
       userId: null,
-      groupChat: null,
-      groupChatPhoto: null,
       messages: [],
       newMessage: "",
       selectedFiles: [],
       messageMenuId: null,
-      defaultAvatar: defaultAvatar,
-      groupChatDefaultAvatar: groupChatDefaultAvatar,
+      UserDefaultAvatar,
+      GroupChatDefaultAvatar,
+      PhotoDefaultPlaceholder,
       page: 0,
+      size: 20,
       isFetching: false,
       stompClient: null,
       modalImage: null,
-      placeholder: PhotoPlaceholder,
       observer: null,
       editingMessageId: null,
     };
   },
   async created() {
-    this.userId = jwtDecode(authState.accessToken).sub;
-    this.setupWebSocket();
+    this.userId = jwtDecode(authStore.state.accessToken).sub;
     await this.fetchChatData();
     await this.fetchMessages();
-    await this.$nextTick();
-    this.scrollToBottom();
+    this.setupWebSocket();
+    this.$nextTick(() => {
+      this.scrollToBottom();
+    });
   },
   mounted() {
     this.observer = new IntersectionObserver(this.handleVisibleMessages, {
       root: this.$refs.messagesContainer,
-      rootMargin: '0px 0px 200px 0px',
+      rootMargin: "0px 0px 200px 0px",
       threshold: 0.1,
     });
 
     this.$nextTick(() => {
-      this.messages.forEach((message) => {
-        const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
-        if (messageElement) {
-          console.log(`Observing message: ${message.id}`);
-          this.observer.observe(messageElement);
-        } else {
-          console.warn(`Message element not found: ${message.id}`);
-        }
-      });
+      this.observeMessages();
     });
   },
   unmounted() {
-    if (this.socket) {
-      this.socket.close();
+    if (this.stompClient) {
+      this.stompClient.deactivate();
     }
     if (this.observer) {
       this.observer.disconnect();
     }
+    this.selectedFiles.forEach((file) => {
+      if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+    });
   },
   methods: {
+    async fetchChatData() {
+      try {
+        const chats = await fetchGetAllChats();
+        this.chatData = chats.find((chat) => chat.chat.id === Number(this.chatId));
+        if (!this.chatData) {
+          console.error("Chat not found");
+        }
+
+        if (this.chatData.chat.type === "PRIVATE" && this.chatData.partner?.id) {
+          try {
+            this.chatPhoto = await fetchDownloadMyMainUserPhoto("small");
+          } catch (error) {
+            console.error("Failed to load user photo:", error);
+            this.chatPhoto = this.UserDefaultAvatar;
+          }
+        } else if (this.chatData.chat.type === "GROUP" && this.chatData.photo?.id) {
+          try {
+            this.chatPhoto = await fetchDownloadMainGroupChatPhotoByChatId(
+              this.chatId,
+              "small"
+            );
+          } catch (error) {
+            console.error("Failed to load group chat photo:", error);
+            this.chatPhoto = this.GroupChatDefaultAvatar;
+          }
+        } else {
+          this.chatPhoto =
+            this.chatData.chat.type === "PRIVATE"
+              ? this.UserDefaultAvatar
+              : this.GroupChatDefaultAvatar;
+        }
+      } catch (error) {
+        console.error("Ошибка при загрузке данных чата:", error);
+        router.push({ name: "Dialogs" });
+      }
+    },
+    async fetchMessages(page = 0) {
+      if (this.isFetching) return;
+      this.isFetching = true;
+      try {
+        const messages = await fetchGetAllMessages(this.chatId, page, this.size);
+        const formattedMessages = await Promise.all(
+          messages.map(async (msg) => {
+            const files = msg.files || [];
+            const processedFiles = await Promise.all(
+              files.map(async (file) => {
+                const url = await fetchDownloadMessageFile(
+                  this.chatId,
+                  msg.messageId,
+                  file.id,
+                  "small"
+                );
+                return {
+                  id: file.id,
+                  fileName: file.fileName,
+                  url,
+                  previewUrl: this.isImage(file.fileName) ? url : null,
+                };
+              })
+            );
+            return {
+              id: msg.messageId,
+              chatId: msg.chatId,
+              senderId: msg.senderId,
+              senderUsername: msg.senderUsername,
+              content: msg.content,
+              hasFiles: msg.hasFiles,
+              isChanged: msg.isChanged,
+              isRead: msg.isRead,
+              createdAt: msg.createdAt,
+              files: processedFiles,
+            };
+          })
+        );
+
+        if (page === 0) {
+          this.messages = formattedMessages.reverse();
+        } else {
+          this.messages = [...formattedMessages.reverse(), ...this.messages];
+        }
+
+        this.$nextTick(() => {
+          this.observeMessages();
+        });
+      } catch (error) {
+        console.error("Ошибка при загрузке сообщений:", error);
+      } finally {
+        this.isFetching = false;
+      }
+    },
+    observeMessages() {
+      this.messages.forEach((message) => {
+        const messageElement = document.querySelector(
+          `[data-message-id="${message.id}"]`
+        );
+        if (messageElement) {
+          this.observer.observe(messageElement);
+        }
+      });
+    },
     setupWebSocket() {
-      this.stompClient = Stomp.over(new SockJS(`${process.env.VUE_APP_BACK_BASE_URL}/ws-chatInterface`));
+      this.stompClient = Stomp.over(
+        () => new SockJS(`${process.env.VUE_APP_BACK_BASE_URL}/ws`)
+      );
       this.stompClient.reconnectDelay = 3000;
 
-      this.stompClient.connect(
-        { Authorization: `Bearer ${authStore.state.accessToken}` },
-        () => {
-          console.log('Connected!');
-          this.stompClient.subscribe(`/topic/chatInterface/${this.chatId}`, async (message) => {
-            const wsMessageResponse = JSON.parse(message.body);
-            const { type, messageResponse } = wsMessageResponse;
-            switch (type) {
-              case "CREATE":
-                await this.handleCreateMessage(messageResponse);
-                break;
-              case "READ":
-                await this.handleReadMessage(messageResponse);
-                break;
-              case "UPDATE_CONTENT":
-                await this.handleUpdateContentMessage(messageResponse);
-                break;
-              case "DELETE":
-                this.handleDeleteMessage(messageResponse);
-                break;
-              default:
-                console.warn("Неизвестный тип сообщения:", type);
-            }
-          });
-        },
-        (error) => {
-          console.error('Connection error:', error);
-        }
-      );
+      this.stompClient.activate();
+      this.stompClient.onConnect = () => {
+        this.stompClient.subscribe(`/topic/chat/${this.chatId}`, async (message) => {
+          const wsMessageResponse = JSON.parse(message.body);
+          const { type, data } = wsMessageResponse;
+          switch (type) {
+            case "CREATE":
+              await this.handleCreateMessage(data);
+              break;
+            case "READ":
+              await this.handleReadMessage(data);
+              break;
+            case "UPDATE_CONTENT":
+              await this.handleUpdateContentMessage(data);
+              break;
+            case "DELETE":
+              this.handleDeleteMessage(data);
+              break;
+            default:
+              console.warn("Неизвестный тип сообщения:", type);
+          }
+        });
+      };
+      this.stompClient.onStompError = (error) => {
+        console.error("WebSocket connection error:", error);
+      };
     },
     async handleCreateMessage(messageResponse) {
+      const files = messageResponse.files || [];
+      const processedFiles = await Promise.all(
+        files.map(async (file) => {
+          const url = await fetchDownloadMessageFile(
+            this.chatId,
+            messageResponse.messageId,
+            file.id,
+            "small"
+          );
+          return {
+            id: file.id,
+            fileName: file.fileName,
+            url,
+            previewUrl: this.isImage(file.fileName) ? url : null,
+          };
+        })
+      );
       const formattedMessage = {
-        id: messageResponse.message.id,
-        chatId: messageResponse.message.chatId,
-        senderId: messageResponse.message.senderId,
-        senderFirstName: messageResponse.message.senderFirstName,
-        senderUsername: messageResponse.message.senderUsername,
-        content: messageResponse.message.content,
-        hasFiles: messageResponse.message.hasFiles,
-        isChanged: messageResponse.message.isChanged,
-        isRead: messageResponse.message.isRead,
-        createdAt: messageResponse.message.createdAt,
-        files: messageResponse.messageFiles || []
+        id: messageResponse.messageId,
+        chatId: messageResponse.chatId,
+        senderId: messageResponse.senderId,
+        senderUsername: messageResponse.senderUsername,
+        content: messageResponse.content,
+        hasFiles: messageResponse.hasFiles,
+        isChanged: messageResponse.isChanged,
+        isRead: messageResponse.isRead,
+        createdAt: messageResponse.createdAt,
+        files: processedFiles,
       };
-      const processedMessage = await this.processMessageFiles(formattedMessage);
-      this.messages.push(processedMessage);
+      this.messages.push(formattedMessage);
       this.$nextTick(() => {
-        const messageElement = document.querySelector(`[data-message-id="${processedMessage.id}"]`);
+        const messageElement = document.querySelector(
+          `[data-message-id="${formattedMessage.id}"]`
+        );
         if (messageElement) {
           this.observer.observe(messageElement);
         }
@@ -278,25 +393,29 @@ export default {
       });
     },
     async handleReadMessage(messageResponse) {
-      const message = this.messages.find((msg) => msg.id === messageResponse.message.id);
+      const message = this.messages.find((msg) => msg.id === messageResponse.messageId);
       if (message) {
         message.isRead = true;
         this.$forceUpdate();
       }
     },
     async handleUpdateContentMessage(messageResponse) {
-      const messageIndex = this.messages.findIndex((msg) => msg.id === messageResponse.message.id);
+      const messageIndex = this.messages.findIndex(
+        (msg) => msg.id === messageResponse.messageId
+      );
       if (messageIndex !== -1) {
-        this.messages[messageIndex] = await this.processMessageFiles({
+        this.messages[messageIndex] = {
           ...this.messages[messageIndex],
-          content: messageResponse.message.content,
+          content: messageResponse.content,
           isChanged: true,
-        });
+        };
+        this.$forceUpdate();
       }
       this.messageMenuId = null;
     },
     handleDeleteMessage(messageResponse) {
-      this.messages = this.messages.filter((msg) => msg.id !== messageResponse.message.id);
+      this.messages = this.messages.filter((msg) => msg.id !== messageResponse.messageId);
+      this.messageMenuId = null;
     },
     isImage(fileName) {
       const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
@@ -304,22 +423,22 @@ export default {
       return imageExtensions.includes(extension);
     },
     async openImageModal(file, messageId) {
-      this.modalImage = URL.createObjectURL(await getMessageFile(this.chatId, messageId, file.id));
-    },
-    async processMessageFiles(message) {
-      if (message.files?.length) {
-        for (const file of message.files) {
-          file.url = URL.createObjectURL(await getMessageFile(this.chatId, message.id, file.id));
-
-          if (this.isImage(file.fileName)) {
-            file.previewUrl = file.url;
-          }
-        }
+      try {
+        this.modalImage = await fetchDownloadMessageFile(
+          this.chatId,
+          messageId,
+          file.id,
+          "big"
+        );
+      } catch (error) {
+        console.error("Ошибка при открытии изображения:", error);
       }
-      return message;
+    },
+    closeImageModal() {
+      this.modalImage = null;
     },
     createPreviewUrl(file) {
-      if (file && file.type.startsWith('image/')) {
+      if (file && file.type.startsWith("image/")) {
         try {
           file.previewUrl = URL.createObjectURL(file);
           return file.previewUrl;
@@ -332,100 +451,27 @@ export default {
     },
     handleFileChange(event) {
       const files = Array.from(event.target.files);
-
       if (this.selectedFiles.length + files.length > 10) {
         alert("Нельзя выбрать больше 10 файлов.");
         return;
       }
-
       this.selectedFiles = [...this.selectedFiles, ...files].slice(0, 10);
     },
     clearFiles() {
-      this.selectedFiles.forEach(file => {
-        if (file.previewUrl) {
-          URL.revokeObjectURL(file.previewUrl);
-        }
+      this.selectedFiles.forEach((file) => {
+        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
       });
       this.selectedFiles = [];
     },
     removeFile(index) {
       const file = this.selectedFiles[index];
-      if (file.previewUrl) {
-        URL.revokeObjectURL(file.previewUrl);
-      }
+      if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
       this.selectedFiles.splice(index, 1);
     },
     formatTime(timestamp) {
+      if (!timestamp) return "";
       const date = new Date(timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    },
-    async fetchChatData() {
-      try {
-        this.groupChat = await getGroupChat(this.chatId);
-
-        this.groupChatPhoto = this.groupChat.filePath
-            ? await getGroupChatPhoto(this.groupChat.id)
-            : null;
-
-      } catch (error) {
-        console.error("Ошибка при загрузке данных чата:", error);
-      }
-    },
-    async fetchMessages(page = 0) {
-      try {
-        const response = await getAllMessages(this.chatId, page);
-
-        const newMessages = response.map((item) => ({
-          id: item.message.id,
-          chatId: item.message.chatId,
-          senderId: item.message.senderId,
-          senderFirstName: item.message.senderFirstName,
-          senderUsername: item.message.senderUsername,
-          content: item.message.content,
-          hasFiles: item.message.hasFiles,
-          isChanged: item.message.isChanged,
-          isRead: item.message.isRead,
-          createdAt: item.message.createdAt,
-          files: item.messageFiles || [],
-        }));
-
-        if (page === 0) {
-          this.messages = newMessages.reverse();
-        } else {
-          this.messages = [...newMessages.reverse(), ...this.messages];
-        }
-
-        this.$nextTick(() => {
-          this.messages.forEach((message) => {
-            const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
-            if (messageElement) {
-              this.observer.observe(messageElement);
-            }
-          });
-        });
-
-        this.loadMessageFiles();
-      } catch (error) {
-        console.error("Ошибка при загрузке сообщений:", error);
-      } finally {
-        this.isFetching = false;
-      }
-    },
-    async loadMessageFiles() {
-      for (const message of this.messages) {
-        if (message.hasFiles && message.files?.length) {
-          for (const file of message.files) {
-            try {
-              file.url = URL.createObjectURL(await getMessageFile(this.chatId, message.id, file.id));
-              if (this.isImage(file.fileName)) {
-                file.previewUrl = file.url;
-              }
-            } catch (error) {
-              console.error("Ошибка при загрузке файла:", error);
-            }
-          }
-        }
-      }
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     },
     goBackToDialogs() {
       router.push({ name: "Dialogs" });
@@ -433,8 +479,12 @@ export default {
     goToUserProfile(userId) {
       router.push({ name: "User", params: { id: userId } });
     },
-    goToMainGroupChat() {
-      router.push({ name: "MainGroupChat", params: { id: this.chatId } });
+    goToChatDetails() {
+      if (this.chatData.chat.type === "PRIVATE") {
+        router.push({ name: "User", params: { id: this.chatData.partner.id } });
+      } else {
+        router.push({ name: "MainGroupChat", params: { id: this.chatId } });
+      }
     },
     toggleMessageMenu(messageId) {
       this.messageMenuId = this.messageMenuId === messageId ? null : messageId;
@@ -449,14 +499,11 @@ export default {
     },
     async handleScroll() {
       const container = this.$refs.messagesContainer;
-
       if (container.scrollTop === 0 && !this.isFetching) {
         this.isFetching = true;
         const prevScrollHeight = container.scrollHeight;
         this.page++;
-
         await this.fetchMessages(this.page);
-
         this.$nextTick(() => {
           const newScrollHeight = container.scrollHeight;
           container.scrollTop = newScrollHeight - prevScrollHeight;
@@ -464,7 +511,7 @@ export default {
       }
     },
     handleKeyDown(event) {
-      if (event.key === 'Enter') {
+      if (event.key === "Enter") {
         event.preventDefault();
         if (this.editingMessageId) {
           this.saveEditedMessage();
@@ -473,63 +520,31 @@ export default {
         }
       }
     },
-    async closeImageModal() {
-      this.modalImage = null;
-    },
     async sendMessage() {
       if (!this.newMessage.trim() && this.selectedFiles.length === 0) return;
-
       try {
-        const formData = new FormData();
-        formData.append("chatId", this.chatId);
-        formData.append("content", this.newMessage);
-        this.selectedFiles.forEach((file) => {
-          formData.append("files[]", file);
-        });
-
-        await createMessage(formData);
-
+        const firstFile = this.selectedFiles[0];
+        await fetchCreateMessage(this.chatId, this.newMessage, firstFile);
         this.newMessage = "";
-        this.selectedFiles = [];
+        this.clearFiles();
         this.page = 0;
-
         this.scrollToBottom();
       } catch (error) {
         console.error("Ошибка при отправке сообщения:", error);
       }
     },
-    async editMessage(messageId) {
+    editMessage(messageId) {
       this.editingMessageId = messageId;
-      const message = this.messages.find(msg => msg.id === messageId);
+      const message = this.messages.find((msg) => msg.id === messageId);
       if (message) {
-        this.newMessage = message.content;
+        this.newMessage = message.content || "";
       }
       this.messageMenuId = null;
     },
     async saveEditedMessage() {
-      if (!this.newMessage.trim() && this.selectedFiles.length === 0 && this.selectedFiles.length === 0) {
-        return;
-      }
-
-      const data = {
-        chatId: this.chatId,
-        messageId: this.editingMessageId,
-        content: this.newMessage
-      }
-
+      if (!this.newMessage.trim()) return;
       try {
-        const responseData = await updateMessageContent(data);
-        const updatedMessage = responseData.message;
-
-        const messageIndex = this.messages.findIndex(
-          (msg) => msg.id === this.editingMessageId
-        );
-
-        if (messageIndex !== -1) {
-          this.messages[messageIndex].content = updatedMessage.content;
-          this.messages[messageIndex].isChanged = true;
-        }
-
+        await fetchUpdateMessageContent(this.chatId, this.editingMessageId, this.newMessage);
         this.editingMessageId = null;
         this.newMessage = "";
       } catch (error) {
@@ -538,31 +553,34 @@ export default {
     },
     async deleteMessage(messageId) {
       try {
-        await deleteMessage({ chatId: this.chatId, messageId: messageId });
-        this.messageMenuId = null;
+        await fetchDeleteMessage(this.chatId, messageId);
       } catch (error) {
         console.error("Ошибка при удалении сообщения:", error);
       }
     },
-    handleVisibleMessages(entries) {
-      entries.forEach(async (entry) => {
+    async handleVisibleMessages(entries) {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
           const messageId = entry.target.dataset.messageId;
           const message = this.messages.find((m) => m.id === messageId);
-
-          if (message && message.senderId !== this.userId && !message.isRead) {
-            await readMessage({chatId: message.chatId, messageId: message.id});
+          if (
+            message &&
+            message.senderId !== this.userId &&
+            !message.isRead &&
+            this.chatData
+          ) {
+            await fetchReadMessage(this.chatId, messageId);
             message.isRead = true;
           }
         }
-      });
-    }
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
-.chatInterface-container {
+.chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -574,7 +592,7 @@ export default {
   overflow: hidden;
 }
 
-.chatInterface-header {
+.chat-header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -585,19 +603,19 @@ export default {
 
 .back-button {
   font-size: 20px;
-  color: #F9F8F8;
+  color: #f9f8f8;
   background: none;
   border: none;
   cursor: pointer;
 }
 
-.user-info {
+.chat-info {
   display: flex;
   align-items: center;
   margin-left: 20px;
 }
 
-.group-chatInterface-avatar {
+.chat-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -605,17 +623,17 @@ export default {
   margin-right: 10px;
 }
 
+.chat-name {
+  font-size: 16px;
+  color: #f9f8f8;
+  cursor: pointer;
+}
+
 .user-username {
   cursor: pointer;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 10px 0;
-}
-
-.group-chatInterface-name {
-  font-size: 16px;
-  color: #F9F8F8;
-  cursor: pointer;
+  margin: 0 0 5px 0;
 }
 
 .messages-container {
@@ -629,17 +647,7 @@ export default {
 .message-item {
   display: flex;
   flex-direction: column;
-  margin-top: 5px;
-  max-width: 70%;
-  padding: 10px;
-  border-radius: 8px;
-  position: relative;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.left-message,
-.right-message {
+  margin-bottom: 15px;
   max-width: 70%;
   padding: 10px;
   border-radius: 8px;
@@ -652,55 +660,18 @@ export default {
   align-self: flex-start;
   background-color: #333;
   color: #f9f8f8;
-  text-align: left;
 }
 
 .right-message {
   align-self: flex-end;
   background-color: #444;
   color: #fff;
-  text-align: left;
 }
 
 .message-content p {
-  width: 98%;
   margin: 0;
   word-wrap: break-word;
   overflow-wrap: break-word;
-}
-
-@media (max-width: 768px) {
-  .chatInterface-container {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .message-item {
-    padding: 8px;
-  }
-
-  .left-message,
-  .right-message {
-    max-width: 80%;
-  }
-
-  .file-item {
-    flex: 1 1 calc(33.33% - 10px);
-    max-width: calc(33.33% - 10px);
-  }
-
-  .file-grid-item {
-    flex: 1 1 calc(33.33% - 8px);
-    max-width: calc(33.33% - 8px);
-  }
-
-  .file-preview {
-    height: 50px;
-  }
-
-  .file-name {
-    font-size: 10px;
-  }
 }
 
 .message-options {
@@ -727,7 +698,6 @@ export default {
   font-size: 18px;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  margin-right: 3px;
   padding: 6px;
   border-radius: 50%;
 }
@@ -746,8 +716,7 @@ export default {
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin: 10px 0;
   padding: 5px;
   background-color: #444;
   border-radius: 8px;
@@ -770,10 +739,6 @@ export default {
 .file-item:only-child {
   flex: 1 1 100%;
   max-width: 100%;
-}
-
-.file-item:hover {
-  color: #00bcd4;
 }
 
 .file-item img.file-image {
@@ -838,15 +803,6 @@ export default {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.message-input {
-  flex: 1;
-  font-size: 16px;
-  color: #f9f8f8;
-  background-color: transparent;
-  border: none;
-  outline: none;
-}
-
 .input-container {
   display: flex;
   align-items: center;
@@ -854,6 +810,15 @@ export default {
   background-color: #444;
   border-radius: 8px;
   padding: 5px 10px;
+}
+
+.message-input {
+  flex: 1;
+  font-size: 16px;
+  color: #f9f8f8;
+  background-color: transparent;
+  border: none;
+  outline: none;
 }
 
 .hidden-file-input {
@@ -880,7 +845,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.5);
   position: fixed;
   top: 0;
   left: 0;
@@ -1037,5 +1002,39 @@ export default {
   color: #f9f9f9;
   word-break: break-word;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .message-item {
+    padding: 8px;
+  }
+
+  .left-message,
+  .right-message {
+    max-width: 80%;
+  }
+
+  .file-item {
+    flex: 1 1 calc(33.33% - 10px);
+    max-width: calc(33.33% - 10px);
+  }
+
+  .file-grid-item {
+    flex: 1 1 calc(33.33% - 8px);
+    max-width: calc(33.33% - 8px);
+  }
+
+  .file-preview {
+    height: 50px;
+  }
+
+  .file-name {
+    font-size: 10px;
+  }
 }
 </style>

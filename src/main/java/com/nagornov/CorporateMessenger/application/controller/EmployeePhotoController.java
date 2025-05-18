@@ -4,7 +4,6 @@ import com.nagornov.CorporateMessenger.application.applicationService.EmployeePh
 import com.nagornov.CorporateMessenger.application.dto.common.FileRequest;
 import com.nagornov.CorporateMessenger.application.dto.model.employee.EmployeePhotoResponse;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -28,7 +27,10 @@ public class EmployeePhotoController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<EmployeePhotoResponse> uploadOrUpdateMyEmployeePhoto(@ModelAttribute FileRequest request, BindingResult bindingResult) {
+    ResponseEntity<EmployeePhotoResponse> uploadOrUpdateMyEmployeePhoto(
+            @ModelAttribute FileRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("FileRequest validation error", bindingResult);
         }
@@ -42,12 +44,8 @@ public class EmployeePhotoController {
             produces = MediaType.IMAGE_JPEG_VALUE
     )
     ResponseEntity<Resource> downloadMyEmployeePhoto(
-            @NotNull @RequestParam String size, // big/small
-            BindingResult bindingResult
+            @RequestParam String size // big/small
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("RequestParam(size) validation error", bindingResult);
-        }
         Resource response = employeePhotoApplicationService.downloadMyEmployeePhoto(size);
         return ResponseEntity.status(200).body(response);
     }
@@ -57,14 +55,10 @@ public class EmployeePhotoController {
             path = "/api/user/{userId}/employee/photo",
             produces = MediaType.IMAGE_JPEG_VALUE
     )
-    ResponseEntity<Resource> downloadEmployeePhoto(
-            @NotNull @PathVariable UUID userId,
-            @NotNull @RequestParam String size, // big/small
-            BindingResult bindingResult
+    ResponseEntity<Resource> downloadEmployeePhotoByUserId(
+            @PathVariable UUID userId,
+            @RequestParam String size // big/small
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("PathVariable(userId) | RequestParam(size) validation error", bindingResult);
-        }
         Resource response = employeePhotoApplicationService.downloadEmployeePhotoByUserId(userId, size);
         return ResponseEntity.status(200).body(response);
     }

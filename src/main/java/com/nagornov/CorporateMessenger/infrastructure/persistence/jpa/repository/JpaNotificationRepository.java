@@ -64,8 +64,8 @@ public class JpaNotificationRepository {
                 .map(jpaNotificationMapper::toDomain);
     }
 
-    public Page<Notification> findAllByUserIdAndCategory(UUID userId, NotificationCategory category, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page, pageSize);
+    public Page<Notification> findAllByUserIdAndCategory(UUID userId, NotificationCategory category, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return springDataJpaNotificationRepository.findAllByUserIdAndCategory(userId, category, pageable)
                 .map(jpaNotificationMapper::toDomain);
     }

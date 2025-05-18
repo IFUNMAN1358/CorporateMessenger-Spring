@@ -1,5 +1,5 @@
 import axios from "@/api/axios";
-import authStore from "@/store/auth/authStore";
+import authStore from "@/store/authStore";
 
 export async function fetchRegister(registerForm) {
     try {
@@ -42,13 +42,4 @@ export async function fetchLogout() {
         console.error('Logout failed:', error);
         throw error;
     }
-}
-
-export async function fetchCsrfToken() {
-  try {
-    await axios.get('/api/csrf-token');
-    console.log('CSRF token fetched');
-  } catch (error) {
-    console.error('Failed to fetch CSRF token:', error);
-  }
 }

@@ -25,7 +25,6 @@ const authActions = {
           'accessToken': accessToken,
           'refreshToken': refreshToken
         });
-        router.push({ name: 'Dialogs' }).catch(() => {});
     },
 
     logout() {

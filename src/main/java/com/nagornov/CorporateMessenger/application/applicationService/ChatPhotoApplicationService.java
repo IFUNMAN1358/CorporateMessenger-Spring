@@ -47,7 +47,7 @@ public class ChatPhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<ChatPhotoResponse> getAllGroupChatPhotos(@NonNull Long chatId) {
+    public List<ChatPhotoResponse> getAllGroupChatPhotosByChatId(@NonNull Long chatId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         Chat chat = chatService.getById(chatId);
@@ -60,7 +60,7 @@ public class ChatPhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource downloadMainGroupChatPhoto(@NonNull Long chatId, @NonNull String size) {
+    public Resource downloadMainGroupChatPhotoByChatId(@NonNull Long chatId, @NonNull String size) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -80,7 +80,7 @@ public class ChatPhotoApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource downloadGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId, @NonNull String size) {
+    public Resource downloadGroupChatPhotoByChatIdAndPhotoId(@NonNull Long chatId, @NonNull UUID photoId, @NonNull String size) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -96,7 +96,7 @@ public class ChatPhotoApplicationService {
 
 
     @Transactional
-    public ChatPhotoResponse setMainGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId) {
+    public ChatPhotoResponse setMainGroupChatPhotoByChatIdAndPhotoId(@NonNull Long chatId, @NonNull UUID photoId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
@@ -117,7 +117,7 @@ public class ChatPhotoApplicationService {
 
 
     @Transactional
-    public void deleteGroupChatPhoto(@NonNull Long chatId, @NonNull UUID photoId) {
+    public void deleteGroupChatPhotoByChatIdAndPhotoId(@NonNull Long chatId, @NonNull UUID photoId) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
