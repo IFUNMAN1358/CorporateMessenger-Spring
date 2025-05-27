@@ -13,6 +13,8 @@ services:
     networks:
       - cm-ngrok-net
       - vue-net
+    profiles:
+      - exclude-cm-ngrok
 
   vue:
     container_name: vue
@@ -25,7 +27,6 @@ services:
       - "7000:7000"
     depends_on:
       - app
-      - cm-ngrok
     networks:
       - vue-net
       - cm-ngrok-net
