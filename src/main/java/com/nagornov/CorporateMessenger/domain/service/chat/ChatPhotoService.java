@@ -6,6 +6,8 @@ import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestExcept
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import com.nagornov.CorporateMessenger.domain.utils.ContentTypeUtils;
+import com.nagornov.CorporateMessenger.domain.utils.InputStreamUtils;
+import com.nagornov.CorporateMessenger.domain.utils.MinioUtils;
 import com.nagornov.CorporateMessenger.domain.utils.ScalrUtils;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository.CassandraChatPhotoRepository;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.minio.MinioRepository;
@@ -16,13 +18,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +34,15 @@ public class ChatPhotoService {
         try {
             ContentTypeUtils.validateAsImageFromContentType(file.getContentType());
 
-            BufferedImage originalImage = ImageIO.read(file.getInputStream());
-            String originalFilePath = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            minioRepository.upload(MinioBucket.CHAT_PHOTOS, originalFilePath, originalImage, "jpg");
+            BufferedImage originalImage = InputStreamUtils.inputStreamToBufferedImage(file);
+            String originalFilePath = MinioUtils.generateFilePath(file.getOriginalFilename());
+            InputStream originalIS = InputStreamUtils.bufferedImageToInputStream(originalImage, file.getContentType());
+            minioRepository.upload(MinioBucket.CHAT_PHOTOS, originalFilePath, originalIS, "jpg");
 
             BufferedImage smallImage = ScalrUtils.resizeImage(originalImage, ImageSize.SIZE_128);
-            String smallFilePath = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            minioRepository.upload(MinioBucket.CHAT_PHOTOS, smallFilePath, smallImage, "jpg");
+            String smallFilePath = MinioUtils.generateFilePath(file.getOriginalFilename());
+            InputStream smallIS = InputStreamUtils.bufferedImageToInputStream(smallImage, file.getContentType());
+            minioRepository.upload(MinioBucket.CHAT_PHOTOS, smallFilePath, smallIS, "jpg");
 
             ChatPhoto chatPhoto = new ChatPhoto(
                     UUID.randomUUID(),
@@ -94,7 +95,15 @@ public class ChatPhotoService {
     }
 
     public List<ChatPhoto> findAllByChatId(@NonNull Long chatId) {
-        return cassandraChatPhotoRepository.findAllByChatId(chatId);
+        List<ChatPhoto> chatPhotos = new LinkedList<>();
+        for (ChatPhoto chatPhoto : cassandraChatPhotoRepository.findAllByChatId(chatId)) {
+            if (chatPhoto.getIsMain()) {
+                chatPhotos.addFirst(chatPhoto);
+            } else {
+                chatPhotos.add(chatPhoto);
+            }
+        }
+        return chatPhotos;
     }
 
     public ChatPhoto getByIdAndChatId(@NonNull UUID id, @NonNull Long chatId) {

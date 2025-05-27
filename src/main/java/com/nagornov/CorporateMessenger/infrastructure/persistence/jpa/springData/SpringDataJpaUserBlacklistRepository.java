@@ -1,6 +1,8 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData;
 
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.entity.JpaUserBlacklistEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +18,9 @@ public interface SpringDataJpaUserBlacklistRepository extends JpaRepository<JpaU
 
     @Query("SELECT ub FROM JpaUserBlacklistEntity ub WHERE ub.userId = :userId")
     List<JpaUserBlacklistEntity> findAllByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT ub FROM JpaUserBlacklistEntity ub WHERE ub.userId = :userId")
+    Page<JpaUserBlacklistEntity> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     @Query("SELECT ub FROM JpaUserBlacklistEntity ub WHERE ub.userId = :userId AND ub.blockedUserId = :blockedUserId")
     Optional<JpaUserBlacklistEntity> findByUserIdAndBlockedUserId(

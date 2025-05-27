@@ -7,6 +7,7 @@ import com.nagornov.CorporateMessenger.application.applicationService.AuthApplic
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class AuthController {
     ResponseEntity<JwtResponse> registration(
             HttpServletRequest servletReq,
             HttpServletResponse servletRes,
-            @RequestBody RegistrationRequest request,
+            @Valid @RequestBody RegistrationRequest request,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {

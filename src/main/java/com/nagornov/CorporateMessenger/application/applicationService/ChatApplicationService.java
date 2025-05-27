@@ -1,7 +1,6 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.model.chat.ChatWithChatPhotoResponse;
-import com.nagornov.CorporateMessenger.application.dto.model.chat.CreateGroupChatRequest;
+import com.nagornov.CorporateMessenger.application.dto.model.chat.*;
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatMemberStatus;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
@@ -86,22 +85,29 @@ public class ChatApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        Chat chat = chatService.createGroup(request.getTitle());
+        chatService.ensureNotExistsByUsername(request.getUsername());
 
-        if (request.getFile() != null) {
-            chatPhotoService.upload(chat.getId(), request.getFile());
-        }
+        Chat chat = chatService.createGroup(request.getTitle(), request.getUsername());
 
-        chatMemberService.create(chat.getId(), user.getId(), ChatMemberStatus.CREATOR);
+        ChatMember myChatMember = chatMemberService.create(chat.getId(), user.getId(), ChatMemberStatus.CREATOR);
 
         unreadMessageService.create(chat.getId(), user.getId());
 
         return new ChatWithChatPhotoResponse().forGroupChat(
                 chat,
+                myChatMember,
                 chatPhotoService.findMainByChatId(chat.getId()),
                 messageService.findLastByChatId(chat.getId()),
                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
         );
+    }
+
+
+    @Transactional(readOnly = true)
+    public Boolean existsGroupChatByUsername(@NonNull String username) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        userService.existsById(authInfo.getUserIdAsUUID());
+        return chatService.existsByUsername(username);
     }
 
 
@@ -135,6 +141,7 @@ public class ChatApplicationService {
         } else if (chat.isGroupChat()) {
             return new ChatWithChatPhotoResponse().forGroupChat(
                     chat,
+                    userChatMember,
                     chatPhotoService.findMainByChatId(chat.getId()),
                     messageService.findLastByChatId(chat.getId()),
                     unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
@@ -180,6 +187,7 @@ public class ChatApplicationService {
                 response.add(
                         new ChatWithChatPhotoResponse().forGroupChat(
                                 chat,
+                                chatMemberService.getByChatIdAndUserId(chat.getId(), user.getId()),
                                 chatPhotoService.findMainByChatId(chat.getId()),
                                 messageService.findLastByChatId(chat.getId()),
                                 unreadMessageService.getByChatIdAndUserId(chat.getId(), user.getId())
@@ -202,11 +210,73 @@ public class ChatApplicationService {
 
 
     @Transactional
+    public void changeGroupChatTitle(@NonNull Long chatId, @NonNull GroupChatTitleRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        ChatMember creatorChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        creatorChatMember.ensureIsCreator();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        chat.updateTitle(request.getTitle());
+        chatService.update(chat);
+    }
+
+
+    @Transactional
+    public void changeGroupChatUsername(@NonNull Long chatId, @NonNull GroupChatUsernameRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        chatService.ensureNotExistsByUsername(request.getUsername());
+
+        ChatMember creatorChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        creatorChatMember.ensureIsCreator();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        chat.updateUsername(request.getUsername());
+        chatService.update(chat);
+    }
+
+
+    @Transactional
+    public void changeGroupChatDescription(@NonNull Long chatId, @NonNull GroupChatDescriptionRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        ChatMember creatorChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        creatorChatMember.ensureIsCreator();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        chat.updateDescription(request.getDescription());
+        chatService.update(chat);
+    }
+
+
+    @Transactional
+    public void changeGroupChatSettings(@NonNull Long chatId, @NonNull GroupChatSettingsRequest request) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        ChatMember creatorChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
+        creatorChatMember.ensureIsCreator();
+
+        Chat chat = chatService.getById(chatId);
+        chat.ensureIsGroupChat();
+
+        chat.updateJoinByRequest(request.getJoinByRequest());
+        chat.updateHasHiddenMembers(request.getHasHiddenMembers());
+        chatService.update(chat);
+    }
+
+
+    @Transactional
     public void deleteChatByChatId(@NonNull Long chatId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User user = userService.getById(authInfo.getUserIdAsUUID());
 
-        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(chatId, user.getId());
+        ChatMember userChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
 
         Chat chat = chatService.getById(userChatMember.getChatId());
 
@@ -223,7 +293,7 @@ public class ChatApplicationService {
             chatMemberService.delete(userChatMember);
             chatMemberService.delete(partnerChatMember);
 
-            unreadMessageService.deleteByChatIdAndUserId(chat.getId(), user.getId());
+            unreadMessageService.deleteByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
             unreadMessageService.deleteByChatIdAndUserId(chat.getId(), partnerChatMember.getUserId());
 
 

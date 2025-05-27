@@ -1,9 +1,6 @@
 import axios from "@/api/axios";
 import authStore from "@/store/authStore";
 
-// @NotNull
-// private MultipartFile file;
-//
 export async function fetchUploadMyUserPhoto(formData) {
   try {
     const response = await axios.post(

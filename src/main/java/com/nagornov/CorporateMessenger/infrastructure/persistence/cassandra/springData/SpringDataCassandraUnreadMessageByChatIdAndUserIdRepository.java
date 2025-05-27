@@ -19,7 +19,7 @@ public interface SpringDataCassandraUnreadMessageByChatIdAndUserIdRepository
     Optional<CassandraUnreadMessageByChatIdAndUserIdEntity> findByChatIdAndUserId(@Param("chatId") Long chatId, @Param("userId") UUID userId);
 
     @Query("DELETE FROM unread_messages_by_chat_id_and_user_id WHERE chat_id = :chatId AND user_id = :userId")
-    void deleteByChatIdAndUserId(@Param("chatId") Long chatId, @Param("") UUID userId);
+    void deleteByChatIdAndUserId(@Param("chatId") Long chatId, @Param("userId") UUID userId);
 
     @Query("DELETE FROM unread_messages_by_chat_id_and_user_id WHERE chat_id = :chatId AND user_id IN :userIds")
     void deleteAllByChatIdAndUserIds(@Param("chatId") Long chatId, @Param("userIds") List<UUID> userIds);

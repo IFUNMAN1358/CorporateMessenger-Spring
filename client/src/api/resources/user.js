@@ -1,17 +1,34 @@
 import axios from "@/api/axios";
 import authStore from "@/store/authStore";
 
+export async function fetchChangeUserFirstNameAndLastName(firstName, lastName) {
+    try {
+        const response = await axios.patch(
+            `/api/user/firstName-and-lastName`,
+            {
+                "firstName": firstName,
+                "lastName": lastName
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Change user firstName and lastName failed:', error);
+        throw error;
+    }
+}
 
-// @NotNull(message = "Новое имя пользователя не может быть null")
-// @NotBlank(message = "Новое имя пользователя не может быть пустым")
-// @Size(message = "Новое имя пользователя должно содержать от 5 до 32 символов", min = 5, max = 32)
-// private String newUsername;
-//
-export async function fetchChangeUserUsername(data) {
+export async function fetchChangeUserUsername(username) {
     try {
         const response = await axios.patch(
             `/api/user/username`,
-            data,
+            {
+                "username": username
+            },
             {
                 headers: {
                     'Authorization': `Bearer ${authStore.state.accessToken}`
@@ -25,25 +42,15 @@ export async function fetchChangeUserUsername(data) {
     }
 }
 
-// @NotNull(message = "Текущий пароль не может быть null")
-// @NotBlank(message = "Текущий пароль не может быть пустым")
-// private String currentPassword;
-//
-// @NotNull(message = "Новый пароль не может быть null")
-// @NotBlank(message = "Новый пароль не может быть пустым")
-// @Size(message = "Новый пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
-// private String newPassword;
-//
-// @NotNull(message = "Повторный пароль не может быть null")
-// @NotBlank(message = "Повторный пароль не может быть пустым")
-// @Size(message = "Повторный пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
-// private String confirmNewPassword;
-//
-export async function fetchChangeUserPassword(data) {
+export async function fetchChangeUserPassword(password, newPassword, confirmPassword) {
     try {
         const response = await axios.patch(
             `/api/user/password`,
-            data,
+            {
+                "password": password,
+                "newPassword": newPassword,
+                "confirmPassword": confirmPassword
+            },
             {
                 headers: {
                     'Authorization': `Bearer ${authStore.state.accessToken}`
@@ -53,6 +60,26 @@ export async function fetchChangeUserPassword(data) {
         return response.data;
     } catch (error) {
         console.error('Change user password failed:', error);
+        throw error;
+    }
+}
+
+export async function fetchChangeUserBio(bio) {
+    try {
+        const response = await axios.patch(
+            `/api/user/bio`,
+            {
+                "bio": bio
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Change user bio failed:', error);
         throw error;
     }
 }
@@ -80,6 +107,24 @@ export async function fetchSearchUsersByUsername(username, page, size) {
 }
 
 
+export async function fetchExistsByUsername(username) {
+    try {
+        const response = await axios.get(
+            `/api/user/exists-username`,
+            {
+                params: {
+                    username
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Fetch exists user by username failed:', error);
+        throw error;
+    }
+}
+
+
 export async function fetchGetMyUserData() {
     try {
         const response = await axios.get(
@@ -92,7 +137,7 @@ export async function fetchGetMyUserData() {
         );
         return response.data;
     } catch (error) {
-        console.error('Get your user data:', error);
+        console.error('Get my user data failed:', error);
         throw error;
     }
 }
@@ -114,14 +159,32 @@ export async function fetchGetUserByUserId(userId) {
     }
 }
 
-// @NotNull(message = "Идентификатор пользователя не может быть null")
-// private UUID userId;
-//
-export async function fetchBlockUserByUserId(data) {
+export async function fetchFindAllMyBlockedUsers(page, size) {
+    try {
+        const response = await axios.get(
+            `/api/user/blocked`,
+            {
+                params: {
+                    page: page,
+                    size: size
+                },
+                headers: {
+                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Find all my blocked users failed:', error);
+        throw error;
+    }
+}
+
+export async function fetchBlockUserByUserId(userId) {
     try {
         const response = await axios.patch(
-            `/api/user/block`,
-            data,
+            `/api/user/${userId}/block`,
+            null,
             {
                 headers: {
                     'Authorization': `Bearer ${authStore.state.accessToken}`
@@ -135,14 +198,11 @@ export async function fetchBlockUserByUserId(data) {
     }
 }
 
-// @NotNull(message = "Идентификатор пользователя не может быть null")
-// private UUID userId;
-//
-export async function fetchUnblockUserByUserId(data) {
+export async function fetchUnblockUserByUserId(userId) {
     try {
         const response = await axios.patch(
-            `/api/user/unblock`,
-            data,
+            `/api/user/${userId}/unblock`,
+            null,
             {
                 headers: {
                     'Authorization': `Bearer ${authStore.state.accessToken}`

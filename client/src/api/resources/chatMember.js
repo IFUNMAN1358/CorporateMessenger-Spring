@@ -37,9 +37,6 @@ export async function fetchGetAvailableUsersToAdding(chatId, page, size) {
   }
 }
 
-// @NotEmpty
-// private List<UUID> userIds;
-//
 export async function fetchAddMembersToGroupChat(chatId, userIds) {
   try {
     const response = await axios.post(
@@ -59,9 +56,6 @@ export async function fetchAddMembersToGroupChat(chatId, userIds) {
   }
 }
 
-// @NotEmpty
-// private List<UUID> userIds;
-//
 export async function fetchDeleteMembersFromGroupChat(chatId, userIds) {
   try {
     const response = await axios.delete(`/api/chat/group/${chatId}/members`, {

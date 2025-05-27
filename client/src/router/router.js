@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import LoginComponent from "@/pages/auth/LoginComponent.vue";
-import RegisterComponent from "@/pages/auth/RegisterComponent.vue";
 import authStore from "@/store/authStore";
-import CreateGroupChatComponent from "@/pages/groupChat/CreateGroupChatComponent.vue";
-import Dashboard from "@/pages/dashboard/DashboardComponent.vue";
-import ChatComponent from "@/pages/dashboard/ChatComponent.vue";
-import MainGroupChatComponent from "@/pages/groupChat/MainGroupChatComponent.vue";
-import ProfileComponent from "@/pages/user/ProfileComponent.vue";
+import LoginComponent from "@/pages/LoginComponent.vue";
+import RegisterComponent from "@/pages/RegisterComponent.vue";
+import ProfileComponent from "@/pages/ProfileComponent.vue";
+import DashboardComponent from "@/pages/DashboardComponent.vue";
+import ChatComponent from "@/pages/ChatComponent.vue";
+import MainGroupChatComponent from "@/pages/GroupChatComponent.vue";
+import ProfileSettingsComponent from "@/pages/ProfileSettingsComponent.vue";
+import EmployeeComponent from "@/pages/EmployeeComponent.vue";
 
 const routes = [
 
@@ -14,12 +15,13 @@ const routes = [
     {path: '/register', name: "Register", component: RegisterComponent},
 
     {path: '/profile/:id', name: "Profile", component: ProfileComponent, meta: { requiresRole: 'ROLE_USER' }},
+    {path: '/profile/settings', name: "ProfileSettings", component: ProfileSettingsComponent, meta: { requiresRole: 'ROLE_USER' }},
+    {path: '/profile/:id/employee', name: "Employee", component: EmployeeComponent, meta: { requiresRole: 'ROLE_USER' }},
 
-    {path: '/dashboard', name: "Dashboard", component: Dashboard, meta: { requiresRole: 'ROLE_USER' }},
+    {path: '/dashboard', name: "Dashboard", component: DashboardComponent, meta: { requiresRole: 'ROLE_USER' }},
     {path: '/chat/:id', name: "Chat", component: ChatComponent, meta: { requiresRole: 'ROLE_USER' }},
 
-    {path: '/chat/group/create', name: "CreateGroupChat", component: CreateGroupChatComponent, meta: { requiresRole: 'ROLE_USER' }},
-    {path: '/chat/group/view/:id', name: "MainGroupChat", component: MainGroupChatComponent, meta: { requiresRole: 'ROLE_USER' }},
+    {path: '/chat/group/view/:id', name: "GroupChat", component: MainGroupChatComponent, meta: { requiresRole: 'ROLE_USER' }},
 
 ];
 

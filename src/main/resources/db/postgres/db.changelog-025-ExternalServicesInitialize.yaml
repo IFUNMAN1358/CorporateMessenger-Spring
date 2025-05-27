@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-ExternalServicesInitialize
+      author: IFUNMAN
+      changes:
+        - insert:
+            tableName: external_services
+            columns:
+              - column:
+                  name: id
+                  value: '2020d0db-3f6b-4908-9d56-9f599dfc142d'
+              - column:
+                  name: name
+                  value: 'cmvueclient'
+              - column:
+                  name: api_key
+                  value: null
+              - column:
+                  name: requires_api_key
+                  value: false
+        - insert:
+            tableName: external_services
+            columns:
+              - column:
+                  name: id
+                  value: 'a1308e91-c159-4147-bfbd-014e487c611f'
+              - column:
+                  name: name
+                  value: 'tgadminbot'
+              - column:
+                  name: api_key
+                  value: '1111222233334444'
+              - column:
+                  name: requires_api_key
+                  value: true

@@ -44,3 +44,17 @@ databaseChangeLog:
       file: db/postgres/db.changelog-020-CreateUserBlacklistTable.yaml
   - include:
       file: db/postgres/db.changelog-021-CreateExternalServiceTable.yaml
+  - include:
+      file: db/postgres/db.changelog-022-UpdateUserPhotoTable.yaml
+  - include:
+      file: db/postgres/db.changelog-023-UpdateEmployeePhotoTable.yaml
+  - include:
+      file: db/postgres/db.changelog-024-UserAdminInitialize.yaml
+  - include:
+      file: db/postgres/db.changelog-025-ExternalServicesInitialize.yaml
+  - include:
+      file: db/postgres/db.changelog-026-UserAdminSettingsAndEmployeeInitialize.yaml
+  - include:
+      file: db/postgres/db.changelog-027-UserTestInitialize.yaml
+  - include:
+      file: db/postgres/db.changelog-028-RegKeysInitialize.yaml

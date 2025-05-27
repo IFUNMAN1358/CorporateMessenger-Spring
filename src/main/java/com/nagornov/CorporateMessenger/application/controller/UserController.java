@@ -3,6 +3,7 @@ package com.nagornov.CorporateMessenger.application.controller;
 import com.nagornov.CorporateMessenger.application.dto.model.user.*;
 import com.nagornov.CorporateMessenger.application.applicationService.UserApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Validated
@@ -22,12 +24,29 @@ public class UserController {
 
 
     @PatchMapping(
+            path = "/api/user/firstName-and-lastName",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<String> changeUserFirstNameAndLastName(
+            @RequestBody UserFirstNameAndLastNameRequest request,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("UserFirstNameAndLastNameRequest validation error", bindingResult);
+        }
+        userApplicationService.changeUserFirstNameAndLastName(request);
+        return ResponseEntity.status(204).body("FirstName and lastName updated");
+    }
+
+
+    @PatchMapping(
             path = "/api/user/username",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> changeUserUsername(
-            @RequestBody UserUsernameRequest request,
+            @Valid @RequestBody UserUsernameRequest request,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
@@ -56,8 +75,24 @@ public class UserController {
 
 
     @PatchMapping(
-            path = "/api/user/main-email",
+            path = "/api/user/bio",
             consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<String> changeUserBio(
+            @RequestBody UserBioRequest request,
+            BindingResult bindingResult
+    ) {
+        if (bindingResult.hasErrors()) {
+            throw new BindingErrorException("UserBioRequest validation error", bindingResult);
+        }
+        userApplicationService.changeUserBio(request);
+        return ResponseEntity.status(204).body("Bio updated");
+    }
+
+
+    @PatchMapping(
+            path = "/api/user/main-email",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> changeUserMainEmail() {
@@ -68,7 +103,6 @@ public class UserController {
 
     @PatchMapping(
             path = "/api/user/phone",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> changeUserPhone() {
@@ -87,6 +121,18 @@ public class UserController {
             @RequestParam("size") int size
     ) {
         Page<UserWithUserPhotoResponse> response = userApplicationService.searchUsersByUsername(username, page, size);
+        return ResponseEntity.status(200).body(response);
+    }
+
+
+    @GetMapping(
+            path = "/api/user/exists-username",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Boolean> existsUserByUsername(
+            @RequestParam("username") String username
+    ) {
+        Boolean response = userApplicationService.existsByUsername(username);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -113,36 +159,39 @@ public class UserController {
     }
 
 
+    @GetMapping(
+            path = "/api/user/blocked",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<List<UserWithUserPhotoResponse>> findAllMyBlockedUsers(
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        List<UserWithUserPhotoResponse> response = userApplicationService.findAllMyBlockedUsers(page, size);
+        return ResponseEntity.status(200).body(response);
+    }
+
+
     @PatchMapping(
-            path = "/api/user/block",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            path = "/api/user/{userId}/block",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> blockUserByUserId(
-            @RequestBody UserIdRequest request,
-            BindingResult bindingResult
+            @PathVariable UUID userId
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
-        }
-        userApplicationService.blockUserByUserId(request);
+        userApplicationService.blockUserByUserId(userId);
         return ResponseEntity.status(200).body("User blocked");
     }
 
 
     @PatchMapping(
-            path = "/api/user/unblock",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            path = "/api/user/{userId}/unblock",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> unblockUserByUserId(
-            @RequestBody UserIdRequest request,
-            BindingResult bindingResult
+            @PathVariable UUID userId
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new BindingErrorException("UserIdRequest validation error", bindingResult);
-        }
-        userApplicationService.unblockUserByUserId(request);
+        userApplicationService.unblockUserByUserId(userId);
         return ResponseEntity.status(200).body("User unlocked");
     }
 

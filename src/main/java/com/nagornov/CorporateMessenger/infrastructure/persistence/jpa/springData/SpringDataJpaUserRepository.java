@@ -57,10 +57,15 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
             "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
             "LEFT JOIN JpaUserPhotoEntity up ON u.id = up.userId AND up.isMain = true " +
             "WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%')) " +
+            "AND u.id <> :myUserId " +
             "AND u.isDeleted = false " +
             "AND us.isSearchable = true"
     )
-    Page<UserWithUserPhotoDTOEntity> searchWithMainUserPhotoByUsername(@Param("username") String username, Pageable pageable);
+    Page<UserWithUserPhotoDTOEntity> searchWithMainUserPhotoByUsername(
+            @Param("myUserId") UUID myUserId,
+            @Param("username") String username,
+            Pageable pageable
+    );
 
     @Query(
             "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserPhotoDTOEntity(u, up) " +
@@ -97,4 +102,19 @@ public interface SpringDataJpaUserRepository extends JpaRepository<JpaUserEntity
             "WHERE u.id = :id AND u.isDeleted = false AND up.id = :photoId"
     )
     Optional<UserWithUserSettingsAndUserPhotoDTOEntity> findWithUserSettingsAndUserPhotoByIdAndPhotoId(@Param("id") UUID id, @Param("photoId") UUID photoId);
+
+    @Query(
+            "SELECT new com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.dto.UserWithUserSettingsAndPartnerInfoDTOEntity(u, us, ub1, ub2, c1, c2) " +
+            "FROM JpaUserEntity u " +
+            "JOIN JpaUserSettingsEntity us ON u.id = us.userId " +
+            "LEFT JOIN JpaUserBlacklistEntity ub1 ON ub1.userId = :yourId AND ub1.blockedUserId = u.id " +
+            "LEFT JOIN JpaUserBlacklistEntity ub2 ON ub2.userId = u.id AND ub2.blockedUserId = :yourId " +
+            "LEFT JOIN JpaContactEntity c1 ON c1.userId = :targetId AND c1.contactId = :yourId " +
+            "LEFT JOIN JpaContactEntity c2 ON c2.userId = :yourId AND c2.contactId = :targetId " +
+            "WHERE u.id = :targetId AND u.isDeleted = false"
+    )
+    Optional<UserWithUserSettingsAndPartnerInfoDTOEntity> findWithUserSettingsAndPartnerInfoByIds(
+            @Param("targetId") UUID targetId,
+            @Param("yourId") UUID yourId
+    );
 }

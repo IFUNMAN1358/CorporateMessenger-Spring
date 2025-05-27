@@ -4,6 +4,9 @@ import com.nagornov.CorporateMessenger.domain.model.user.UserBlacklist;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.mapper.JpaUserBlacklistMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.springData.SpringDataJpaUserBlacklistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -42,6 +45,12 @@ public class JpaUserBlacklistRepository {
     public List<UserBlacklist> findAllByUserId(UUID userId) {
         return springDataJpaUserBlacklistRepository.findAllByUserId(userId)
                 .stream().map(jpaUserBlacklistMapper::toDomain).toList();
+    }
+
+    public Page<UserBlacklist> findAllByUserId(UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return springDataJpaUserBlacklistRepository.findAllByUserId(userId, pageable)
+                .map(jpaUserBlacklistMapper::toDomain);
     }
 
     public Optional<UserBlacklist> findByUserIdAndBlockedUserId(UUID userId, UUID blockedUserId) {

@@ -1,0 +1,16 @@
+databaseChangeLog:
+    - changeSet:
+        id: 023-UpdateEmployeePhotoTable
+        author: IFUNMAN
+        changes:
+          - dropColumn:
+              tableName: employee_photos
+              columnName: mime_type
+          - addColumn:
+                tableName: employee_photos
+                columns:
+                    - column:
+                        name: mime_type
+                        type: varchar(32)
+                        constraints:
+                          nullable: false

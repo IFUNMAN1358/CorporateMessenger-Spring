@@ -5,6 +5,7 @@ import com.nagornov.CorporateMessenger.domain.enums.minio.MinioBucket;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.model.user.EmployeePhoto;
 import com.nagornov.CorporateMessenger.domain.utils.ContentTypeUtils;
+import com.nagornov.CorporateMessenger.domain.utils.InputStreamUtils;
 import com.nagornov.CorporateMessenger.domain.utils.MinioUtils;
 import com.nagornov.CorporateMessenger.domain.utils.ScalrUtils;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaEmployeePhotoRepository;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.time.Instant;
@@ -34,15 +34,17 @@ public class EmployeePhotoService {
     @Transactional
     public EmployeePhoto upload(@NonNull UUID employeeId, @NonNull MultipartFile file) {
         try {
-            ContentTypeUtils.validateAsImageFromContentType(file.getOriginalFilename());
+            ContentTypeUtils.validateAsImageFromContentType(file.getContentType());
 
-            BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            BufferedImage originalImage = InputStreamUtils.inputStreamToBufferedImage(file);
             String originalFilePath = MinioUtils.generateFilePath(file.getOriginalFilename());
-            minioRepository.upload(MinioBucket.EMPLOYEE_PHOTOS, originalFilePath, originalImage, "jpg");
+            InputStream originalIS = InputStreamUtils.bufferedImageToInputStream(originalImage, file.getContentType());
+            minioRepository.upload(MinioBucket.EMPLOYEE_PHOTOS, originalFilePath, originalIS, "jpg");
 
             BufferedImage smallImage = ScalrUtils.resizeImage(originalImage, ImageSize.SIZE_128);
             String smallFilePath = MinioUtils.generateFilePath(file.getOriginalFilename());
-            minioRepository.upload(MinioBucket.EMPLOYEE_PHOTOS, smallFilePath, smallImage, "jpg");
+            InputStream smallIS = InputStreamUtils.bufferedImageToInputStream(smallImage, file.getContentType());
+            minioRepository.upload(MinioBucket.EMPLOYEE_PHOTOS, smallFilePath, smallIS, "jpg");
 
             EmployeePhoto employeePhoto = new EmployeePhoto(
                 UUID.randomUUID(),

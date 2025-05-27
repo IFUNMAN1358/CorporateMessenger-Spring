@@ -1,5 +1,6 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserWithUserPhotoResponse;
 import com.nagornov.CorporateMessenger.domain.broker.producer.NotificationProducer;
 import com.nagornov.CorporateMessenger.domain.dto.ContactPairDTO;
 import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
@@ -13,6 +14,7 @@ import com.nagornov.CorporateMessenger.domain.model.user.*;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
 import com.nagornov.CorporateMessenger.domain.service.user.ContactService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserBlacklistService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserPhotoService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class ContactApplicationService {
     private static final Duration NOTIFICATION_COOLDOWN = Duration.ofHours(24);
 
     private final UserService userService;
+    private final UserPhotoService userPhotoService;
     private final JwtService jwtService;
     private final ContactService contactService;
     private final UserBlacklistService userBlacklistService;
@@ -49,7 +52,7 @@ public class ContactApplicationService {
         User recipientUser = recipientDto.getUser();
         UserSettings recipientUserSettings = recipientDto.getUserSettings();
 
-        userBlacklistService.validateAnyBetweenUserIds(initiatorUser.getId(), recipientUser.getId());
+        userBlacklistService.ensureAnyMatchBetweenUserIds(initiatorUser.getId(), recipientUser.getId());
 
         Optional<ContactPairDTO> contactPairDto = contactService.findContactPairByUserIds(initiatorUser.getId(), recipientUser.getId());
 
@@ -120,15 +123,24 @@ public class ContactApplicationService {
 
 
     @Transactional(readOnly = true)
-    public List<Contact> getMyContacts() {
+    public List<UserWithUserPhotoResponse> findAllMyContactUsers(int page, int size) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User authUser = userService.getById(authInfo.getUserIdAsUUID());
-        return contactService.findAllByUserId(authUser.getId());
+
+        List<UUID> myContactUserIds = contactService.findAllByUserId(authInfo.getUserIdAsUUID(), page, size)
+                .map(Contact::getContactId).toList();
+
+        return userService.findAllWithMainUserPhotoByIds(myContactUserIds)
+                .stream().map(
+                        dto -> new UserWithUserPhotoResponse(
+                                dto.getUser(),
+                                dto.getUserPhoto()
+                        )
+                ).toList();
     }
 
 
     @Transactional(readOnly = true)
-    public List<Contact> getContactsByUserId(@NonNull UUID userId) {
+    public List<UserWithUserPhotoResponse> findAllContactUsersByUserId(@NonNull UUID userId, int page, int size) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
@@ -145,13 +157,27 @@ public class ContactApplicationService {
         boolean contactIsPresentAndConfirmed = optTargetUserContact.isPresent() && optTargetUserContact.get().isConfirmed();
 
         if (targetUserSettings.isContactsVisibility(ContactsVisibility.EVERYONE)) {
-            return contactService.findAllByUserId(targetUser.getId());
+            List<UUID> targetContactUserIds = contactService.findAllByUserId(targetUser.getId(), page, size)
+                    .stream().map(Contact::getContactId).toList();
+            return userService.findAllWithMainUserPhotoByIds(targetContactUserIds).stream().map(
+                    dto -> new UserWithUserPhotoResponse(
+                            dto.getUser(),
+                            dto.getUserPhoto()
+                    )
+            ).toList();
         }
         if (targetUserSettings.isContactsVisibility(ContactsVisibility.CONTACTS) && contactIsPresentAndConfirmed) {
-            return contactService.findAllByUserId(targetUser.getId());
+            List<UUID> targetContactUserIds = contactService.findAllByUserId(targetUser.getId(), page, size)
+                    .stream().map(Contact::getContactId).toList();
+            return userService.findAllWithMainUserPhotoByIds(targetContactUserIds).stream().map(
+                    dto -> new UserWithUserPhotoResponse(
+                            dto.getUser(),
+                            dto.getUserPhoto()
+                    )
+            ).toList();
         }
         if (targetUserSettings.isContactsVisibility(ContactsVisibility.ONLY_ME) && contactIsPresentAndConfirmed) {
-            return List.of(optTargetUserContact.get());
+            return List.of(new UserWithUserPhotoResponse(targetUser, userPhotoService.findMainByUserId(targetUser.getId())));
         }
         return List.of();
     }

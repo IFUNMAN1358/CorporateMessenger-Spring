@@ -6,10 +6,12 @@ import com.nagornov.CorporateMessenger.domain.model.message.ReadMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 import java.util.List;
 
 @Data
+@ToString(exclude = {"message", "readMessages", "messageFiles"})
 public class MessageResponse {
 
     private Message message;

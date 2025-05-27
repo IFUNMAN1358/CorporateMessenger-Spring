@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.net.URI;
 
@@ -35,12 +36,27 @@ public class MinioConfiguration {
 
     @Bean
     public S3Client s3Client() {
+        String endpoint = String.format("%s:%d", minioProperties.getHost(), minioProperties.getPort());
+        if (minioProperties.getSecure()) {
+            endpoint = "https://" + endpoint;
+        } else {
+            endpoint = "http://" + endpoint;
+        }
+
         return S3Client.builder()
-                .endpointOverride(URI.create(minioProperties.getUri()))
+                .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(minioProperties.getAccessKey(), minioProperties.getSecretKey())
+                        AwsBasicCredentials.create(
+                                minioProperties.getAccessKey(),
+                                minioProperties.getSecretKey()
+                        )
                 ))
                 .region(Region.US_EAST_1)
+                .serviceConfiguration(
+                        S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build()
+                )
                 .build();
     }
 

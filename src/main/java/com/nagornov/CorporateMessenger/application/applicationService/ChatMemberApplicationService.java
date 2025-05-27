@@ -20,9 +20,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -76,15 +77,14 @@ public class ChatMemberApplicationService {
         Page<Contact> authContacts = contactService.findAllByUserId(authInfo.getUserIdAsUUID(), page, size); // 20
         List<ChatMember> chatMembers = chatMemberService.findAllByChatId(chat.getId(), page, size); // 20
 
-        List<UUID> availableContactsUserIdsToAdding = new ArrayList<>();
-        for (Contact contact : authContacts) {
-            for (ChatMember member : chatMembers) {
-                if (contact.getUserId().equals(member.getUserId())) {
-                    break;
-                }
-                availableContactsUserIdsToAdding.add(contact.getUserId());
-            }
-        }
+        Set<UUID> chatMemberIds = chatMembers.stream()
+        .map(ChatMember::getUserId)
+        .collect(Collectors.toSet());
+
+        List<UUID> availableContactsUserIdsToAdding = authContacts.getContent().stream()
+        .map(Contact::getContactId)
+        .filter(contactId -> !chatMemberIds.contains(contactId))
+        .collect(Collectors.toList());
 
         return userService.findAllWithMainUserPhotoByIds(availableContactsUserIdsToAdding)
                 .stream().map(dto -> new UserWithUserPhotoResponse(

@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.applicationService.ContactApplicationService;
+import com.nagornov.CorporateMessenger.application.dto.model.user.UserWithUserPhotoResponse;
 import com.nagornov.CorporateMessenger.domain.model.user.Contact;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,7 +23,6 @@ public class ContactController {
 
     @PostMapping(
             path = "/api/user/{userId}/contact",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Contact> addContactByUserId(
@@ -35,7 +35,6 @@ public class ContactController {
 
     @GetMapping(
             path = "/api/user/{userId}/contact",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Optional<Contact>> findContactByUserId(
@@ -50,8 +49,11 @@ public class ContactController {
             path = "/api/user/contacts",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<Contact>> getMyContacts() {
-        List<Contact> response = contactApplicationService.getMyContacts();
+    ResponseEntity<List<UserWithUserPhotoResponse>> findAllMyContactUsers(
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        List<UserWithUserPhotoResponse> response = contactApplicationService.findAllMyContactUsers(page, size);
         return ResponseEntity.status(200).body(response);
     }
 
@@ -60,17 +62,18 @@ public class ContactController {
             path = "/api/user/{userId}/contacts",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<List<Contact>> getContactsByUserId(
-            @PathVariable UUID userId
+    ResponseEntity<List<UserWithUserPhotoResponse>> findAllContactUsersByUserId(
+            @PathVariable UUID userId,
+            @RequestParam int page,
+            @RequestParam int size
     ) {
-        List<Contact> response = contactApplicationService.getContactsByUserId(userId);
+        List<UserWithUserPhotoResponse> response = contactApplicationService.findAllContactUsersByUserId(userId, page, size);
         return ResponseEntity.status(200).body(response);
     }
 
 
     @PatchMapping(
             path = "/api/user/{userId}/contact/confirm",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> confirmContactByUserId(
@@ -83,7 +86,6 @@ public class ContactController {
 
     @PatchMapping(
             path = "/api/user/{userId}/contact/reject",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> rejectContactByUserId(
@@ -96,7 +98,6 @@ public class ContactController {
 
     @DeleteMapping(
             path = "/api/user/{userId}/contact",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteContactByUserId(

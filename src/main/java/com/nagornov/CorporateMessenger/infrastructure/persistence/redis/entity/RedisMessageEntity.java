@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -21,5 +22,18 @@ public class RedisMessageEntity implements Serializable {
     private Boolean isChanged;
     private Boolean isRead;
     private Instant createdAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RedisMessageEntity that = (RedisMessageEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
 }

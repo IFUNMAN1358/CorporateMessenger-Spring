@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: 024-UserAdminInitialize
+      author: IFUNMAN
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  value: '2e3049a1-320c-4ddb-873a-5217cae2e1cd'
+              - column:
+                  name: username
+                  value: 'IFUNMAN'
+              - column:
+                  name: password
+                  value: '$2a$10$rZrC2Q.yeu2SRrHgZ4kU4OoXl12vWNP.glCFRxlasOql6BqeFUuW6'
+              - column:
+                  name: phone
+                  value: null
+              - column:
+                  name: main_email
+                  value: null
+              - column:
+                  name: first_name
+                  value: 'Вадим'
+              - column:
+                  name: last_name
+                  value: null
+              - column:
+                  name: bio
+                  value: 'Описание'
+              - column:
+                  name: is_deleted
+                  value: false
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: id
+                  value: '67b899c8-691f-42aa-ac00-95ecb2aa7dfe'
+              - column:
+                  name: user_id
+                  value: '2e3049a1-320c-4ddb-873a-5217cae2e1cd'
+              - column:
+                  name: role_id
+                  value: '0e50c65d-f5a9-4c77-8fb5-df61b655f0ea'
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: id
+                  value: '0aefde64-a868-4c4d-9028-30ec155ea3f0'
+              - column:
+                  name: user_id
+                  value: '2e3049a1-320c-4ddb-873a-5217cae2e1cd'
+              - column:
+                  name: role_id
+                  value: '8b7c3561-9f46-4d54-9f59-7e1d025ae418'

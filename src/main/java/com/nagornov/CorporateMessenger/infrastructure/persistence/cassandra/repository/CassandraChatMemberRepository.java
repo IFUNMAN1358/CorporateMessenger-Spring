@@ -1,6 +1,7 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.repository;
 
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraChatMemberByChatIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.entity.CassandraChatMemberByUserIdEntity;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.mapper.CassandraChatMemberMapper;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra.springData.SpringDataCassandraChatMemberByChatIdRepository;
@@ -83,6 +84,6 @@ public class CassandraChatMemberRepository {
     }
 
     public boolean existsByChatIdAndUserId(Long chatId, UUID userId) {
-        return springDataCassandraChatMemberByChatIdRepository.existsByChatIdAndUserId(chatId, userId);
+        return springDataCassandraChatMemberByChatIdRepository.findByChatIdAndUserId(chatId, userId).isPresent();
     }
 }

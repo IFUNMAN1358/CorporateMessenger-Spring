@@ -5,6 +5,7 @@ import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictExceptio
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.user.UserBlacklist;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.jpa.repository.JpaUserBlacklistRepository;
+import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository.RedisUserBlacklistRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,7 @@ import java.util.UUID;
 public class UserBlacklistService {
 
     private final JpaUserBlacklistRepository jpaUserBlacklistRepository;
-
-    //
-    // JPA
-    //
+    private final RedisUserBlacklistRepository redisUserBlacklistRepository;
 
     @Transactional
     public UserBlacklist create(@NonNull UUID userId, @NonNull UUID blockedUserId) {
@@ -33,22 +31,23 @@ public class UserBlacklistService {
                 blockedUserId,
                 Instant.now()
         );
+        redisUserBlacklistRepository.deleteNegativeKeyFromHash(userId, blockedUserId);
+        redisUserBlacklistRepository.saveUserBlacklistToSet(userBlacklist);
         return jpaUserBlacklistRepository.save(userBlacklist);
     }
 
     @Transactional
     public void delete(@NonNull UserBlacklist userBlacklist) {
+        redisUserBlacklistRepository.saveNegativeKeyToHash(userBlacklist.getUserId(), userBlacklist.getBlockedUserId());
+        redisUserBlacklistRepository.deleteUserBlacklistFromSet(userBlacklist);
         jpaUserBlacklistRepository.delete(userBlacklist);
-    }
-
-    @Transactional
-    public void deleteById(@NonNull UUID id) {
-        jpaUserBlacklistRepository.deleteById(id);
     }
 
     @Transactional
     public void deleteByUserIdAndBlockedUserId(@NonNull UUID userId, @NonNull UUID blockedUserId) {
         try {
+            redisUserBlacklistRepository.saveNegativeKeyToHashByUserIdAndBlockedUserId(userId, blockedUserId);
+            redisUserBlacklistRepository.deleteUserBlacklistFromSetByUserIdAndBlockedUserId(userId, blockedUserId);
             jpaUserBlacklistRepository.deleteByUserIdAndBlockedUserId(userId, blockedUserId);
         } catch (Exception e) {
             throw new ResourceNotFoundException(
@@ -58,41 +57,54 @@ public class UserBlacklistService {
         }
     }
 
-    public List<UserBlacklist> findAllByUserId(@NonNull UUID userId) {
-        return jpaUserBlacklistRepository.findAllByUserId(userId);
-    }
-
-    public Optional<UserBlacklist> findByUserIdAndBlockedUserId(@NonNull UUID userId, @NonNull UUID blockedUserId) {
-        return jpaUserBlacklistRepository.findByUserIdAndBlockedUserId(userId, blockedUserId);
+    public List<UserBlacklist> findAllByUserId(@NonNull UUID userId, int page, int size) {
+        try {
+            List<UserBlacklist> userBlacklists = redisUserBlacklistRepository.findAllUserBlacklistsInSetByUserId(userId, page, size);
+            if (userBlacklists.isEmpty()) {
+                userBlacklists = jpaUserBlacklistRepository.findAllByUserId(userId, page, size).toList();
+                redisUserBlacklistRepository.deleteAllNegativeKeysFromHash(userId, userBlacklists);
+                redisUserBlacklistRepository.saveAllUserBlacklistsToSet(userId, userBlacklists);
+            }
+            return userBlacklists;
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 
     public boolean existsByUserIdAndBlockedUserId(@NonNull UUID userId, @NonNull UUID blockedUserId) {
-        return jpaUserBlacklistRepository.existsByUserIdAndBlockedUserId(userId, blockedUserId);
+        boolean isNegativeKeyExists =
+                redisUserBlacklistRepository.existsNegativeKeyInHashByUserIdAndBlockedUserId(userId, blockedUserId);
+        if (isNegativeKeyExists) {
+            return false;
+        }
+
+        boolean isRedisUBExists = redisUserBlacklistRepository.existsUserBlacklistInSetByUserIdAndBlockedUserId(userId, blockedUserId);
+
+        if (!isRedisUBExists) {
+            Optional<UserBlacklist> optPostgresUB = jpaUserBlacklistRepository.findByUserIdAndBlockedUserId(userId, blockedUserId);
+
+            if (optPostgresUB.isPresent()) {
+                redisUserBlacklistRepository.saveUserBlacklistToSet(optPostgresUB.get());
+                return true;
+            }
+            redisUserBlacklistRepository.saveNegativeKeyToHash(userId, blockedUserId);
+            return false;
+        }
+        return true;
     }
 
-    public boolean existsAnyBetweenUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
-        return jpaUserBlacklistRepository.existsAnyBetweenUserIds(userId1, userId2);
-    }
-
-    public boolean existsAllBetweenUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
-        return jpaUserBlacklistRepository.existsAllBetweenUserIds(userId1, userId2);
-    }
-
-    public UserBlacklist getByUserIdAndBlockedUserId(@NonNull UUID userId, @NonNull UUID blockedUserId) {
-        return jpaUserBlacklistRepository.findByUserIdAndBlockedUserId(userId, blockedUserId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "UserBlacklist[userId=%s, blockedUserId=%s] not found".formatted(userId, blockedUserId)
-                ));
-    }
-
-    public void validateAnyBetweenUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
-        if (jpaUserBlacklistRepository.existsAnyBetweenUserIds(userId1, userId2)) {
+    public void ensureAnyMatchBetweenUserIds(@NonNull UUID userId1, @NonNull UUID userId2) {
+        if (
+                existsByUserIdAndBlockedUserId(userId1, userId2)
+                ||
+                existsByUserIdAndBlockedUserId(userId2, userId1)
+        ) {
             throw new ResourceConflictException("This user has blocked you or you have blocked this user");
         }
     }
 
     public void ensureUserNotBlocked(@NonNull UUID userId, @NonNull UUID blockedUserId) {
-        if (jpaUserBlacklistRepository.existsByUserIdAndBlockedUserId(userId, blockedUserId)) {
+        if (existsByUserIdAndBlockedUserId(userId, blockedUserId)) {
             throw new ResourceBadRequestException("User has blocked you");
         }
     }

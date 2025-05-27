@@ -1,59 +1,32 @@
 package com.nagornov.CorporateMessenger.infrastructure.persistence.minio;
 
 import com.nagornov.CorporateMessenger.domain.enums.minio.MinioBucket;
-import io.minio.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 @Repository
 @RequiredArgsConstructor
 public class MinioRepository {
 
-    private final MinioClient minioClient;
     private final S3Client s3Client;
 
-    public void upload(MinioBucket bucket, String objectPath, BufferedImage image, String mimeType) {
-        try {
-            ByteArrayOutputStream imageOutput = new ByteArrayOutputStream();
-            ImageIO.write(image, mimeType, imageOutput);
-
-            PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(bucket.getBucketName())
-                    .key(objectPath)
-                    .contentType(mimeType)
-                    .build();
-            s3Client.putObject(request, RequestBody.fromBytes(imageOutput.toByteArray()));
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to upload file to Minio [bucket=%s, mimeType=%s]: %s"
-                            .formatted(bucket.getBucketName(), mimeType, e.getMessage())
-            );
-        }
-    }
-
-    public void upload(MinioBucket bucket, String objectPath, InputStream file, long size, String mimeType) {
+    public void upload(MinioBucket bucket, String objectPath, InputStream inputStream, String mimeType) {
         try {
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucket.getBucketName())
                     .key(objectPath)
                     .contentType(mimeType)
                     .build();
-            s3Client.putObject(request, RequestBody.fromInputStream(file, size));
+            s3Client.putObject(request, RequestBody.fromInputStream(inputStream, inputStream.available()));
         } catch (Exception e) {
             throw new RuntimeException(
-                    "Failed to upload file to Minio [bucket=%s, mimeType=%s]: %s"
-                            .formatted(bucket.getBucketName(), mimeType, e.getMessage())
-            );
+                    "Failed to upload file to Minio [bucket=%s, path=%s, mimeType=%s]: %s"
+                            .formatted(bucket.getBucketName(), objectPath, mimeType, e.getMessage()), e);
         }
     }
 
@@ -87,30 +60,15 @@ public class MinioRepository {
         }
     }
 
-    public boolean objectExists(MinioBucket bucket, String objectPath) {
+    public HeadObjectResponse statObject(MinioBucket bucket, String objectPath) {
         try {
-            minioClient.statObject(
-                StatObjectArgs.builder()
+            HeadObjectRequest request = HeadObjectRequest.builder()
                     .bucket(bucket.getBucketName())
-                    .object(objectPath)
-                    .build()
-            );
-            return true;
+                    .key(objectPath)
+                    .build();
+            return s3Client.headObject(request);
         } catch (Exception e) {
-            return false;
-        }
-    }
-
-    public StatObjectResponse statObject(MinioBucket bucket, String objectPath) {
-        try {
-            return minioClient.statObject(
-                StatObjectArgs.builder()
-                    .bucket(bucket.getBucketName())
-                    .object(objectPath)
-                    .build()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to get metadata file from Minio: " + e.getMessage());
+            throw new RuntimeException("Failed to get object metadata from S3: " + e.getMessage(), e);
         }
     }
 

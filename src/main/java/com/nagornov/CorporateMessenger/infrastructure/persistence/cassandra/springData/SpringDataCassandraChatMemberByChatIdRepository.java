@@ -31,7 +31,4 @@ public interface SpringDataCassandraChatMemberByChatIdRepository
 
     @Query("DELETE FROM chat_members_by_chat_id WHERE chat_id = :chatId AND user_id IN :userIds")
     void deleteAllByChatIdAndUserIds(@Param("chatId") Long chatId, @Param("userIds") List<UUID> userIds);
-
-    @Query("SELECT COUNT(*) > 0 FROM chat_members_by_chat_id WHERE chat_id = :chatId AND user_id = :userId")
-    boolean existsByChatIdAndUserId(@Param("chatId") Long chatId, @Param("userId") UUID userId);
 }

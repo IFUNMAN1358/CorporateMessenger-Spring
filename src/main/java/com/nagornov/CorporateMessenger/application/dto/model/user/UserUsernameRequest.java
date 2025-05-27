@@ -1,16 +1,15 @@
 package com.nagornov.CorporateMessenger.application.dto.model.user;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUsername;
+import com.nagornov.CorporateMessenger.domain.annotation.enums.UsernameType;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class UserUsernameRequest {
 
-    @NotNull(message = "Новое имя пользователя не может быть null")
-    @NotBlank(message = "Новое имя пользователя не может быть пустым")
-    @Size(message = "Новое имя пользователя должно содержать от 5 до 32 символов", min = 5, max = 32)
-    private String newUsername;
+    @ValidUsername(usernameType = UsernameType.USER)
+    @Size(message = "Имя пользователя должно содержать от 5 до 32 символов", min = 5, max = 32)
+    private String username;
 
 }

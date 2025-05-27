@@ -1,14 +1,17 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.model.message.*;
+import com.nagornov.CorporateMessenger.domain.dto.MinioFileDTO;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
 import com.nagornov.CorporateMessenger.domain.model.message.MessageFile;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.chat.ChatMemberService;
 import com.nagornov.CorporateMessenger.domain.service.chat.ChatService;
 import com.nagornov.CorporateMessenger.domain.service.message.MessageService;
+import com.nagornov.CorporateMessenger.domain.service.user.UserBlacklistService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import com.nagornov.CorporateMessenger.domain.broker.producer.UnreadMessageProducer;
 import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
@@ -17,7 +20,6 @@ import com.nagornov.CorporateMessenger.domain.service.message.ReadMessageService
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +41,7 @@ public class MessageApplicationService {
     private final ReadMessageService readMessageService;
     private final MessageFileService messageFileService;
     private final UnreadMessageProducer unreadMessageProducer;
+    private final UserBlacklistService userBlacklistService;
 
 
     @Transactional
@@ -48,6 +51,16 @@ public class MessageApplicationService {
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
 
         Chat chat = chatService.getById(chatId);
+
+        if (chat.isPrivateChat()) {
+            List<ChatMember> privateChatMembers = chatMemberService.findAllByChatId(chatId);
+            userBlacklistService.ensureAnyMatchBetweenUserIds(
+                    authUser.getId(),
+                    privateChatMembers.stream()
+                            .filter(cm -> !cm.getUserId().equals(authUser.getId()))
+                            .toList().getFirst().getUserId()
+            );
+        }
         chatMemberService.ensureExistsByChatIdAndUserId(chat.getId(), authUser.getId());
 
         Message message;
@@ -107,13 +120,12 @@ public class MessageApplicationService {
 
 
     @Transactional(readOnly = true)
-    public Resource downloadMessageFile(@NonNull Long chatId, @NonNull UUID messageId, @NonNull UUID fileId, @NonNull String size) {
+    public MinioFileDTO downloadMessageFile(@NonNull Long chatId, @NonNull UUID messageId, @NonNull UUID fileId, @NonNull String size) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User authUser = userService.getById(authInfo.getUserIdAsUUID());
 
         Chat chat = chatService.getById(chatId);
-        chatMemberService.ensureExistsByChatIdAndUserId(chat.getId(), authUser.getId());
+        chatMemberService.ensureExistsByChatIdAndUserId(chat.getId(), authInfo.getUserIdAsUUID());
 
         MessageFile messageFile = messageFileService.getByIdAndMessageId(fileId, messageId);
 

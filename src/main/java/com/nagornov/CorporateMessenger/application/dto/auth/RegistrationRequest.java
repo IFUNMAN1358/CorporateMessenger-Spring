@@ -1,5 +1,7 @@
 package com.nagornov.CorporateMessenger.application.dto.auth;
 
+import com.nagornov.CorporateMessenger.domain.annotation.ant.ValidUsername;
+import com.nagornov.CorporateMessenger.domain.annotation.enums.UsernameType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,8 +12,7 @@ import lombok.ToString;
 @ToString(exclude = {"password", "confirmPassword"})
 public class RegistrationRequest {
 
-    @NotNull(message = "Имя пользователя не может быть null")
-    @NotBlank(message = "Имя пользователя не может быть пустым")
+    @ValidUsername(usernameType = UsernameType.USER)
     @Size(message = "Имя пользователя должно содержать от 5 до 32 символов", min = 5, max = 32)
     private String username;
 

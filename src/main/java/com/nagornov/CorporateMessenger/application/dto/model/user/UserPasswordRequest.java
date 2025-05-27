@@ -7,12 +7,12 @@ import lombok.Data;
 import lombok.ToString;
 
 @Data
-@ToString(exclude = {"currentPassword", "newPassword", "confirmNewPassword"})
+@ToString(exclude = {"password", "newPassword", "confirmPassword"})
 public class UserPasswordRequest {
 
     @NotNull(message = "Текущий пароль не может быть null")
     @NotBlank(message = "Текущий пароль не может быть пустым")
-    private String currentPassword;
+    private String password;
 
     @NotNull(message = "Новый пароль не может быть null")
     @NotBlank(message = "Новый пароль не может быть пустым")
@@ -22,6 +22,6 @@ public class UserPasswordRequest {
     @NotNull(message = "Повторный пароль не может быть null")
     @NotBlank(message = "Повторный пароль не может быть пустым")
     @Size(message = "Повторный пароль должен содержать от 10 до 30 символов", min = 10, max = 30)
-    private String confirmNewPassword;
+    private String confirmPassword;
 
 }

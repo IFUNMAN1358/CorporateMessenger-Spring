@@ -1,10 +1,18 @@
 FROM openjdk:22-jdk-slim AS builder
 
 WORKDIR /application
-COPY ../.. .
+
+COPY gradlew .
+COPY gradle/ gradle/
+
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+COPY src/ src/
 
 RUN --mount=type=cache,target=/root/.gradle \
-    chmod +x gradlew && ./gradlew build --no-daemon
+    chmod +x gradlew && \
+    ./gradlew build --no-daemon -x test
 
 FROM openjdk:22-jdk-slim AS layers
 
@@ -15,15 +23,27 @@ RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM openjdk:22-jdk-slim
 
-VOLUME /tmp
+RUN useradd -m -u 1000 appuser
 
 WORKDIR /application
+VOLUME /tmp
 
 COPY --from=layers /application/dependencies/ ./
 COPY --from=layers /application/spring-boot-loader/ ./
 COPY --from=layers /application/snapshot-dependencies/ ./
 COPY --from=layers /application/application/ ./
 
+COPY .env .
+
+RUN chown -R appuser:appuser /application
+
+USER appuser
+
 EXPOSE 8000
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENV JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8000/actuator/health || exit 1
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]

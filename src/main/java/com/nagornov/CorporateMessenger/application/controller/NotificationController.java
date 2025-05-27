@@ -21,7 +21,6 @@ public class NotificationController {
 
     @GetMapping(
             path = "/api/user/notifications",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Page<Notification>> getNotifications(
@@ -36,7 +35,6 @@ public class NotificationController {
 
     @PatchMapping(
             path = "/api/user/notification/{notificationId}/process",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Notification> processNotificationByNotId(
@@ -49,7 +47,6 @@ public class NotificationController {
 
     @PatchMapping(
             path = "/api/user/notification/{notificationId}/read",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<Notification> readNotificationByNotId(
@@ -62,7 +59,6 @@ public class NotificationController {
 
     @PatchMapping(
             path = "/api/user/notifications/read-all",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> readAllNotifications() {
@@ -73,7 +69,6 @@ public class NotificationController {
 
     @DeleteMapping(
             path = "/api/user/notification/{notificationId}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteNotificationByNotId(
@@ -86,7 +81,6 @@ public class NotificationController {
 
     @DeleteMapping(
             path = "/api/user/notifications",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<String> deleteAllNotifications() {

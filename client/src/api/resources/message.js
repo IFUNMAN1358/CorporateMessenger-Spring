@@ -1,27 +1,30 @@
 import axios from "@/api/axios";
 import authStore from "@/store/authStore";
+import PhotoDefaultPlaceholder from "@/assets/images/PhotoDefaultPlaceholder.png";
 
-export async function fetchCreateMessage(chatId, content, file = null) {
-  try {
-    const formData = new FormData();
-    if (content) formData.append("content", content);
-    if (file) formData.append("file", file);
-
-    const response = await axios.post(
-      `/api/chat/${chatId}/message`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Create message failed:", error);
-    throw error;
+export async function fetchCreateMessage(chatId, content, files = []) {
+  const formData = new FormData();
+  if (content) {
+    formData.append('content', content);
   }
+
+  if (files && files.length > 0) {
+    files.forEach((file, index) => {
+      if (file instanceof File) {
+        formData.append('files', file);
+      } else {
+        console.warn(`Файл ${index + 1} не является объектом File:`, file);
+      }
+    });
+  }
+
+  const response = await axios.post(`/api/chat/${chatId}/message`, formData, {
+    headers: {
+      Authorization: `Bearer ${authStore.state.accessToken}`,
+      'Content-Type': 'multipart/form-data'
+    },
+  });
+  return response.data;
 }
 
 export async function fetchGetAllMessages(chatId, page, size) {
@@ -44,22 +47,26 @@ export async function fetchGetAllMessages(chatId, page, size) {
 
 export async function fetchDownloadMessageFile(chatId, messageId, fileId, size) {
   try {
-    const response = await axios.get(`/api/chat/${chatId}/message/${messageId}/file/${fileId}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
-      },
-      params: {
-        size,
-      },
-      responseType: "blob"
-    });
-    if (response.data && response.data.size > 0) {
-      return URL.createObjectURL(response.data);
-    }
-    return null;
+    const response = await axios.get(
+      `/api/chat/${chatId}/message/${messageId}/file/${fileId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'X-Service-Name': process.env.VUE_APP_BACK_X_SERVICE_NAME,
+        },
+        params: {
+          size: size
+        },
+        responseType: 'blob',
+      }
+    );
+
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    const blob = new Blob([response.data], { type: contentType });
+    return URL.createObjectURL(blob);
   } catch (error) {
-    console.error("Download message file failed:", error);
-    throw error;
+    console.error('Download message file failed:', error);
+    return PhotoDefaultPlaceholder;
   }
 }
 
@@ -81,11 +88,13 @@ export async function fetchReadMessage(chatId, messageId) {
   }
 }
 
-export async function fetchUpdateMessageContent(chatId, messageId, content) {
+export async function fetchUpdateMessageContent(chatId, messageId, newContent) {
   try {
     const response = await axios.patch(
       `/api/chat/${chatId}/message/${messageId}/content`,
-      { content },
+      {
+        newContent: newContent
+      },
       {
         headers: {
           Authorization: `Bearer ${authStore.state.accessToken}`,

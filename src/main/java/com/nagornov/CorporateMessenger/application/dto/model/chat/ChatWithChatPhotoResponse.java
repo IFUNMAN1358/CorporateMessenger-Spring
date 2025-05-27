@@ -3,6 +3,7 @@ package com.nagornov.CorporateMessenger.application.dto.model.chat;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserPhotoResponse;
 import com.nagornov.CorporateMessenger.application.dto.model.user.UserResponse;
 import com.nagornov.CorporateMessenger.domain.model.chat.Chat;
+import com.nagornov.CorporateMessenger.domain.model.chat.ChatMember;
 import com.nagornov.CorporateMessenger.domain.model.chat.ChatPhoto;
 import com.nagornov.CorporateMessenger.domain.model.interfaces.ChatPhotoResponseInterface;
 import com.nagornov.CorporateMessenger.domain.model.message.Message;
@@ -19,6 +20,7 @@ public class ChatWithChatPhotoResponse {
 
     private ChatResponse chat;
     private UserResponse partner;
+    private ChatMember chatMember;
     private ChatPhotoResponseInterface photo;
     private Message lastMessage;
     private UnreadMessage unreadMessage;
@@ -32,6 +34,7 @@ public class ChatWithChatPhotoResponse {
     ) {
         this.chat = new ChatResponse(chat);
         this.partner = new UserResponse(partner);
+        this.chatMember = null;
         userPhoto.ifPresent(up -> this.photo = new UserPhotoResponse(up));
         lastMessage.ifPresent(m -> this.lastMessage = m);
         this.unreadMessage = unreadMessage;
@@ -40,12 +43,14 @@ public class ChatWithChatPhotoResponse {
 
     public ChatWithChatPhotoResponse forGroupChat(
             @NonNull Chat chat,
+            @NonNull ChatMember chatMember,
             @NonNull Optional<ChatPhoto> chatPhoto,
             @NonNull Optional<Message> lastMessage,
             @NonNull UnreadMessage unreadMessage
     ) {
         this.chat = new ChatResponse(chat);
         this.partner = null;
+        this.chatMember = chatMember;
         chatPhoto.ifPresent(cp -> this.photo = new ChatPhotoResponse(cp));
         lastMessage.ifPresent(m -> this.lastMessage = m);
         this.unreadMessage = unreadMessage;

@@ -19,18 +19,14 @@ export async function fetchGetOrCreatePrivateChatByUserId(userId) {
   }
 }
 
-// private MultipartFile file;
-//
-// @NotNull(message = "Название чата не может быть null")
-// @NotBlank(message = "Название чата не может быть пустым")
-// @Size(message = "Название чата должно содержать от 1 до 128 символов", min = 1, max = 128)
-// private String title;
-//
-export async function fetchCreateGroupChat(data) {
+export async function fetchCreateGroupChat(title, username) {
   try {
     const response = await axios.post(
       "/api/chat/group",
-      data,
+        {
+          title: title,
+          username: username
+        },
       {
         headers: {
           Authorization: `Bearer ${authStore.state.accessToken}`,
@@ -41,6 +37,27 @@ export async function fetchCreateGroupChat(data) {
     return response.data;
   } catch (error) {
     console.error("Create group chat failed:", error);
+    throw error;
+  }
+}
+
+export async function fetchExistsGroupChatByUsername(username) {
+  try {
+    const response = await axios.get(
+      "/api/chat/group/exists-username",
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.state.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          username: username
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Exists group chat by username failed:", error);
     throw error;
   }
 }
@@ -69,6 +86,83 @@ export async function fetchGetAllChats() {
     return response.data;
   } catch (error) {
     console.error("Get all chats failed:", error);
+    throw error;
+  }
+}
+
+export async function fetchChangeGroupChatTitle(chatId, title) {
+  try {
+    await axios.patch(
+        `/api/chat/${chatId}/group/title`,
+        {
+          title: title
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authStore.state.accessToken}`,
+          },
+        }
+      );
+  } catch (error) {
+    console.error("Change group chat title failed:", error);
+    throw error;
+  }
+}
+
+export async function fetchChangeGroupChatUsername(chatId, username) {
+  try {
+    await axios.patch(
+        `/api/chat/${chatId}/group/username`,
+        {
+          username: username
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authStore.state.accessToken}`,
+          },
+        }
+      );
+  } catch (error) {
+    console.error("Change group chat username failed:", error);
+    throw error;
+  }
+}
+
+export async function fetchChangeGroupChatDescription(chatId, description) {
+  try {
+    await axios.patch(
+        `/api/chat/${chatId}/group/description`,
+        {
+          description: description
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authStore.state.accessToken}`,
+          },
+        }
+      );
+  } catch (error) {
+    console.error("Change group chat description failed:", error);
+    throw error;
+  }
+}
+
+export async function fetchChangeGroupChatSettings(chatId, joinByRequest, hasHiddenMembers) {
+  try {
+    await axios.patch(
+        `/api/chat/${chatId}/group/settings`,
+        {
+          joinByRequest: joinByRequest,
+          hasHiddenMembers: hasHiddenMembers
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authStore.state.accessToken}`,
+          },
+        }
+      );
+  } catch (error) {
+    console.error("Change group chat settings failed:", error);
     throw error;
   }
 }

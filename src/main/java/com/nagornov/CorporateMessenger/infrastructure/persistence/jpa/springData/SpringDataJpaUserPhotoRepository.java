@@ -17,7 +17,11 @@ public interface SpringDataJpaUserPhotoRepository extends JpaRepository<JpaUserP
     @Query("select p from JpaUserPhotoEntity p where p.userId = :userId and p.isMain = true")
     Optional<JpaUserPhotoEntity> findMainByUserId(@Param("userId") UUID userId);
 
-    @Query("select p from JpaUserPhotoEntity p where p.userId = :userId order by p.createdAt desc")
+    @Query(
+            "select p from JpaUserPhotoEntity p " +
+            "where p.userId = :userId " +
+            "order by p.isMain desc, p.createdAt desc"
+    )
     List<JpaUserPhotoEntity> findAllByUserIdOrderByCreatedAtDesc(@Param("userId") UUID userId);
 
     @Query("select p from JpaUserPhotoEntity p where p.id = :id and p.userId = :userId")

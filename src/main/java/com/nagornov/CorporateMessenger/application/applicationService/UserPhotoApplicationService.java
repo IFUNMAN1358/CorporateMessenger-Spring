@@ -36,11 +36,11 @@ public class UserPhotoApplicationService {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPhoto newMainUserPhoto = userPhotoService.upload(authInfo.getUserIdAsUUID(), request.getFile());
-
         Optional<UserPhoto> currentUserPhoto = userPhotoService.findMainByUserId(authInfo.getUserIdAsUUID());
         currentUserPhoto.ifPresent(UserPhoto::unmarkAsMain);
         currentUserPhoto.ifPresent(userPhotoService::update);
+
+        UserPhoto newMainUserPhoto = userPhotoService.upload(authInfo.getUserIdAsUUID(), request.getFile());
 
         return new UserPhotoResponse(newMainUserPhoto);
     }

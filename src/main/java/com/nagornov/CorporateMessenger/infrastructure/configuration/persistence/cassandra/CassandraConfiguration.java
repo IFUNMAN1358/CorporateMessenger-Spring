@@ -2,6 +2,11 @@ package com.nagornov.CorporateMessenger.infrastructure.configuration.persistence
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.internal.core.config.composite.CompositeDriverConfigLoader;
+import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader;
+import com.datastax.oss.driver.internal.core.retry.DefaultRetryPolicy;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.CassandraProperties;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +18,7 @@ import org.springframework.data.cassandra.config.DefaultCqlBeanNames;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 
 @Configuration
 @EnableCassandraRepositories(basePackages = "com.nagornov.CorporateMessenger.infrastructure.persistence.cassandra")
@@ -25,16 +31,20 @@ public class CassandraConfiguration extends AbstractCassandraConfiguration {
     @Primary
     public CqlSession mainCqlSession() {
         return CqlSession.builder()
-                .withKeyspace(cassandraProperties.getKeyspaceName())
                 .addContactPoint(new InetSocketAddress(
                         cassandraProperties.getContactPoints(),
                         cassandraProperties.getPort())
+                )
+                .withLocalDatacenter(
+                        cassandraProperties.getLocalDatacenter()
                 )
                 .withAuthCredentials(
                         cassandraProperties.getUsername(),
                         cassandraProperties.getPassword()
                 )
-                .withLocalDatacenter(cassandraProperties.getLocalDatacenter())
+                .withKeyspace(
+                        cassandraProperties.getKeyspaceName()
+                )
                 .build();
     }
 

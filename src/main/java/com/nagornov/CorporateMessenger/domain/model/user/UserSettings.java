@@ -16,11 +16,11 @@ public class UserSettings {
 
     private UUID id;
     private UUID userId;
-    private Boolean isConfirmContactRequests;
-    private ContactsVisibility contactsVisibility;
-    private ProfileVisibility profileVisibility;
-    private EmployeeVisibility employeeVisibility;
-    private Boolean isSearchable;
+    private Boolean isConfirmContactRequests;              //
+    private ContactsVisibility contactsVisibility;         //
+    private ProfileVisibility profileVisibility;           //
+    private EmployeeVisibility employeeVisibility;         //
+    private Boolean isSearchable;                          //
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -34,6 +34,26 @@ public class UserSettings {
 
     public boolean isEmployeeVisibility(@NonNull EmployeeVisibility employeeVisibility) {
         return this.employeeVisibility.equals(employeeVisibility);
+    }
+
+    public void updateIsConfirmContactRequests(@NonNull Boolean isConfirmContactRequests) {
+        this.isConfirmContactRequests = isConfirmContactRequests;
+    }
+
+    public void updateContactsVisibility(@NonNull ContactsVisibility contactsVisibility) {
+        this.contactsVisibility = contactsVisibility;
+    }
+
+    public void updateProfileVisibility(@NonNull ProfileVisibility profileVisibility) {
+        this.profileVisibility = profileVisibility;
+    }
+
+    public void updateEmployeeVisibility(@NonNull EmployeeVisibility employeeVisibility) {
+        this.employeeVisibility = employeeVisibility;
+    }
+
+    public void updateIsSearchable(@NonNull Boolean isSearchable) {
+        this.isSearchable = isSearchable;
     }
 
     public void updateUpdatedAtAsNow() {

@@ -67,11 +67,34 @@ public class RedisMessageRepository {
     public void delete(Long chatId, Message message) {
         String key = "%s:%s".formatted(MESSAGE, chatId);
 
-        redisMessageTemplate.opsForList().remove(
-                key,
-                1,
-                redisMessageMapper.toEntity(message)
-        );
+        Boolean keyExists = redisMessageTemplate.hasKey(key);
+        if (Boolean.FALSE.equals(keyExists)) {
+            return;
+        }
+
+        List<RedisMessageEntity> messages = redisMessageTemplate.opsForList().range(key, 0, -1);
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
+
+        int index = -1;
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i).getId().equals(message.getId())) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1) {
+            return;
+        }
+
+        redisMessageTemplate.opsForList().remove(key, 1, messages.get(index));
+
+        Long size = redisMessageTemplate.opsForList().size(key);
+        if (size != null && size == 0) {
+            redisMessageTemplate.delete(key);
+        }
     }
 
     public List<Message> findAll(Long chatId, int page, int size) {

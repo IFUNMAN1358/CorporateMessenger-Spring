@@ -3,11 +3,12 @@ package com.nagornov.CorporateMessenger.domain.model.chat;
 import com.nagornov.CorporateMessenger.domain.enums.model.ChatType;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
+import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
+import com.nagornov.CorporateMessenger.domain.utils.SnowflakeIdGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
@@ -35,20 +36,6 @@ public class Chat {
 //    private Instant createdAt;           ALL | nullable=false, updatable=false
 //    private Instant updatedAt;           ALL | nullable=false, updatable=true
 
-    public static Long generateId() {
-        return UUID.randomUUID().getMostSignificantBits() + Long.MAX_VALUE;
-    }
-
-    public void updateGeneratedId() {
-        this.id = UUID.randomUUID().getMostSignificantBits() + Long.MAX_VALUE;
-    }
-
-    public void updateId(Long newId) {
-        if (id == null) {
-            throw new ResourceConflictException("Chat[id] already set");
-        }
-    }
-
     public boolean isPrivateChat() {
         return this.type.equals(ChatType.PRIVATE);
     }
@@ -67,5 +54,77 @@ public class Chat {
         if (!this.isPrivateChat()) {
             throw new ResourceBadRequestException("This is not a private chat");
         }
+    }
+
+    public static Long generateId() {
+        return SnowflakeIdGenerator.nextId();
+    }
+
+    public void updateTitle(String title) {
+        if (title == null) {
+            throw new ResourceConflictException(
+                    "Title cannot be null",
+                    new FieldError("title", "Название чата не может быть null")
+            );
+        }
+        if (title.length() < 1 || title.length() > 128) {
+            throw new ResourceConflictException(
+                    "Title length should be between 1 and 128",
+                    new FieldError("title", "Название чата должно иметь длину от 1 до 128 символов")
+            );
+        }
+        this.title = title;
+    }
+
+    public void updateUsername(String username) {
+        if (username == null) {
+            throw new ResourceConflictException(
+                    "Username cannot be null",
+                    new FieldError("username", "Уникальное название чата не может быть null")
+            );
+        }
+        if (username.length() < 5 || username.length() > 32) {
+            throw new ResourceConflictException(
+                    "Username length should be between 1 and 128",
+                    new FieldError("username", "Уникальное название чата должно иметь длину от 5 до 32 символов")
+            );
+        }
+        this.username = username;
+    }
+
+    public void updateDescription(String description) {
+        if (description == null) {
+            throw new ResourceConflictException(
+                    "Description cannot be null",
+                    new FieldError("description", "Описание чата не может быть null")
+            );
+        }
+        if (description.length() > 255) {
+            throw new ResourceConflictException(
+                    "Description should not be longer than 255",
+                    new FieldError("description", "Описание чата не может быть длиннее 255 символов")
+            );
+        }
+        this.description = description;
+    }
+
+    public void updateJoinByRequest(Boolean joinByRequest) {
+        if (joinByRequest == null) {
+            throw new ResourceConflictException(
+                    "Setting 'joinByRequest' cannot be null",
+                    new FieldError("joinByRequest", "Настройка 'Присоединение по запросу' не может быть null")
+            );
+        }
+        this.joinByRequest = joinByRequest;
+    }
+
+    public void updateHasHiddenMembers(Boolean hasHiddenMembers) {
+        if (hasHiddenMembers == null) {
+            throw new ResourceConflictException(
+                    "Setting 'hasHiddenMembers' cannot be null",
+                    new FieldError("hasHiddenMembers", "Настройка 'Имеет скрытых пользователей' не может быть null")
+            );
+        }
+        this.hasHiddenMembers = hasHiddenMembers;
     }
 }

@@ -41,8 +41,14 @@ public class ChatPhotoApplicationService {
         ChatMember authChatMember = chatMemberService.getByChatIdAndUserId(chatId, authInfo.getUserIdAsUUID());
         authChatMember.ensureIsCreator();
 
-        ChatPhoto chatPhoto = chatPhotoService.upload(chatId, request.getFile());
-        return new ChatPhotoResponse(chatPhoto);
+        Optional<ChatPhoto> optCurrentMainChatPhoto = chatPhotoService.findMainByChatId(chat.getId());
+        if (optCurrentMainChatPhoto.isPresent()) {
+            optCurrentMainChatPhoto.get().unmarkAsMain();
+            chatPhotoService.update(optCurrentMainChatPhoto.get());
+        }
+
+        ChatPhoto newChatPhoto = chatPhotoService.upload(chatId, request.getFile());
+        return new ChatPhotoResponse(newChatPhoto);
     }
 
 

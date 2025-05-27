@@ -41,21 +41,19 @@ public class CustomSessionFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Required for all requests
-        String serviceName = request.getHeader(externalServiceProperties.getHeaderName().getServiceName());
-
-        if (serviceName == null) {
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "%s header is missing".formatted(externalServiceProperties.getHeaderName().getServiceName())
-            );
-            return;
-        }
-
-        // Required for authorized requests
         String accessToken = JwtUtils.getTokenFromAuthorizationHeader(request.getHeader("Authorization"));
 
         if (accessToken != null && jwtRepository.validateAccessToken(accessToken)) {
+
+            String serviceName = request.getHeader(externalServiceProperties.getHeaderName().getServiceName());
+
+            if (serviceName == null) {
+                response.sendError(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "%s header is missing".formatted(externalServiceProperties.getHeaderName().getServiceName())
+                );
+                return;
+            }
 
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
@@ -67,12 +65,9 @@ public class CustomSessionFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // Checking CSRF token
             if (!isSafeMethod(request.getMethod())) {
-
                 String serviceApiKey = request.getHeader(externalServiceProperties.getHeaderName().getApiKey());
 
-                // Skip for external services
                 if (
                         serviceApiKey == null
                         ||
@@ -87,7 +82,6 @@ public class CustomSessionFilter extends OncePerRequestFilter {
                 }
             }
 
-            // Checking JWT token
             if (!existingSession.get().getAccessToken().equals(accessToken)) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid jwt access token");
                 return;

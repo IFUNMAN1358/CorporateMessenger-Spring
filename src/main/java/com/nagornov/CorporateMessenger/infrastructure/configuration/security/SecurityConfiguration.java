@@ -1,8 +1,6 @@
 package com.nagornov.CorporateMessenger.infrastructure.configuration.security;
 
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomTraceFilter;
-import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAccessDeniedHandler;
-import com.nagornov.CorporateMessenger.infrastructure.security.handler.CustomAuthenticationEntryPoint;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomCorsFilter;
 import com.nagornov.CorporateMessenger.infrastructure.security.filter.CustomSessionFilter;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +26,6 @@ public class SecurityConfiguration {
     private final CustomSessionFilter sessionFilter;
     private final CustomTraceFilter traceFilter;
 
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-    private final CustomAccessDeniedHandler accessDeniedHandler;
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,8 +46,8 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
 
                     // WEBSOCKET
-                    .requestMatchers("/chat").hasRole("USER") // for connect
-                    .requestMatchers("/notifications").hasRole("USER") // for connect
+                    .requestMatchers("/api/ws/chat/**").permitAll() // for connect
+                    .requestMatchers("/api/ws/notifications/**").permitAll() // for connect
                     
                     // TestController
                     .requestMatchers(HttpMethod.POST, "/api/test/1").permitAll()
@@ -81,16 +76,24 @@ public class SecurityConfiguration {
                     //.requestMatchers(HttpMethod.DELETE, "/api/registration-key/{keyId}").hasRole("ADMIN") not used
 
                     // UserController
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/firstName-and-lastName").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/username").hasRole("USER")
                     .requestMatchers(HttpMethod.PATCH, "/api/user/password").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/bio").hasRole("USER")
                     //.requestMatchers(HttpMethod.PATCH, "/api/user/main-email").hasRole("USER") not used
                     //.requestMatchers(HttpMethod.PATCH, "/api/user/phone").hasRole("USER") not used
                     .requestMatchers(HttpMethod.GET, "/api/user/search").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/exists-username").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/user").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/user/{userId}").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/block").hasRole("USER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/user/unblock").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/user/blocked").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/{userId}/block").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/{userId}/unblock").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/user").hasRole("USER")
+
+                    // UserSettingsController
+                    .requestMatchers(HttpMethod.GET, "/api/user/settings").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/user/settings").hasRole("USER")
 
                     // UserPhotoController
                     .requestMatchers(HttpMethod.POST, "/api/user/photo").hasRole("USER")
@@ -133,8 +136,13 @@ public class SecurityConfiguration {
                     // ChatController
                     .requestMatchers(HttpMethod.POST, "/api/user/{userId}/chat/private").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/chat/group").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/chat/group/exists-username").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chat/{chatId}").hasRole("USER")
                     .requestMatchers(HttpMethod.GET, "/api/chats").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/group/title").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/group/username").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/group/description").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/chat/{chatId}/group/settings").hasRole("USER")
                     .requestMatchers(HttpMethod.DELETE, "/api/chat/{chatId}").hasRole("USER")
 
                     // ChatMemberController
@@ -162,10 +170,6 @@ public class SecurityConfiguration {
 
                     .anyRequest().authenticated()
             );
-//            .exceptionHandling(exceptions -> exceptions
-//                    .authenticationEntryPoint(authenticationEntryPoint)
-//                    .accessDeniedHandler(accessDeniedHandler)
-//            );
         return http.build();
     }
 

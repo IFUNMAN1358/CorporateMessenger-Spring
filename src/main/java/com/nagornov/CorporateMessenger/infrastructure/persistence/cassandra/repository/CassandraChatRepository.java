@@ -37,11 +37,23 @@ public class CassandraChatRepository {
     //
 
     public Chat save(Chat chat) {
+        CassandraChatByIdEntity existingChatById = springDataCassandraChatByIdRepository
+            .findById(chat.getId())
+            .orElse(null);
+
+        String oldUsername = (existingChatById != null && existingChatById.getUsername() != null)
+            ? existingChatById.getUsername()
+            : null;
+
+        if (oldUsername != null && chat.getUsername() != null && !oldUsername.equals(chat.getUsername())) {
+            springDataCassandraChatByUsernameRepository.deleteByUsername(oldUsername);
+        }
+
         if (chat.getUsername() != null) {
             springDataCassandraChatByUsernameRepository.save(cassandraChatMapper.toChatByUsernameEntity(chat));
         }
-        CassandraChatByIdEntity entity =
-                springDataCassandraChatByIdRepository.save(cassandraChatMapper.toChatByIdEntity(chat));
+
+        CassandraChatByIdEntity entity = springDataCassandraChatByIdRepository.save(cassandraChatMapper.toChatByIdEntity(chat));
         return cassandraChatMapper.toDomain(entity);
     }
 
@@ -58,6 +70,10 @@ public class CassandraChatRepository {
 
     public Optional<Chat> findByUsername(String username) {
         return springDataCassandraChatByUsernameRepository.findByUsername(username).map(cassandraChatMapper::toDomain);
+    }
+
+    public Boolean existsByUsername(String username) {
+        return springDataCassandraChatByUsernameRepository.findByUsername(username).isPresent();
     }
 
 }

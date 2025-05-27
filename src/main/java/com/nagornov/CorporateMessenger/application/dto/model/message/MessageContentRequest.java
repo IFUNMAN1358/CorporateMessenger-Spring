@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class MessageContentRequest {
 
     @NotNull(message = "Текст сообщения не может быть null")

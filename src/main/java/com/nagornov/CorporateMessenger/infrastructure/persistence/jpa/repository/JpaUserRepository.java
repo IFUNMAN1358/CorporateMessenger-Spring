@@ -93,10 +93,15 @@ public class JpaUserRepository {
                 });
     }
 
-    public Page<UserWithUserPhotoDTO> searchWithMainUserPhotoByUsername(String username, int page, int pageSize) {
+    public Page<UserWithUserPhotoDTO> searchWithMainUserPhotoByUsername(
+            UUID myUserId,
+            String username,
+            int page,
+            int pageSize
+    ) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return springDataJpaUserRepository
-                .searchWithMainUserPhotoByUsername(username, pageable)
+                .searchWithMainUserPhotoByUsername(myUserId, username, pageable)
                 .map(dtoEntity -> {
                     return new UserWithUserPhotoDTO(
                             jpaUserMapper.toDomain(dtoEntity.getUser()),
@@ -139,5 +144,18 @@ public class JpaUserRepository {
                         jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
                         jpaUserPhotoMapper.toDomain(dtoEntity.getUserPhoto())
                 ));
+    }
+
+    public Optional<UserWithUserSettingsAndPartnerInfoDTO> findWithUserSettingsAndPartnerInfoByIds(UUID targetId, UUID yourId) {
+        return springDataJpaUserRepository.findWithUserSettingsAndPartnerInfoByIds(targetId, yourId)
+                .map(dtoEntity -> {
+                    return new UserWithUserSettingsAndPartnerInfoDTO(
+                            jpaUserMapper.toDomain(dtoEntity.getUser()),
+                            jpaUserSettingsMapper.toDomain(dtoEntity.getUserSettings()),
+                            dtoEntity.getIsUserBlacklisted(),
+                            dtoEntity.getIsYouBlacklisted(),
+                            dtoEntity.getIsContact()
+                    );
+                });
     }
 }

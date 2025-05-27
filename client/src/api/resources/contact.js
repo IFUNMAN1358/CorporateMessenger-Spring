@@ -33,30 +33,38 @@ export async function fetchFindContactByUserId(userId) {
   }
 }
 
-export async function fetchGetMyContacts() {
+export async function fetchFindAllMyContactUsers(page, size) {
   try {
     const response = await axios.get("/api/user/contacts", {
+      params: {
+        page: page,
+        size: size
+      },
       headers: {
         Authorization: `Bearer ${authStore.state.accessToken}`,
       },
     });
     return response.data;
   } catch (error) {
-    console.error("Get my contacts failed:", error);
+    console.error("Find all my contact users failed:", error);
     throw error;
   }
 }
 
-export async function fetchGetContactsByUserId(userId) {
+export async function fetchFindAllContactUsersByUserId(userId, page, size) {
   try {
     const response = await axios.get(`/api/user/${userId}/contacts`, {
+      params: {
+        page: page,
+        size: size
+      },
       headers: {
         Authorization: `Bearer ${authStore.state.accessToken}`,
       },
     });
     return response.data;
   } catch (error) {
-    console.error("Get contacts by user ID failed:", error);
+    console.error("Find all contact users by userId failed:", error);
     throw error;
   }
 }

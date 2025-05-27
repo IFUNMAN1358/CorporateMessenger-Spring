@@ -26,11 +26,16 @@ public class CassandraMigrationConfiguration {
                         cassandraProperties.getContactPoints(),
                         cassandraProperties.getPort())
                 )
+                .withLocalDatacenter(
+                        cassandraProperties.getLocalDatacenter()
+                )
                 .withAuthCredentials(
                         cassandraProperties.getUsername(),
                         cassandraProperties.getPassword()
                 )
-                .withLocalDatacenter(cassandraProperties.getLocalDatacenter())
+                .withKeyspace(
+                        cassandraProperties.getKeyspaceName()
+                )
                 .build();
     }
 

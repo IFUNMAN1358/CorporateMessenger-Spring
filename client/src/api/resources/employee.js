@@ -35,12 +35,6 @@ export async function fetchGetEmployeeByUserId(userId) {
     }
 }
 
-// private UUID newLeaderId;                       // might be null
-// private String newDepartment;      // 0-255     // might be null
-// private String newPosition;        // 0-255     // might be null
-// private String newDescription;     // 0-255     // might be null
-// private String newWorkSchedule;    // 0-255     // might be null
-//
 export async function fetchUpdateMyEmployee(data) {
     try {
         const response = await axios.patch(

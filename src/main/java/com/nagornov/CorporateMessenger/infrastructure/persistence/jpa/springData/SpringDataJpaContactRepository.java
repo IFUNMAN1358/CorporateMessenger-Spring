@@ -62,7 +62,7 @@ public interface SpringDataJpaContactRepository extends JpaRepository<JpaContact
     @Modifying
     @Query(
             "DELETE FROM JpaContactEntity c " +
-            "WHERE (c.userId = :userId1 AND c.contactId = :userId2) AND (c.userId = :userId2 AND c.contactId = :userId1)"
+            "WHERE (c.userId = :userId1 AND c.contactId = :userId2) OR (c.userId = :userId2 AND c.contactId = :userId1)"
     )
     void deleteContactPairByUserIds(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
 

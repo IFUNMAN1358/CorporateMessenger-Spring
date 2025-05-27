@@ -1,15 +1,14 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
 import com.nagornov.CorporateMessenger.application.dto.model.user.*;
-import com.nagornov.CorporateMessenger.domain.dto.UserPairDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithEmployeeDTO;
-import com.nagornov.CorporateMessenger.domain.dto.UserWithUserPhotoDTO;
+import com.nagornov.CorporateMessenger.domain.dto.*;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.error.FieldError;
 import com.nagornov.CorporateMessenger.domain.model.user.Employee;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
+import com.nagornov.CorporateMessenger.domain.model.user.UserBlacklist;
 import com.nagornov.CorporateMessenger.domain.model.user.UserPhoto;
 import com.nagornov.CorporateMessenger.domain.service.user.*;
 import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
@@ -30,6 +29,7 @@ public class UserApplicationService {
 
     private final JwtService jwtService;
     private final UserService userService;
+    private final UserSettingsService userSettingsService;
     private final UserPhotoService userPhotoService;
     private final UserBlacklistService userBlacklistService;
     private final EmployeeService employeeService;
@@ -40,19 +40,31 @@ public class UserApplicationService {
 
 
     @Transactional
+    public void changeUserFirstNameAndLastName(@NonNull UserFirstNameAndLastNameRequest request) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+
+        authUser.updateFirstName(request.getFirstName());
+        authUser.updateLastName(request.getLastName());
+        userService.update(authUser);
+    }
+
+
+    @Transactional
     public void changeUserUsername(@NonNull UserUsernameRequest request) {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
 
-        if (userService.existsByUsername(request.getNewUsername())) {
+        if (userService.existsByUsername(request.getUsername())) {
             throw new ResourceConflictException(
-                    "This username already taken: %s".formatted(request.getNewUsername()),
+                    "This username already taken: %s".formatted(request.getUsername()),
                     new FieldError("newUsername", "Это имя пользователя уже занято")
             );
         }
 
-        authUser.updateUsername(request.getNewUsername());
+        authUser.updateUsername(request.getUsername());
         userService.update(authUser);
     }
 
@@ -63,10 +75,22 @@ public class UserApplicationService {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User authUser = userService.getById(authInfo.getUserIdAsUUID());
 
-        passwordService.matchEncodedPassword(request.getCurrentPassword(), authUser.getPassword());
+        passwordService.ensureMatchConfirmPassword(request.getNewPassword(), request.getConfirmPassword());
+        passwordService.ensureMatchEncodedPassword(request.getPassword(), authUser.getPassword());
 
         String encodedPassword = passwordService.encodePassword(request.getNewPassword());
         authUser.updatePassword(encodedPassword);
+        userService.update(authUser);
+    }
+
+
+    @Transactional
+    public void changeUserBio(@NonNull UserBioRequest request) {
+
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+        User authUser = userService.getById(authInfo.getUserIdAsUUID());
+
+        authUser.updateBio(request.getBio());
         userService.update(authUser);
     }
 
@@ -90,9 +114,9 @@ public class UserApplicationService {
     @Transactional(readOnly = true)
     public Page<UserWithUserPhotoResponse> searchUsersByUsername(@NonNull String username, int page, int pageSize) {
 
-        jwtService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        Page<UserWithUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(username, page, pageSize);
+        Page<UserWithUserPhotoDTO> usersDto = userService.searchWithMainUserPhotoByUsername(authInfo.getUserIdAsUUID(), username, page, pageSize);
 
         return usersDto.map(userDto -> new UserWithUserPhotoResponse(
                 userDto.getUser(),
@@ -102,34 +126,73 @@ public class UserApplicationService {
 
 
     @Transactional(readOnly = true)
+    public Boolean existsByUsername(@NonNull String username) {
+        return userService.existsByUsername(username);
+    }
+
+
+    @Transactional(readOnly = true)
     public UserWithUserPhotosResponse getMyUserData() {
 
         JwtAuthentication authInfo = jwtService.getAuthInfo();
-        User user = userService.getById(authInfo.getUserIdAsUUID());
+        UserWithUserSettingsDTO userDto = userService.getWithUserSettingsById(authInfo.getUserIdAsUUID());
 
-        List<UserPhoto> userPhotos = userPhotoService.findAllByUserId(user.getId());
+        List<UserPhoto> userPhotos = userPhotoService.findAllByUserId(userDto.getUser().getId());
 
-        return new UserWithUserPhotosResponse(user, userPhotos);
+        return new UserWithUserPhotosResponse(
+                userDto.getUser(),
+                userDto.getUserSettings(),
+                userPhotos,
+                null,
+                null,
+                null
+        );
     }
 
 
     @Transactional(readOnly = true)
     public UserWithUserPhotosResponse getUserByUserId(@NonNull UUID userId) {
 
-        jwtService.getAuthInfo();
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        User targetUser = userService.getById(userId);
+        UserWithUserSettingsAndPartnerInfoDTO targetUserDto = userService.getWithUserSettingsAndPartnerInfoByIds(
+                userId,
+                authInfo.getUserIdAsUUID()
+        );
         List<UserPhoto> targetUserPhotos = userPhotoService.findAllByUserId(userId);
 
-        return new UserWithUserPhotosResponse(targetUser, targetUserPhotos);
+        return new UserWithUserPhotosResponse(
+                targetUserDto.getUser(),
+                targetUserDto.getUserSettings(),
+                targetUserPhotos,
+                targetUserDto.getIsUserBlacklisted(),
+                targetUserDto.getIsYouBlacklisted(),
+                targetUserDto.getIsContact()
+        );
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<UserWithUserPhotoResponse> findAllMyBlockedUsers(int page, int size) {
+        JwtAuthentication authInfo = jwtService.getAuthInfo();
+
+        List<UUID> blockedUserIds = userBlacklistService.findAllByUserId(authInfo.getUserIdAsUUID(), page, size)
+                .stream().map(UserBlacklist::getBlockedUserId).toList();
+
+        return userService.findAllWithMainUserPhotoByIds(blockedUserIds).stream().map(
+                dto -> new UserWithUserPhotoResponse(
+                        dto.getUser(),
+                        dto.getUserPhoto()
+                )
+        ).toList();
     }
 
 
     @Transactional
-    public void blockUserByUserId(@NonNull UserIdRequest request) {
+    public void blockUserByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 
@@ -143,10 +206,10 @@ public class UserApplicationService {
 
 
     @Transactional
-    public void unblockUserByUserId(@NonNull UserIdRequest request) {
+    public void unblockUserByUserId(@NonNull UUID userId) {
         JwtAuthentication authInfo = jwtService.getAuthInfo();
 
-        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), request.getUserId());
+        UserPairDTO userPairDTO = userService.getUserPairByIds(authInfo.getUserIdAsUUID(), userId);
         User authUser = userPairDTO.getUser1();
         User targetUser = userPairDTO.getUser2();
 

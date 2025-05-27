@@ -26,7 +26,7 @@ public class MessageService {
             @NonNull Long chatId,
             @NonNull UUID senderId,
             @NonNull String senderUsername,
-            @NonNull String content,
+            String content,
             boolean hasFiles
     ) {
         Message message = new Message(
@@ -93,6 +93,9 @@ public class MessageService {
             long timeout,
             @NonNull TimeUnit unit
     ) {
+        if (messages.isEmpty()) {
+            return;
+        }
         try {
             redisMessageRepository.rightSaveAll(chatId, messages, timeout, unit);
         } catch (Exception e) {

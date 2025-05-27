@@ -30,8 +30,8 @@ public class PasswordService {
         }
     }
 
-    public void ensureMatchConfirmPassword(@NonNull String rawPassword, @NonNull String confirmPassword) {
-        if (!rawPassword.equals(confirmPassword)) {
+    public void ensureMatchConfirmPassword(@NonNull String newPassword, @NonNull String newConfirmPassword) {
+        if (!newPassword.equals(newConfirmPassword)) {
             throw new ResourceConflictException(
                     "Incorrect confirm password",
                     new FieldError("confirmPassword", "Пароли не совпадают")

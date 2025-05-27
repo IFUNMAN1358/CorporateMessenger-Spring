@@ -2,7 +2,6 @@
   <div class="container">
     <h2 class="title">Регистрация</h2>
     <form @submit.prevent="handleSubmit">
-
       <div v-if="!showSecondStep">
         <div class="form-group">
           <label for="username">Имя пользователя</label>
@@ -12,8 +11,10 @@
             v-model="formData.username"
             @input="validateField('username')"
             :class="{ 'input-error': errors.username }"
+            :disabled="isUsernameChecking"
           />
-          <span v-if="errors.username" class="error">{{ errors.username }}</span>
+          <span v-if="isUsernameChecking" class="checking">Проверка...</span>
+          <span v-else-if="errors.username" class="error">{{ errors.username }}</span>
         </div>
 
         <div class="form-group">
@@ -56,7 +57,7 @@
           type="button"
           class="button"
           @click="proceedToSecondStep"
-          :disabled="hasFirstStepErrors"
+          :disabled="hasFirstStepErrors || isUsernameChecking"
         >
           Далее
         </button>
@@ -109,14 +110,16 @@
 </template>
 
 <script>
-
-import {fetchRegister} from "@/api/resources/auth";
+import { fetchRegister } from "@/api/resources/auth";
+import { fetchExistsByUsername } from "@/api/resources/user";
+import { debounce } from "lodash";
 
 export default {
   name: "RegisterComponent",
   data() {
     return {
       showSecondStep: false,
+      isUsernameChecking: false,
       formData: {
         username: "",
         password: "",
@@ -138,14 +141,14 @@ export default {
   computed: {
     hasFirstStepErrors() {
       return (
-          !!this.errors.username ||
-          !!this.errors.password ||
-          !!this.errors.confirmPassword ||
-          !!this.errors.registrationKey ||
-          !this.formData.username ||
-          !this.formData.password ||
-          !this.formData.confirmPassword ||
-          !this.formData.registrationKey
+        !!this.errors.username ||
+        !!this.errors.password ||
+        !!this.errors.confirmPassword ||
+        !!this.errors.registrationKey ||
+        !this.formData.username ||
+        !this.formData.password ||
+        !this.formData.confirmPassword ||
+        !this.formData.registrationKey
       );
     },
     hasSecondStepErrors() {
@@ -153,16 +156,48 @@ export default {
     },
   },
   methods: {
-    validateField(field) {
+    validateField: debounce(function (field) {
       this.errors[field] = "";
 
       if (field === "username") {
         const value = this.formData.username;
+
         if (!value) {
           this.errors.username = "Имя пользователя не может быть пустым";
-        } else if (value.length < 5 || value.length > 32) {
-          this.errors.username = "Имя пользователя должно содержать от 5 до 32 символов";
+          return;
         }
+
+        if (value.length < 5 || value.length > 32) {
+          this.errors.username = "Имя пользователя должно содержать от 5 до 32 символов";
+          return;
+        }
+
+        if (!/^[a-zA-Z]/.test(value)) {
+          this.errors.username = "Имя пользователя должно начинаться с буквы";
+          return;
+        }
+
+        if (value.startsWith("_")) {
+          this.errors.username = "Имя пользователя не должно начинаться с подчеркивания";
+          return;
+        }
+
+        if (!/^[a-zA-Z0-9_]*$/.test(value)) {
+          this.errors.username = "Имя пользователя должно содержать только буквы, цифры и подчеркивания";
+          return;
+        }
+
+        if (!/[a-zA-Z0-9]$/.test(value)) {
+          this.errors.username = "Имя пользователя должно заканчиваться буквой или цифрой";
+          return;
+        }
+
+        if (value.includes("__")) {
+          this.errors.username = "Имя пользователя не должно содержать последовательные подчеркивания";
+          return;
+        }
+
+        this.checkUsernameAvailability(value);
       }
 
       if (field === "password") {
@@ -212,6 +247,20 @@ export default {
           this.errors.lastName = "Фамилия должна содержать до 64 символов";
         }
       }
+    }, 500),
+    async checkUsernameAvailability(username) {
+      this.isUsernameChecking = true;
+      try {
+        const exists = await fetchExistsByUsername(username);
+        if (exists) {
+          this.errors.username = "Имя пользователя уже занято";
+        }
+      } catch (error) {
+        this.errors.username = "Ошибка проверки имени пользователя";
+        console.error("Ошибка проверки имени пользователя:", error);
+      } finally {
+        this.isUsernameChecking = false;
+      }
     },
     proceedToSecondStep() {
       this.validateField("username");
@@ -219,7 +268,7 @@ export default {
       this.validateField("confirmPassword");
       this.validateField("registrationKey");
 
-      if (!this.hasFirstStepErrors) {
+      if (!this.hasFirstStepErrors && !this.isUsernameChecking) {
         this.showSecondStep = true;
       }
     },
@@ -234,7 +283,7 @@ export default {
       this.clearErrors();
       try {
         await fetchRegister(this.formData);
-        this.$router.push({name: "Dashboard"});
+        this.$router.push({ name: "Dashboard" });
       } catch (error) {
         this.handleErrors(error);
       }
@@ -269,24 +318,26 @@ export default {
 <style scoped>
 .container {
   background-color: #393939;
-  border-radius: 20px;
-  padding: 20px;
-  max-width: 450px;
-  width: 100%;
-  margin: 0 auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  width: 90%;
+  max-width: 28rem;
+  min-width: 18rem;
+  margin: 2rem auto;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
   color: #f9f8f8;
+  box-sizing: border-box;
 }
 
 .title {
   text-align: center;
-  font-size: 24px;
+  font-size: clamp(1.5rem, 5vw, 1.75rem);
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   text-align: left;
 }
 
@@ -294,40 +345,51 @@ export default {
   color: #aaaaaa;
   display: block;
   font-weight: bold;
+  font-size: clamp(0.875rem, 3vw, 1rem);
+  margin-bottom: 0.5rem;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px;
+  padding: 0.75rem;
   border: 1px solid #555;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background-color: #2d2d2d;
   color: #f9f8f8;
   box-sizing: border-box;
+  font-size: clamp(0.875rem, 3vw, 1rem);
 }
 
-.input-error {
-  border-color: #ff4d4d;
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .error {
   color: #ff4d4d;
-  font-size: 12px;
-  margin-top: 5px;
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.checking {
+  color: #aaaaaa;
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+  margin-top: 0.25rem;
   display: block;
 }
 
 .button {
   width: 100%;
-  padding: 12px;
+  padding: 0.75rem;
   background-color: #2d2d2d;
   color: #f9f8f8;
-  font-size: 16px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   font-weight: bold;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
-  margin-top: 15px;
+  margin-top: 1rem;
   transition: background-color 0.3s ease;
 }
 
@@ -336,32 +398,19 @@ export default {
 }
 
 .button:disabled {
-  background-color: #555;
+  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-
-.button-back {
-  background-color: #555;
-}
-
-.button-back:hover {
-  background-color: #666;
 }
 
 .auth-link {
   text-align: center;
-  margin-top: 15px;
-  font-size: 14px;
+  margin-top: 1rem;
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
   color: #aaaaaa;
 }
 
 .auth-link span {
-  margin-right: 5px;
+  margin-right: 0.3rem;
 }
 
 .auth-link-text {
@@ -375,5 +424,66 @@ export default {
 
 .auth-link-text:hover {
   color: #cccccc;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1.5rem;
+    margin: 1rem auto;
+  }
+
+  .title {
+    font-size: clamp(1.25rem, 6vw, 1.5rem);
+  }
+
+  .form-group input,
+  .button {
+    padding: 0.6rem;
+  }
+
+  .form-group label,
+  .button,
+  .form-group input {
+    font-size: clamp(0.75rem, 4vw, 0.875rem);
+  }
+
+  .error,
+  .checking,
+  .auth-link {
+    font-size: clamp(0.625rem, 3vw, 0.75rem);
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  .container {
+    width: 85%;
+    max-width: 35rem;
+    padding: 1.75rem;
+  }
+
+  .title {
+    font-size: clamp(1.5rem, 4vw, 1.75rem);
+  }
+
+  .form-group input,
+  .button {
+    padding: 0.7rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .container {
+    max-width: 30rem;
+    padding: 2rem;
+  }
+
+  .title {
+    font-size: clamp(1.75rem, 3vw, 2rem);
+  }
+
+  .form-group input,
+  .button {
+    padding: 0.8rem;
+  }
 }
 </style>
