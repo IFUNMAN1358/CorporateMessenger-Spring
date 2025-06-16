@@ -3,10 +3,11 @@ import authStore from "@/store/authStore";
 
 export async function fetchRegister(registerForm) {
     try {
-        const jwtResponse = await axios.post('/api/auth/registration', registerForm);
+        const sessionResponse = await axios.post('/api/auth/registration', registerForm);
         await authStore.actions.login(
-            jwtResponse.data.accessToken,
-            jwtResponse.data.refreshToken
+            sessionResponse.data.sessionId,
+            sessionResponse.data.accessToken,
+            sessionResponse.data.refreshToken
         );
         return { success: true };
     } catch (error) {
@@ -17,10 +18,11 @@ export async function fetchRegister(registerForm) {
 
 export async function fetchLogin(loginForm) {
     try {
-        const jwtResponse = await axios.post('/api/auth/login', loginForm);
+        const sessionResponse = await axios.post('/api/auth/login', loginForm);
         await authStore.actions.login(
-          jwtResponse.data.accessToken,
-          jwtResponse.data.refreshToken
+            sessionResponse.data.sessionId,
+            sessionResponse.data.accessToken,
+            sessionResponse.data.refreshToken
         );
         return { success: true };
     } catch (error) {
@@ -33,7 +35,8 @@ export async function fetchLogout() {
     try {
         await axios.post('/api/auth/logout', null, {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             }
         });
         await authStore.actions.logout();

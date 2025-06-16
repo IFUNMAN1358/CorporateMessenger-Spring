@@ -5,6 +5,7 @@ import com.nagornov.CorporateMessenger.domain.model.auth.Session;
 import com.nagornov.CorporateMessenger.domain.service.auth.ExternalServiceService;
 import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.SessionProperties;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -22,6 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +33,6 @@ public class CustomSessionFilter extends OncePerRequestFilter {
     private final CookieCsrfTokenRepository cookieCsrfTokenRepository;
     private final ExternalServiceService externalServiceService;
     private final SessionService sessionService;
-    private final ExternalServiceProperties externalServiceProperties;
 
 
     @Override
@@ -45,20 +46,28 @@ public class CustomSessionFilter extends OncePerRequestFilter {
 
         if (accessToken != null && jwtRepository.validateAccessToken(accessToken)) {
 
-            String serviceName = request.getHeader(externalServiceProperties.getHeaderName().getServiceName());
+            String sessionId = request.getHeader("X-Session-Id");
+
+            if (sessionId == null || sessionId.isEmpty()) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "X-Session-Id header is missing");
+                return;
+            }
+
+            String serviceName = request.getHeader("X-Service-Name");
 
             if (serviceName == null) {
-                response.sendError(
-                        HttpServletResponse.SC_FORBIDDEN,
-                        "%s header is missing".formatted(externalServiceProperties.getHeaderName().getServiceName())
-                );
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "X-Service-Name header is missing");
                 return;
             }
 
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
 
-            Optional<Session> existingSession = sessionService.findInRedis(jwtInfoToken.getUserIdAsUUID(), serviceName);
+            Optional<Session> existingSession = sessionService.findInRedis(
+                    jwtInfoToken.getUserIdAsUUID(),
+                    UUID.fromString(sessionId),
+                    serviceName
+            );
 
             if (existingSession.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session not found");
@@ -66,7 +75,7 @@ public class CustomSessionFilter extends OncePerRequestFilter {
             }
 
             if (!isSafeMethod(request.getMethod())) {
-                String serviceApiKey = request.getHeader(externalServiceProperties.getHeaderName().getApiKey());
+                String serviceApiKey = request.getHeader("X-API-Key");
 
                 if (
                         serviceApiKey == null

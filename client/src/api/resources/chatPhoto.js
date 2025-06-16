@@ -11,7 +11,8 @@ export async function fetchUploadGroupChatPhoto(chatId, file) {
       formData,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
           "Content-Type": "multipart/form-data",
         },
       }
@@ -27,7 +28,8 @@ export async function fetchGetAllGroupChatPhotosByChatId(chatId) {
   try {
     const response = await axios.get(`/api/chat/group/${chatId}/photos`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -41,7 +43,8 @@ export async function fetchDownloadMainGroupChatPhotoByChatId(chatId, size) {
   try {
     const response = await axios.get(`/api/chat/group/${chatId}/photo/main`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         size,
@@ -62,7 +65,8 @@ export async function fetchDownloadGroupChatPhotoByChatIdAndPhotoId(chatId, phot
   try {
     const response = await axios.get(`/api/chat/group/${chatId}/photo/${photoId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         size,
@@ -86,7 +90,8 @@ export async function fetchSetMainGroupChatPhotoByChatIdAndPhotoId(chatId, photo
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -101,7 +106,8 @@ export async function fetchDeleteChatPhotoByChatIdAndPhotoId(chatId, photoId) {
   try {
     const response = await axios.delete(`/api/chat/group/${chatId}/photo/${photoId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

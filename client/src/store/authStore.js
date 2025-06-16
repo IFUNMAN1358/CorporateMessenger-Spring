@@ -4,32 +4,38 @@ import {getCookie, removeCookies, setCookies} from "@/utils/cookie";
 import router from "@/router/router";
 
 const authState = reactive({
-    accessToken: null
+    accessToken: null,
+    sessionId: null
 });
 
 const authActions = {
 
     initializeStore() {
         const accessToken = getCookie("accessToken");
+        const sessionId = getCookie("sessionId")
 
-        if (accessToken && !authActions.isTokenExpired(accessToken)) {
+        if (sessionId && accessToken && !authActions.isTokenExpired(accessToken)) {
           authState.accessToken = accessToken;
+          authState.sessionId = sessionId;
         } else {
           authActions.logout();
         }
     },
 
-    login(accessToken, refreshToken) {
+    login(sessionId, accessToken, refreshToken) {
         authState.accessToken = accessToken;
+        authState.sessionId = sessionId;
         setCookies({
-          'accessToken': accessToken,
-          'refreshToken': refreshToken
+            'sessionId': sessionId,
+            'accessToken': accessToken,
+            'refreshToken': refreshToken
         });
     },
 
     logout() {
         authState.accessToken = null;
-        removeCookies('accessToken', 'refreshToken');
+        authState.sessionId = null;
+        removeCookies('sessionId', 'accessToken', 'refreshToken');
         router.push({ name: 'Login' }).catch(() => {});
     },
 

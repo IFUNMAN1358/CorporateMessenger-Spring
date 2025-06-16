@@ -3,7 +3,6 @@ package com.nagornov.CorporateMessenger.infrastructure.security.filter;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.auth.Session;
 import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
 import com.nagornov.CorporateMessenger.infrastructure.security.repository.JwtRepository;
 import com.nagornov.CorporateMessenger.infrastructure.security.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -19,12 +18,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class SessionChannelInterceptor implements ChannelInterceptor {
 
-    private final ExternalServiceProperties externalServiceProperties;
     private final JwtRepository jwtRepository;
     private final SessionService sessionService;
 
@@ -38,19 +37,25 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
             List<String> authHeader = accessor.getNativeHeader("Authorization");
-            List<String> serviceNameHeader = accessor.getNativeHeader(
-                    externalServiceProperties.getHeaderName().getServiceName()
-            );
+            List<String> sessionIdHeader = accessor.getNativeHeader("X-Session-Id");
+            List<String> serviceNameHeader = accessor.getNativeHeader("X-Service-Name");
 
             String accessToken = authHeader != null && !authHeader.isEmpty()
-                ? JwtUtils.getTokenFromAuthorizationHeader(authHeader.getFirst())
-                : null;
+                    ? JwtUtils.getTokenFromAuthorizationHeader(authHeader.getFirst())
+                    : null;
+            String sessionId = sessionIdHeader != null && !sessionIdHeader.isEmpty()
+                    ? sessionIdHeader.getFirst()
+                    : null;
             String serviceName = serviceNameHeader != null && !serviceNameHeader.isEmpty()
-                ? serviceNameHeader.getFirst()
-                : null;
+                    ? serviceNameHeader.getFirst()
+                    : null;
 
             if (accessToken == null || !jwtRepository.validateAccessToken(accessToken)) {
                 throw new SecurityException("Invalid or missing token");
+            }
+
+            if (sessionId == null) {
+                throw new SecurityException("Missing X-Session-Id");
             }
 
             if (serviceName == null) {
@@ -60,7 +65,9 @@ public class SessionChannelInterceptor implements ChannelInterceptor {
             Claims claims = jwtRepository.getAccessClaims(accessToken);
             JwtAuthentication jwtInfoToken = JwtUtils.generateAccessInfo(claims);
             Optional<Session> existingSession = sessionService.findInRedis(
-                jwtInfoToken.getUserIdAsUUID(), serviceName
+                    jwtInfoToken.getUserIdAsUUID(),
+                    UUID.fromString(sessionId),
+                    serviceName
             );
 
             if (existingSession.isPresent() && existingSession.get().getAccessToken().equals(accessToken)) {

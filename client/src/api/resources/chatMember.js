@@ -5,7 +5,8 @@ export async function fetchGetGroupChatMembers(chatId, page, size) {
   try {
     const response = await axios.get(`/api/chat/group/${chatId}/members`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         page,
@@ -23,7 +24,8 @@ export async function fetchGetAvailableUsersToAdding(chatId, page, size) {
   try {
     const response = await axios.get(`/api/chat/group/${chatId}/members/available`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         page,
@@ -44,7 +46,8 @@ export async function fetchAddMembersToGroupChat(chatId, userIds) {
       { userIds },
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
           "Content-Type": "application/json",
         },
       }
@@ -60,7 +63,8 @@ export async function fetchDeleteMembersFromGroupChat(chatId, userIds) {
   try {
     const response = await axios.delete(`/api/chat/group/${chatId}/members`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId,
         "Content-Type": "application/json",
       },
       data: { userIds },
@@ -77,7 +81,8 @@ export async function fetchLeaveFromGroupChat(chatId) {
   try {
     const response = await axios.delete(`/api/chat/group/${chatId}/leave`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

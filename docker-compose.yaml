@@ -29,7 +29,6 @@ services:
       - app
     networks:
       - vue-net
-      - cm-ngrok-net
 
   app:
     container_name: app

@@ -3,6 +3,7 @@ package com.nagornov.CorporateMessenger.domain.service.auth;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceConflictException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.auth.Session;
+import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.SessionProperties;
 import com.nagornov.CorporateMessenger.infrastructure.persistence.redis.repository.RedisSessionRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +20,15 @@ import java.util.concurrent.TimeUnit;
 public class SessionService {
 
     private final RedisSessionRepository redisSessionRepository;
+    private final SessionProperties sessionProperties;
 
-    public Session saveToRedis(
+    public void saveToRedis(
             @NonNull UUID userId,
+            @NonNull UUID sessionId,
             @NonNull String externalServiceName,
             @NonNull String accessToken,
             @NonNull String refreshToken,
-            String csrfToken,
-            long timeout,
-            @NonNull TimeUnit timeUnit
+            String csrfToken
     ) {
         try {
             Session session = new Session(
@@ -37,16 +38,26 @@ public class SessionService {
                     Instant.now(),
                     Instant.now()
             );
-            redisSessionRepository.saveExpire(userId, externalServiceName, session, timeout, timeUnit);
-            return session;
+            redisSessionRepository.saveExpire(
+                    userId,
+                    sessionId,
+                    externalServiceName,
+                    session,
+                    sessionProperties.getExpire(),
+                    TimeUnit.SECONDS
+            );
         } catch (Exception e) {
             throw new ResourceConflictException(e.getMessage());
         }
     }
 
-    public void deleteFromRedis(@NonNull UUID userId, @NonNull String externalServiceName) {
+    public void deleteFromRedis(
+            @NonNull UUID userId,
+            @NonNull UUID sessionId,
+            @NonNull String externalServiceName
+    ) {
         try {
-            redisSessionRepository.delete(userId, externalServiceName);
+            redisSessionRepository.delete(userId, sessionId, externalServiceName);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }
@@ -60,9 +71,13 @@ public class SessionService {
         }
     }
 
-    public Optional<Session> findInRedis(@NonNull UUID userId, @NonNull String externalServiceName) {
+    public Optional<Session> findInRedis(
+            @NonNull UUID userId,
+            @NonNull UUID sessionId,
+            @NonNull String externalServiceName
+    ) {
         try {
-            return redisSessionRepository.find(userId, externalServiceName);
+            return redisSessionRepository.find(userId, sessionId, externalServiceName);
         } catch (Exception e) {
             throw new ResourceNotFoundException(e.getMessage());
         }

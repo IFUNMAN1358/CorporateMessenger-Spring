@@ -20,7 +20,8 @@ export async function fetchCreateMessage(chatId, content, files = []) {
 
   const response = await axios.post(`/api/chat/${chatId}/message`, formData, {
     headers: {
-      Authorization: `Bearer ${authStore.state.accessToken}`,
+      'Authorization': `Bearer ${authStore.state.accessToken}`,
+      'X-Session-Id': authStore.state.sessionId,
       'Content-Type': 'multipart/form-data'
     },
   });
@@ -31,7 +32,8 @@ export async function fetchGetAllMessages(chatId, page, size) {
   try {
     const response = await axios.get(`/api/chat/${chatId}/messages`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         page,
@@ -51,8 +53,8 @@ export async function fetchDownloadMessageFile(chatId, messageId, fileId, size) 
       `/api/chat/${chatId}/message/${messageId}/file/${fileId}`,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
-          'X-Service-Name': process.env.VUE_APP_BACK_X_SERVICE_NAME,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
         params: {
           size: size
@@ -77,7 +79,8 @@ export async function fetchReadMessage(chatId, messageId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -97,7 +100,8 @@ export async function fetchUpdateMessageContent(chatId, messageId, newContent) {
       },
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
           "Content-Type": "application/json",
         },
       }
@@ -113,7 +117,8 @@ export async function fetchDeleteMessage(chatId, messageId) {
   try {
     const response = await axios.delete(`/api/chat/${chatId}/message/${messageId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

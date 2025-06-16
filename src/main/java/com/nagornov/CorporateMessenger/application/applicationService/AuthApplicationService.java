@@ -1,10 +1,11 @@
 package com.nagornov.CorporateMessenger.application.applicationService;
 
-import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
+import com.nagornov.CorporateMessenger.application.dto.auth.SessionResponse;
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
 import com.nagornov.CorporateMessenger.domain.enums.model.RoleName;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestException;
+import com.nagornov.CorporateMessenger.domain.exception.ResourceForbiddenException;
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.auth.JwtAuthentication;
 import com.nagornov.CorporateMessenger.domain.model.user.RegistrationKey;
@@ -13,7 +14,6 @@ import com.nagornov.CorporateMessenger.domain.model.user.User;
 import com.nagornov.CorporateMessenger.domain.service.auth.*;
 import com.nagornov.CorporateMessenger.domain.service.user.*;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,6 @@ public class AuthApplicationService {
 
     private final ExternalServiceProperties externalServiceProperties;
     private final ExternalServiceService externalServiceService;
-    private final JwtProperties jwtProperties;
     private final UserService userService;
     private final UserSettingsService userSettingsService;
     private final RoleService roleService;
@@ -44,7 +43,7 @@ public class AuthApplicationService {
 
 
     @Transactional
-    public JwtResponse registration(
+    public SessionResponse registration(
             @NonNull HttpServletRequest servletReq,
             @NonNull HttpServletResponse servletRes,
             @NonNull RegistrationRequest request
@@ -73,27 +72,27 @@ public class AuthApplicationService {
         userSettingsService.create(user.getId());
         employeeService.create(user.getId());
 
-        CsrfToken csrfToken = csrfService.generateToken(servletReq);
+        UUID sessionId = UUID.randomUUID();
         String accessToken = jwtService.generateAccessToken(user, List.of(role));
         String refreshToken = jwtService.generateRefreshToken(user);
+        CsrfToken csrfToken = csrfService.generateToken(servletReq);
 
         sessionService.saveToRedis(
                 user.getId(),
+                sessionId,
                 servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()),
                 accessToken,
                 refreshToken,
-                csrfToken.getToken(),
-                jwtProperties.getRefreshExpire(),
-                TimeUnit.SECONDS
+                csrfToken.getToken()
         );
 
         csrfService.saveToken(csrfToken, servletReq, servletRes); // save csrf token in cookie
-        return new JwtResponse(accessToken, refreshToken); // return jwt response
+        return new SessionResponse(sessionId, accessToken, refreshToken); // return session response
     }
 
 
     @Transactional
-    public JwtResponse login(
+    public SessionResponse login(
             @NonNull HttpServletRequest servletReq,
             @NonNull HttpServletResponse servletRes,
             @NonNull LoginRequest request
@@ -107,22 +106,22 @@ public class AuthApplicationService {
 
         List<Role> roles = roleService.findAllByUserId(user.getId());
 
-        CsrfToken csrfToken = csrfService.generateToken(servletReq);
+        UUID sessionId = UUID.randomUUID();
         String accessToken = jwtService.generateAccessToken(user, roles);
         String refreshToken = jwtService.generateRefreshToken(user);
+        CsrfToken csrfToken = csrfService.generateToken(servletReq);
 
         sessionService.saveToRedis(
                 user.getId(),
+                sessionId,
                 servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()),
                 accessToken,
                 refreshToken,
-                csrfToken.getToken(),
-                jwtProperties.getRefreshExpire(),
-                TimeUnit.SECONDS
+                csrfToken.getToken()
         );
 
         csrfService.saveToken(csrfToken, servletReq, servletRes); // save csrf token in cookie
-        return new JwtResponse(accessToken, refreshToken); // return jwt response
+        return new SessionResponse(sessionId, accessToken, refreshToken); // return session response
     }
 
 
@@ -133,11 +132,18 @@ public class AuthApplicationService {
     ) {
         verifyClientServiceHeader(servletReq);
 
+        String sessionId = servletReq.getHeader("X-Session-Id");
+
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw new ResourceForbiddenException("X-Session-Id header is missing");
+        }
+
         JwtAuthentication authInfo = jwtService.getAuthInfo();
         User user = userService.getById(authInfo.getUserIdAsUUID());
 
         sessionService.deleteFromRedis(
                 user.getId(),
+                UUID.fromString(sessionId),
                 servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName())
         );
     }

@@ -2,7 +2,7 @@ package com.nagornov.CorporateMessenger.application.controller;
 
 import com.nagornov.CorporateMessenger.application.dto.auth.LoginRequest;
 import com.nagornov.CorporateMessenger.application.dto.auth.RegistrationRequest;
-import com.nagornov.CorporateMessenger.application.dto.auth.JwtResponse;
+import com.nagornov.CorporateMessenger.application.dto.auth.SessionResponse;
 import com.nagornov.CorporateMessenger.application.applicationService.AuthApplicationService;
 import com.nagornov.CorporateMessenger.domain.exception.BindingErrorException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +30,7 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> registration(
+    ResponseEntity<SessionResponse> registration(
             HttpServletRequest servletReq,
             HttpServletResponse servletRes,
             @Valid @RequestBody RegistrationRequest request,
@@ -39,7 +39,7 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("RegistrationRequest validation error", bindingResult);
         }
-        JwtResponse response = authApplicationService.registration(servletReq, servletRes, request);
+        SessionResponse response = authApplicationService.registration(servletReq, servletRes, request);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -49,7 +49,7 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<JwtResponse> login(
+    ResponseEntity<SessionResponse> login(
             HttpServletRequest servletReq,
             HttpServletResponse servletRes,
             @RequestBody LoginRequest request,
@@ -58,7 +58,7 @@ public class AuthController {
         if (bindingResult.hasErrors()) {
             throw new BindingErrorException("LoginRequest validation error", bindingResult);
         }
-        JwtResponse response = authApplicationService.login(servletReq, servletRes, request);
+        SessionResponse response = authApplicationService.login(servletReq, servletRes, request);
         return ResponseEntity.status(200).body(response);
     }
 

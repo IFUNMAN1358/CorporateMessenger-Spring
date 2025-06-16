@@ -7,7 +7,8 @@ export async function fetchGetMyEmployee() {
             `/api/user/employee`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -24,7 +25,8 @@ export async function fetchGetEmployeeByUserId(userId) {
             `/api/user/${userId}/employee`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -42,7 +44,8 @@ export async function fetchUpdateMyEmployee(data) {
             data,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -59,7 +62,8 @@ export async function fetchClearMyEmployee() {
             `/api/user/employee`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );

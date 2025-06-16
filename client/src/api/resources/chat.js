@@ -8,7 +8,8 @@ export async function fetchGetOrCreatePrivateChatByUserId(userId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -29,7 +30,8 @@ export async function fetchCreateGroupChat(title, username) {
         },
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
           "Content-Type": "application/json",
         },
       }
@@ -47,7 +49,8 @@ export async function fetchExistsGroupChatByUsername(username) {
       "/api/chat/group/exists-username",
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
           "Content-Type": "application/json",
         },
         params: {
@@ -66,7 +69,8 @@ export async function fetchGetChat(chatId) {
   try {
     const response = await axios.get(`/api/chat/${chatId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -80,7 +84,8 @@ export async function fetchGetAllChats() {
   try {
     const response = await axios.get("/api/chats", {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -99,7 +104,8 @@ export async function fetchChangeGroupChatTitle(chatId, title) {
         },
         {
           headers: {
-            Authorization: `Bearer ${authStore.state.accessToken}`,
+            'Authorization': `Bearer ${authStore.state.accessToken}`,
+            'X-Session-Id': authStore.state.sessionId
           },
         }
       );
@@ -118,7 +124,8 @@ export async function fetchChangeGroupChatUsername(chatId, username) {
         },
         {
           headers: {
-            Authorization: `Bearer ${authStore.state.accessToken}`,
+            'Authorization': `Bearer ${authStore.state.accessToken}`,
+            'X-Session-Id': authStore.state.sessionId
           },
         }
       );
@@ -137,7 +144,8 @@ export async function fetchChangeGroupChatDescription(chatId, description) {
         },
         {
           headers: {
-            Authorization: `Bearer ${authStore.state.accessToken}`,
+            'Authorization': `Bearer ${authStore.state.accessToken}`,
+            'X-Session-Id': authStore.state.sessionId
           },
         }
       );
@@ -157,7 +165,8 @@ export async function fetchChangeGroupChatSettings(chatId, joinByRequest, hasHid
         },
         {
           headers: {
-            Authorization: `Bearer ${authStore.state.accessToken}`,
+            'Authorization': `Bearer ${authStore.state.accessToken}`,
+            'X-Session-Id': authStore.state.sessionId
           },
         }
       );
@@ -171,7 +180,8 @@ export async function fetchDeleteChatByChatId(chatId) {
   try {
     const response = await axios.delete(`/api/chat/${chatId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

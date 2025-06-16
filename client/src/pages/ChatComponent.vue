@@ -1,7 +1,7 @@
 <template>
   <div class="chat-container">
-    <header v-if="chatData" class="chat-header">
-      <button class="back-button" @click="goBackToDashboard">← Назад</button>
+    <header class="chat-header" v-if="chatData">
+      <button class="back-button" @click="goBackToDashboard">←</button>
       <div class="chat-info">
         <img
           :src="chatPhoto"
@@ -98,9 +98,6 @@
     </div>
 
     <footer class="message-footer">
-      <div v-if="isFileError" class="file-error">
-        {{ fileErrorMessage }}
-      </div>
       <div v-if="selectedFiles.length > 0" class="file-modal">
         <header class="file-modal-header">
           <h3 class="file-modal-title">Выбранные файлы</h3>
@@ -129,7 +126,9 @@
           </div>
         </div>
       </div>
-
+      <div v-if="isFileError" class="file-error">
+        {{ fileErrorMessage }}
+      </div>
       <div class="input-container">
         <input
           type="file"
@@ -250,6 +249,7 @@ export default {
 
     this.$nextTick(() => {
       this.observeMessages();
+      this.scrollToBottom();
     });
   },
   beforeUnmount() {
@@ -422,8 +422,9 @@ export default {
       this.stompClient = new Client({
         brokerURL,
         connectHeaders: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
-          'X-Service-Name': process.env.VUE_APP_BACK_X_SERVICE_NAME,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId,
+          'X-Service-Name': process.env.VUE_APP_BACK_X_SERVICE_NAME
         },
         reconnectDelay: 3000,
         onConnect: () => {
@@ -678,7 +679,7 @@ export default {
       this.fileErrorMessage = '';
 
       const maxFiles = 10;
-      const maxSize = 5 * 1024 * 1024;
+      const maxSize = 200 * 1024 * 1024;
       const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'application/pdf'];
 
       if (this.selectedFiles.length + files.length > maxFiles) {
@@ -695,7 +696,7 @@ export default {
         }
         if (file.size > maxSize) {
           this.isFileError = true;
-          this.fileErrorMessage = `Файл ${file.name} слишком большой (максимум 5 МБ)`;
+          this.fileErrorMessage = `Файл ${file.name} слишком большой (максимум 200 МБ)`;
           return false;
         }
         return true;
@@ -796,7 +797,10 @@ export default {
       this.$nextTick(() => {
         const container = this.$refs.messagesContainer;
         if (container) {
-          container.scrollTop = container.scrollHeight;
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'auto'
+          });
         }
       });
     },
@@ -860,7 +864,9 @@ export default {
         await fetchCreateMessage(this.chatId, this.newMessage, filesToSend);
         this.newMessage = '';
         this.clearFiles();
-        this.scrollToBottom();
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         this.isFileError = true;
@@ -884,6 +890,9 @@ export default {
         await fetchUpdateMessageContent(this.chatId, this.editingMessageId, this.newMessage);
         this.editingMessageId = null;
         this.newMessage = '';
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
       } catch (error) {
         console.error('Ошибка при сохранении сообщения:', error);
         this.isFileError = true;
@@ -1316,8 +1325,127 @@ export default {
   width: 100%;
   max-width: 800px;
   z-index: 10;
+  box-sizing: border-box;
+}
+
+.file-modal {
+  width: 100%;
+  max-width: 760px;
+  background-color: #2b2b2b;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  color: #f9f9f9;
+  margin-bottom: 10px;
+}
+
+.file-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #333;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.file-modal-title {
+  font-size: clamp(0.875rem, 3vw, 1rem);
+  font-weight: bold;
+  color: #f9f9f9;
+}
+
+.file-modal-close {
+  background: none;
+  border: none;
+  color: #f9f9f9;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  cursor: pointer;
+}
+
+.file-modal-close:hover {
+  color: #d9534f;
+}
+
+.file-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: 100px;
+  white-space: nowrap;
+}
+
+.file-grid-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 80px;
   height: 80px;
   box-sizing: border-box;
+  background-color: #444;
+  border: 1px solid #555;
+  border-radius: 6px;
+  overflow: hidden;
+  text-align: center;
+  padding: 4px;
+}
+
+.file-preview-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.file-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.file-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: #f9f9f9;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.file-remove:hover {
+  background: #d9534f;
+}
+
+.file-name-container {
+  position: relative;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.file-name {
+  font-size: clamp(0.625rem, 2vw, 0.75rem);
+  color: #f9f9f9;
+  word-break: break-word;
+  text-align: center;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .file-error {
@@ -1330,10 +1458,13 @@ export default {
 .input-container {
   display: flex;
   align-items: center;
-  width: 95%;
+  width: 100%;
+  max-width: 760px;
   background-color: #444;
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 5px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .message-input {
@@ -1343,6 +1474,9 @@ export default {
   background-color: transparent;
   border: none;
   outline: none;
+  padding: 0 10px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .hidden-file-input {
@@ -1350,19 +1484,21 @@ export default {
 }
 
 .file-icon {
-  margin-right: 10px;
+  margin: 0 5px;
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   color: #f9f8f8;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .send-icon {
-  margin-left: 10px;
+  margin: 0 5px;
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   color: #f9f8f8;
   background: none;
   border: none;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .send-icon:disabled {
@@ -1377,8 +1513,10 @@ export default {
   background: rgba(0, 0, 0, 0.5);
   position: fixed;
   top: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
+  max-width: 800px;
   height: 100%;
   z-index: 1000;
   overflow: hidden;
@@ -1433,118 +1571,6 @@ export default {
   background: rgba(70, 70, 70, 1);
 }
 
-.file-modal {
-  padding: 15px;
-  background-color: #2b2b2b;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  color: #f9f9f9;
-  margin-bottom: 10px;
-}
-
-.file-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.file-modal-title {
-  font-size: clamp(0.875rem, 3vw, 1rem);
-  font-weight: bold;
-  color: #f9f9f9;
-}
-
-.file-modal-close {
-  background: none;
-  border: none;
-  color: #f9f9f9;
-  font-size: clamp(1rem, 3vw, 1.25rem);
-  cursor: pointer;
-}
-
-.file-modal-close:hover {
-  color: #d9534f;
-}
-
-.file-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-.file-grid-item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 calc(25% - 8px);
-  max-width: calc(25% - 8px);
-  aspect-ratio: 1/1;
-  max-height: 60px;
-  box-sizing: border-box;
-  background-color: #444;
-  border: 1px solid #555;
-  border-radius: 6px;
-  overflow: hidden;
-  text-align: center;
-  padding: 4px;
-}
-
-.file-preview-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.file-preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.file-remove {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: rgba(0, 0, 0, 0.7);
-  border: none;
-  color: #f9f9f9;
-  font-size: 12px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.file-remove:hover {
-  background: #d9534f;
-}
-
-.file-name-container {
-  position: relative;
-  padding: 3px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.file-name {
-  font-size: clamp(0.625rem, 2vw, 0.75rem);
-  color: #f9f9f9;
-  word-break: break-word;
-  text-align: center;
-  margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 @media (max-width: 768px) {
   .chat-container {
     width: 100%;
@@ -1577,13 +1603,11 @@ export default {
     max-width: calc(50% - 8px);
     min-width: 70px;
     max-height: 70px;
-    aspect-ratio: 1/1;
   }
 
   .file-item:only-child {
     max-width: 100px;
     max-height: 100px;
-    aspect-ratio: 1/1;
   }
 
   .file-image {
@@ -1592,36 +1616,62 @@ export default {
   }
 
   .file-placeholder {
-    font-size: clamp(0.5625rem, 1.8vw, 0.6875rem);
-    padding: 3px;
+    font-size: clamp(0.625rem, 1.8vw, 0.6875rem);
+    padding: 2px;
   }
 
-  .file-icon {
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
-    margin-bottom: 3px;
+  .message-footer {
+    padding: 10px;
+    max-width: 100%;
+  }
+
+  .file-modal {
+    max-width: 100%;
+  }
+
+  .file-grid {
+    max-height: 80px;
   }
 
   .file-grid-item {
-    flex: 1 1 calc(50% - 8px);
-    max-width: calc(50% - 8px);
-    max-height: 50px;
-    aspect-ratio: 1/1;
+    flex: 0 0 60px;
+    height: 60px;
+  }
+
+  .file-preview-container {
+    width: 100%;
+    height: 100%;
   }
 
   .file-preview {
     width: 100%;
     height: 100%;
+    object-fit: cover;
   }
 
   .file-name {
     font-size: clamp(0.5625rem, 1.8vw, 0.6875rem);
-    margin-top: 3px;
+    -webkit-line-clamp: 2;
   }
 
-  .message-footer {
-    padding: 10px;
-    height: 60px;
+  .input-container {
+    padding: 3px;
     max-width: 100%;
+    overflow: hidden;
+  }
+
+  .message-input {
+    padding: 0 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-icon {
+    margin: 0 3px;
+  }
+
+  .send-icon {
+    margin: 0 3px;
   }
 }
 </style>

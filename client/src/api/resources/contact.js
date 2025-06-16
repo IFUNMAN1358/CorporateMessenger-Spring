@@ -8,7 +8,8 @@ export async function fetchAddContactByUserId(userId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -23,7 +24,8 @@ export async function fetchFindContactByUserId(userId) {
   try {
     const response = await axios.get(`/api/user/${userId}/contact`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -41,7 +43,8 @@ export async function fetchFindAllMyContactUsers(page, size) {
         size: size
       },
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -59,7 +62,8 @@ export async function fetchFindAllContactUsersByUserId(userId, page, size) {
         size: size
       },
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     return response.data;
@@ -76,7 +80,8 @@ export async function fetchConfirmContactByUserId(userId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -94,7 +99,8 @@ export async function fetchRejectContactByUserId(userId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -109,7 +115,8 @@ export async function fetchDeleteContactByUserId(userId) {
   try {
     const response = await axios.delete(`/api/user/${userId}/contact`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

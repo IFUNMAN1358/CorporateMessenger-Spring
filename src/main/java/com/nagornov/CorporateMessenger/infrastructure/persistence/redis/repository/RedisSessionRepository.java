@@ -23,15 +23,17 @@ public class RedisSessionRepository {
     private final RedisTemplate<String, RedisSessionEntity> redisSessionTemplate;
     private final RedisSessionMapper redisSessionMapper;
 
+
     public void saveExpire(
             UUID userId,
+            UUID sessionId,
             String externalServiceName,
             Session session,
             long timeout,
             TimeUnit timeUnit
     ) {
         String key = "%s:%s".formatted(SESSION, userId);
-        String field = "%s:%s:%s".formatted(SESSION, userId, externalServiceName);
+        String field = "%s:%s:%s:%s".formatted(SESSION, userId, sessionId, externalServiceName);
 
         redisSessionTemplate.opsForHash().put(
                 key,
@@ -41,20 +43,31 @@ public class RedisSessionRepository {
         redisSessionTemplate.expire(key, timeout, timeUnit);
     }
 
-    public void delete(UUID userId, String externalServiceName) {
+
+    public void delete(
+            UUID userId,
+            UUID sessionId,
+            String externalServiceName
+    ) {
         String key = "%s:%s".formatted(SESSION, userId);
-        String field = "%s:%s:%s".formatted(SESSION, userId, externalServiceName);
+        String field = "%s:%s:%s:%s".formatted(SESSION, userId, sessionId, externalServiceName);
         redisSessionTemplate.opsForHash().delete(key, field);
     }
+
 
     public void deleteAll(UUID userId) {
         String key = "%s:%s".formatted(SESSION, userId);
         redisSessionTemplate.delete(key);
     }
 
-    public Optional<Session> find(UUID userId, String externalServiceName) {
+
+    public Optional<Session> find(
+            UUID userId,
+            UUID sessionId,
+            String externalServiceName
+    ) {
         String key = "%s:%s".formatted(SESSION, userId);
-        String field = "%s:%s:%s".formatted(SESSION, userId, externalServiceName);
+        String field = "%s:%s:%s:%s".formatted(SESSION, userId, sessionId, externalServiceName);
 
         RedisSessionEntity entity = (RedisSessionEntity) redisSessionTemplate.opsForHash().get(key, field);
 
@@ -65,6 +78,7 @@ public class RedisSessionRepository {
         Session session = redisSessionMapper.toDomain(entity);
         return Optional.of(session);
     }
+
 
     public Map<String, Session> findAll(UUID userId) {
         String key = "%s:%s".formatted(SESSION, userId);
@@ -78,5 +92,4 @@ public class RedisSessionRepository {
         }
         return sessions;
     }
-
 }

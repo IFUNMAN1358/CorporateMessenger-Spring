@@ -9,6 +9,7 @@ export async function fetchUploadMyUserPhoto(formData) {
         {
             headers: {
                 'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId,
                 'Content-Type': 'multipart/form-data'
             }
         }
@@ -26,7 +27,8 @@ export async function fetchDownloadMyMainUserPhoto(size) {
         `/api/user/photo/main`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             },
             params: {
                 size
@@ -50,7 +52,8 @@ export async function fetchDownloadMyUserPhotoByPhotoId(photoId, size) {
         `/api/user/photo/${photoId}`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             },
             params: {
                 size
@@ -74,7 +77,8 @@ export async function fetchDownloadMainUserPhotoByUserId(userId, size) {
       `/api/user/${userId}/photo/main`,
       {
         headers: {
-          'Authorization': `Bearer ${authStore.state.accessToken}`
+            'Authorization': `Bearer ${authStore.state.accessToken}`,
+            'X-Session-Id': authStore.state.sessionId
         },
         params: {
           size
@@ -98,7 +102,8 @@ export async function fetchDownloadUserPhotoByUserIdAndPhotoId(userId, photoId, 
         `/api/user/${userId}/photo/${photoId}`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             },
             params: {
                 size
@@ -123,7 +128,8 @@ export async function fetchSetMyMainUserPhotoByPhotoId(photoId) {
         null,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             }
         }
     );
@@ -140,7 +146,8 @@ export async function fetchDeleteMyUserPhotoByPhotoId(photoId) {
         `/api/user/photo/${photoId}`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             }
         }
     );

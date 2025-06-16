@@ -9,6 +9,7 @@ export async function fetchUploadOrUpdateMyEmployeePhoto(formData) {
         {
             headers: {
                 'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId,
                 'Content-Type': 'multipart/form-data'
             }
         }
@@ -26,7 +27,8 @@ export async function fetchDownloadMyEmployeePhoto(size) {
         `/api/user/employee/photo`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             },
             params: {
                 size
@@ -50,7 +52,8 @@ export async function fetchDownloadEmployeePhotoByUserId(userId, size) {
         `/api/user/${userId}/employee/photo`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             },
             params: {
                 size
@@ -74,7 +77,8 @@ export async function fetchDeleteMyEmployeePhoto() {
         `/api/user/employee/photo`,
         {
             headers: {
-                'Authorization': `Bearer ${authStore.state.accessToken}`
+                'Authorization': `Bearer ${authStore.state.accessToken}`,
+                'X-Session-Id': authStore.state.sessionId
             }
         }
     );

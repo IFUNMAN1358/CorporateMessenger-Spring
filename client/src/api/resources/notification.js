@@ -5,7 +5,8 @@ export async function fetchGetNotifications(category, page, size) {
   try {
     const response = await axios.get("/api/user/notifications", {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
       params: {
         category,
@@ -27,7 +28,8 @@ export async function fetchProcessNotificationByNotId(notificationId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -45,7 +47,8 @@ export async function fetchReadNotificationByNotId(notificationId) {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -63,7 +66,8 @@ export async function fetchReadAllNotifications() {
       null,
       {
         headers: {
-          Authorization: `Bearer ${authStore.state.accessToken}`,
+          'Authorization': `Bearer ${authStore.state.accessToken}`,
+          'X-Session-Id': authStore.state.sessionId
         },
       }
     );
@@ -78,7 +82,8 @@ export async function fetchDeleteNotificationByNotId(notificationId) {
   try {
     const response = await axios.delete(`/api/user/notification/${notificationId}`, {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);
@@ -93,7 +98,8 @@ export async function fetchDeleteAllNotifications() {
   try {
     const response = await axios.delete("/api/user/notifications", {
       headers: {
-        Authorization: `Bearer ${authStore.state.accessToken}`,
+        'Authorization': `Bearer ${authStore.state.accessToken}`,
+        'X-Session-Id': authStore.state.sessionId
       },
     });
     console.info(response.data);

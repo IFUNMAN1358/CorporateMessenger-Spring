@@ -6,14 +6,10 @@ import com.nagornov.CorporateMessenger.domain.exception.ResourceBadRequestExcept
 import com.nagornov.CorporateMessenger.domain.exception.ResourceNotFoundException;
 import com.nagornov.CorporateMessenger.domain.model.user.Role;
 import com.nagornov.CorporateMessenger.domain.model.user.User;
-import com.nagornov.CorporateMessenger.domain.service.auth.ExternalServiceService;
-import com.nagornov.CorporateMessenger.domain.service.auth.JwtService;
-import com.nagornov.CorporateMessenger.domain.service.auth.PasswordService;
-import com.nagornov.CorporateMessenger.domain.service.auth.SessionService;
+import com.nagornov.CorporateMessenger.domain.service.auth.*;
 import com.nagornov.CorporateMessenger.domain.service.user.RoleService;
 import com.nagornov.CorporateMessenger.domain.service.user.UserService;
 import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.ExternalServiceProperties;
-import com.nagornov.CorporateMessenger.infrastructure.configuration.properties.JwtProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -22,14 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ExternalAuthApplicationService {
 
     private final SessionService sessionService;
-    private final JwtProperties jwtProperties;
     private final ExternalServiceProperties externalServiceProperties;
     private final ExternalServiceService externalServiceService;
     private final UserService userService;
@@ -53,20 +48,20 @@ public class ExternalAuthApplicationService {
 
         List<Role> roles = roleService.findAllByUserId(user.getId());
 
+        UUID sessionId = UUID.randomUUID();
         String accessToken = jwtService.generateAccessToken(user, roles);
         String refreshToken = jwtService.generateRefreshToken(user);
 
         sessionService.saveToRedis(
                 user.getId(),
+                sessionId,
                 servletReq.getHeader(externalServiceProperties.getHeaderName().getServiceName()),
                 accessToken,
                 refreshToken,
-                null,
-                jwtProperties.getRefreshExpire(),
-                TimeUnit.SECONDS
+                null
         );
 
-        return new ExternalAuthResponse(accessToken, refreshToken, user, roles);
+        return new ExternalAuthResponse(sessionId, accessToken, refreshToken, user, roles);
     }
 
 

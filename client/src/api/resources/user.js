@@ -11,7 +11,8 @@ export async function fetchChangeUserFirstNameAndLastName(firstName, lastName) {
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -31,7 +32,8 @@ export async function fetchChangeUserUsername(username) {
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -53,7 +55,8 @@ export async function fetchChangeUserPassword(password, newPassword, confirmPass
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -73,7 +76,8 @@ export async function fetchChangeUserBio(bio) {
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -90,7 +94,8 @@ export async function fetchSearchUsersByUsername(username, page, size) {
             `/api/user/search`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 },
                 params: {
                     username,
@@ -131,7 +136,8 @@ export async function fetchGetMyUserData() {
             `/api/user`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -148,7 +154,8 @@ export async function fetchGetUserByUserId(userId) {
             `/api/user/${userId}`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -169,7 +176,8 @@ export async function fetchFindAllMyBlockedUsers(page, size) {
                     size: size
                 },
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -187,7 +195,8 @@ export async function fetchBlockUserByUserId(userId) {
             null,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -205,7 +214,8 @@ export async function fetchUnblockUserByUserId(userId) {
             null,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -222,7 +232,8 @@ export async function fetchSoftDeleteAccount() {
             `/api/user`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );

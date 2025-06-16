@@ -7,7 +7,8 @@ export async function fetchGetMyUserSettings() {
             `/api/user/settings`,
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
@@ -37,7 +38,8 @@ export async function fetchChangeMyUserSettings(
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${authStore.state.accessToken}`
+                    'Authorization': `Bearer ${authStore.state.accessToken}`,
+                    'X-Session-Id': authStore.state.sessionId
                 }
             }
         );
